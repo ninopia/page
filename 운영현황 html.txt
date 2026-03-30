@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연수원 운영현황 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --surface3: #1f2d44;
+    --border: #243047;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --accent3: #f59e0b;
+    --accent4: #ef4444;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(17,24,39,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 16px; }
+
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 20px rgba(59,130,246,0.4);
+  }
+
+  .header-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; font-family: 'DM Mono', monospace; }
+
+  .header-right { display: flex; align-items: center; gap: 16px; }
+
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.3);
+    font-size: 11px; color: var(--accent2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent2);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .date-tag {
+    font-size: 12px; color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Tab Navigation */
+  .tab-nav {
+    display: flex;
+    padding: 16px 32px 0;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    padding: 10px 20px;
+    border: none; cursor: pointer;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    margin-bottom: -1px;
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-btn:hover:not(.active) { color: var(--text-dim); }
+
+  /* Main Content */
+  .main { padding: 28px 32px; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Section Title */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-muted);
+  }
+
+  .section-period {
+    font-size: 11px; color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .kpi-card:hover { border-color: var(--accent); }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .kpi-card.blue::before { background: var(--accent); }
+  .kpi-card.green::before { background: var(--accent2); }
+  .kpi-card.amber::before { background: var(--accent3); }
+  .kpi-card.red::before { background: var(--accent4); }
+
+  .kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
+  .kpi-value.blue { color: var(--accent); }
+  .kpi-value.green { color: var(--accent2); }
+  .kpi-value.amber { color: var(--accent3); }
+  .kpi-value.red { color: var(--accent4); }
+
+  .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+  .kpi-change {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 11px; font-family: 'DM Mono', monospace;
+    padding: 2px 7px; border-radius: 4px; margin-top: 8px;
+  }
+
+  .kpi-change.up { background: rgba(16,185,129,0.1); color: var(--accent2); }
+  .kpi-change.down { background: rgba(239,68,68,0.1); color: var(--accent4); }
+
+  /* Charts Grid */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .charts-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .chart-title {
+    font-size: 13px; font-weight: 700; margin-bottom: 4px;
+  }
+
+  .chart-desc { font-size: 11px; color: var(--text-muted); margin-bottom: 16px; }
+
+  .chart-wrap { position: relative; }
+
+  /* Room Status Table */
+  .room-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .room-cell {
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .room-cell:hover { transform: scale(1.05); }
+  .room-cell.occupied { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); color: var(--accent); }
+  .room-cell.available { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--accent2); }
+  .room-cell.maintenance { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--accent4); }
+  .room-cell.reserved { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--accent3); }
+
+  .room-num { font-weight: 700; font-size: 13px; }
+  .room-status-label { font-size: 9px; margin-top: 2px; opacity: 0.8; }
+
+  /* Legend */
+  .legend { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* Program Table */
+  .prog-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .prog-table th {
+    text-align: left; padding: 10px 12px;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--text-muted); font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .prog-table td { padding: 12px 12px; border-bottom: 1px solid rgba(36,48,71,0.5); }
+  .prog-table tr:hover td { background: rgba(59,130,246,0.03); }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 600; font-family: 'DM Mono', monospace;
+  }
+
+  .badge.running { background: rgba(16,185,129,0.15); color: var(--accent2); }
+  .badge.planned { background: rgba(59,130,246,0.15); color: var(--accent); }
+  .badge.closed { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+
+  .progress-bar-wrap { width: 100%; background: var(--surface3); border-radius: 4px; height: 6px; margin-top: 4px; }
+  .progress-bar { height: 6px; border-radius: 4px; transition: width 0.5s ease; }
+
+  /* Finance rows */
+  .finance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .finance-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(36,48,71,0.5);
+  }
+
+  .finance-row:last-child { border-bottom: none; }
+  .finance-label { font-size: 12px; color: var(--text-dim); }
+  .finance-val { font-size: 14px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .finance-val.income { color: var(--accent2); }
+  .finance-val.expense { color: var(--accent4); }
+
+  /* Gauge */
+  .gauge-wrap { position: relative; width: 120px; height: 70px; margin: 0 auto 8px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid, .charts-grid-3, .finance-grid { grid-template-columns: 1fr; }
+    .main { padding: 16px; }
+    header { padding: 14px 16px; }
+    .tab-nav { padding: 12px 16px 0; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <div class="logo-mark">🏢</div>
+      <div>
+        <div class="header-title">연수원 운영현황 대시보드</div>
+        <div class="header-sub">TRAINING CENTER · OPERATIONS OVERVIEW</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      <div class="date-tag" id="dateTag"></div>
+    </div>
+  </header>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('room')">🏨 객실 현황</button>
+    <button class="tab-btn" onclick="switchTab('program')">📚 교육 프로그램</button>
+    <button class="tab-btn" onclick="switchTab('finance')">💰 재정 현황</button>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- ===== TAB 1: 객실 현황 ===== -->
+    <div class="tab-content active" id="tab-room">
+      <div class="section-header">
+        <span class="section-title">객실 예약 및 가동률</span>
+        <span class="section-period">2025년 1월 기준</span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">전체 객실</div>
+          <div class="kpi-value blue">50</div>
+          <div class="kpi-sub">총 보유 객실 수</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">금일 가동률</div>
+          <div class="kpi-value green">78%</div>
+          <div class="kpi-change up">▲ 5% 전월 대비</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">이번 달 예약률</div>
+          <div class="kpi-value amber">84%</div>
+          <div class="kpi-change up">▲ 2% 전월 대비</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">점검/수리 중</div>
+          <div class="kpi-value red">3</div>
+          <div class="kpi-sub">정비 필요 객실</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <!-- 월별 가동률 추이 -->
+        <div class="chart-card">
+          <div class="chart-title">월별 객실 가동률 추이</div>
+          <div class="chart-desc">최근 12개월 가동률 및 예약률 비교</div>
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="roomTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 객실 유형별 현황 -->
+        <div class="chart-card">
+          <div class="chart-title">객실 유형별 현황</div>
+          <div class="chart-desc">당일 기준 점유 현황</div>
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="roomTypeChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 객실 배치도 -->
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-title">실시간 객실 현황</div>
+        <div class="chart-desc">동관 A동 기준 · 클릭으로 상세 확인</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>입실 중</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>공실</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div>예약 확정</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent4)"></div>점검 중</div>
+        </div>
+        <div class="room-grid" id="roomGrid"></div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 2: 교육 프로그램 ===== -->
+    <div class="tab-content" id="tab-program">
+      <div class="section-header">
+        <span class="section-title">교육 프로그램 운영 현황</span>
+        <span class="section-period">2025년 1분기</span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">운영 중 프로그램</div>
+          <div class="kpi-value blue">8</div>
+          <div class="kpi-change up">▲ 2 전월 대비</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">총 수료 인원</div>
+          <div class="kpi-value green">1,248</div>
+          <div class="kpi-sub">누적 기준</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">평균 만족도</div>
+          <div class="kpi-value amber">4.6</div>
+          <div class="kpi-sub">5점 만점 기준</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">평균 출석률</div>
+          <div class="kpi-value red">91%</div>
+          <div class="kpi-change down">▼ 1% 전월 대비</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <!-- 프로그램 참여 현황 -->
+        <div class="chart-card">
+          <div class="chart-title">분기별 교육 참여 인원</div>
+          <div class="chart-desc">내부 / 외부 참여자 구분</div>
+          <div class="chart-wrap" style="height:200px">
+            <canvas id="programChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 만족도 분포 -->
+        <div class="chart-card">
+          <div class="chart-title">교육 만족도 분포</div>
+          <div class="chart-desc">최근 설문 결과 기준</div>
+          <div class="chart-wrap" style="height:200px">
+            <canvas id="satisfactionChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 프로그램 목록 -->
+      <div class="chart-card">
+        <div class="chart-title">프로그램별 운영 현황</div>
+        <div class="chart-desc">2025년 1분기 기준</div>
+        <table class="prog-table">
+          <thead>
+            <tr>
+              <th>프로그램명</th>
+              <th>대상</th>
+              <th>기간</th>
+              <th>신청/정원</th>
+              <th>충원율</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="programTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== TAB 3: 재정 현황 ===== -->
+    <div class="tab-content" id="tab-finance">
+      <div class="section-header">
+        <span class="section-title">재정 / 수입 현황</span>
+        <span class="section-period">2025년 1월 기준</span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card green">
+          <div class="kpi-label">이번 달 총 수입</div>
+          <div class="kpi-value green">4,820</div>
+          <div class="kpi-sub">단위: 만원</div>
+          <div class="kpi-change up">▲ 12% 전월 대비</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">이번 달 총 지출</div>
+          <div class="kpi-value red">2,940</div>
+          <div class="kpi-sub">단위: 만원</div>
+          <div class="kpi-change up">▲ 3% 전월 대비</div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">순이익</div>
+          <div class="kpi-value blue">1,880</div>
+          <div class="kpi-sub">단위: 만원</div>
+          <div class="kpi-change up">▲ 28% 전월 대비</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">예산 집행률</div>
+          <div class="kpi-value amber">61%</div>
+          <div class="kpi-sub">연간 예산 대비</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <!-- 월별 수입/지출 -->
+        <div class="chart-card">
+          <div class="chart-title">월별 수입 / 지출 추이</div>
+          <div class="chart-desc">2024년 하반기 ~ 2025년 1월</div>
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="financeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 수입 항목 비율 -->
+        <div class="chart-card">
+          <div class="chart-title">수입 항목별 비율</div>
+          <div class="chart-desc">이번 달 기준 구성 비율</div>
+          <div class="chart-wrap" style="height:220px">
+            <canvas id="incomeBreakChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 수입/지출 상세 -->
+      <div class="finance-grid">
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:12px">수입 상세</div>
+          <div id="incomeDetail"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:12px">지출 상세</div>
+          <div id="expenseDetail"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Date
+const now = new Date();
+document.getElementById('dateTag').textContent =
+  now.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' +
+  now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+
+// Tab Switch
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Chart defaults
+Chart.defaults.color = '#64748b';
+Chart.defaults.borderColor = '#243047';
+Chart.defaults.font.family = "'Noto Sans KR', sans-serif";
+
+const months = ['2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월'];
+
+// ========= ROOM CHARTS =========
+// 월별 가동률 추이
+new Chart(document.getElementById('roomTrendChart'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      {
+        label: '가동률',
+        data: [62, 58, 71, 76, 82, 89, 91, 85, 77, 68, 72, 78],
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.08)',
+        fill: true, tension: 0.4, borderWidth: 2,
+        pointBackgroundColor: '#3b82f6', pointRadius: 3
+      },
+      {
+        label: '예약률',
+        data: [70, 65, 79, 83, 87, 93, 95, 90, 84, 75, 80, 84],
+        borderColor: '#10b981',
+        backgroundColor: 'transparent',
+        tension: 0.4, borderWidth: 2, borderDash: [5,3],
+        pointBackgroundColor: '#10b981', pointRadius: 3
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, pointStyleWidth: 8, boxHeight: 6 } } },
+    scales: {
+      y: { min: 40, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#1a2235' } },
+      x: { grid: { color: '#1a2235' } }
+    }
+  }
+});
+
+// 객실 유형별
+new Chart(document.getElementById('roomTypeChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['1인실', '2인실', '4인실', '세미나실'],
+    datasets: [{
+      data: [18, 14, 10, 8],
+      backgroundColor: ['#3b82f6','#10b981','#f59e0b','#8b5cf6'],
+      borderColor: '#111827', borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { usePointStyle: true, pointStyleWidth: 8 } },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + '실' } }
+    },
+    cutout: '65%'
+  }
+});
+
+// Room Grid
+const rooms = Array.from({length: 50}, (_, i) => {
+  const num = i + 101;
+  const r = Math.random();
+  if (r < 0.56) return { num, type: 'occupied' };
+  if (r < 0.76) return { num, type: 'available' };
+  if (r < 0.88) return { num, type: 'reserved' };
+  return { num, type: 'maintenance' };
+});
+
+const labels = { occupied: '입실', available: '공실', reserved: '예약', maintenance: '점검' };
+const grid = document.getElementById('roomGrid');
+rooms.forEach(r => {
+  const cell = document.createElement('div');
+  cell.className = `room-cell ${r.type}`;
+  cell.innerHTML = `<div class="room-num">${r.num}</div><div class="room-status-label">${labels[r.type]}</div>`;
+  grid.appendChild(cell);
+});
+
+// ========= PROGRAM CHARTS =========
+new Chart(document.getElementById('programChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Q1 \'24', 'Q2 \'24', 'Q3 \'24', 'Q4 \'24', 'Q1 \'25'],
+    datasets: [
+      { label: '내부 직원', data: [180, 210, 240, 195, 230], backgroundColor: 'rgba(59,130,246,0.7)', borderRadius: 4 },
+      { label: '외부 참가자', data: [90, 120, 150, 105, 140], backgroundColor: 'rgba(16,185,129,0.7)', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
+    scales: {
+      x: { stacked: true, grid: { color: '#1a2235' } },
+      y: { stacked: true, grid: { color: '#1a2235' }, ticks: { callback: v => v + '명' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('satisfactionChart'), {
+  type: 'bar',
+  data: {
+    labels: ['5점', '4점', '3점', '2점', '1점'],
+    datasets: [{
+      label: '응답 수',
+      data: [312, 198, 54, 12, 4],
+      backgroundColor: ['#10b981','#3b82f6','#f59e0b','#f97316','#ef4444'],
+      borderRadius: 6, borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#1a2235' }, ticks: { callback: v => v + '명' } },
+      y: { grid: { display: false } }
+    }
+  }
+});
+
+// Program table
+const programs = [
+  { name: '신입사원 입문교육', target: '신입직원', period: '1/6 ~ 1/17', applied: 42, cap: 50, status: 'running' },
+  { name: '리더십 과정', target: '팀장급', period: '1/13 ~ 1/15', applied: 28, cap: 30, status: 'running' },
+  { name: '디지털 전환 교육', target: '전직원', period: '1/20 ~ 1/24', applied: 35, cap: 40, status: 'running' },
+  { name: '안전교육 기초', target: '현장직', period: '2/3 ~ 2/5', applied: 18, cap: 30, status: 'planned' },
+  { name: '글로벌 비즈니스', target: '해외사업부', period: '2/10 ~ 2/14', applied: 22, cap: 25, status: 'planned' },
+  { name: '프로젝트 관리', target: '중간관리자', period: '3/3 ~ 3/7', applied: 0, cap: 25, status: 'planned' },
+  { name: '소통·협업 워크숍', target: '전직원', period: '12/9 ~ 12/11', applied: 60, cap: 60, status: 'closed' },
+  { name: '연말 성과공유회', target: '전직원', period: '12/20', applied: 210, cap: 210, status: 'closed' },
+];
+
+const statusLabel = { running: '운영 중', planned: '예정', closed: '종료' };
+const tbody = document.getElementById('programTable');
+programs.forEach(p => {
+  const pct = Math.round(p.applied / p.cap * 100);
+  const color = pct >= 90 ? '#10b981' : pct >= 60 ? '#3b82f6' : '#f59e0b';
+  tbody.innerHTML += `
+    <tr>
+      <td style="font-weight:600">${p.name}</td>
+      <td style="color:var(--text-muted)">${p.target}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted)">${p.period}</td>
+      <td>${p.applied}/${p.cap}명</td>
+      <td style="min-width:100px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress-bar-wrap" style="flex:1"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
+          <span style="font-size:11px;color:${color};font-family:'DM Mono',monospace">${pct}%</span>
+        </div>
+      </td>
+      <td><span class="badge ${p.status}">${statusLabel[p.status]}</span></td>
+    </tr>`;
+});
+
+// ========= FINANCE CHARTS =========
+const finMonths = ['8월', '9월', '10월', '11월', '12월', '1월'];
+new Chart(document.getElementById('financeChart'), {
+  type: 'bar',
+  data: {
+    labels: finMonths,
+    datasets: [
+      { label: '수입', data: [3820, 4100, 3650, 4320, 4580, 4820], backgroundColor: 'rgba(16,185,129,0.7)', borderRadius: 4 },
+      { label: '지출', data: [2600, 2720, 2580, 2810, 2850, 2940], backgroundColor: 'rgba(239,68,68,0.5)', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
+    scales: {
+      x: { grid: { color: '#1a2235' } },
+      y: { grid: { color: '#1a2235' }, ticks: { callback: v => (v/10000).toFixed(1) + '억' } }
+    }
+  }
+});
+
+new Chart(document.getElementById('incomeBreakChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['객실 이용료', '교육 수강료', '식음료 수입', '기타 부대시설'],
+    datasets: [{
+      data: [2120, 1580, 760, 360],
+      backgroundColor: ['#3b82f6','#10b981','#f59e0b','#8b5cf6'],
+      borderColor: '#111827', borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { usePointStyle: true, pointStyleWidth: 8 } },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw.toLocaleString() + '만원' } }
+    },
+    cutout: '60%'
+  }
+});
+
+// Income / Expense details
+const incomes = [
+  { label: '객실 이용료', val: '2,120만원' },
+  { label: '교육 수강료', val: '1,580만원' },
+  { label: '식음료 수입', val: '760만원' },
+  { label: '기타 부대시설', val: '360만원' },
+];
+const expenses = [
+  { label: '인건비', val: '1,240만원' },
+  { label: '시설 유지비', val: '680만원' },
+  { label: '식재료비', val: '520만원' },
+  { label: '프로그램 운영비', val: '340만원' },
+  { label: '기타 관리비', val: '160만원' },
+];
+
+const incomeEl = document.getElementById('incomeDetail');
+incomes.forEach(r => {
+  incomeEl.innerHTML += `
+    <div class="finance-row">
+      <span class="finance-label">${r.label}</span>
+      <span class="finance-val income">${r.val}</span>
+    </div>`;
+});
+
+const expenseEl = document.getElementById('expenseDetail');
+expenses.forEach(r => {
+  expenseEl.innerHTML += `
+    <div class="finance-row">
+      <span class="finance-label">${r.label}</span>
+      <span class="finance-val expense">${r.val}</span>
+    </div>`;
+});
+</script>
+</body>
+</html>
