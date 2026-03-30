@@ -77,6 +77,24 @@
 
   .header-right { display: flex; align-items: center; gap: 16px; }
 
+  .manage-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 15px; border-radius: 8px;
+    background: rgba(59,130,246,0.12);
+    border: 1px solid rgba(59,130,246,0.35);
+    color: var(--accent);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.18s;
+  }
+  .manage-btn:hover {
+    background: rgba(59,130,246,0.22);
+    border-color: var(--accent);
+    box-shadow: 0 0 14px rgba(59,130,246,0.25);
+    transform: translateY(-1px);
+  }
+
   .live-badge {
     display: flex; align-items: center; gap: 6px;
     padding: 5px 12px; border-radius: 20px;
@@ -341,6 +359,7 @@
       </div>
     </div>
     <div class="header-right">
+      <a class="manage-btn" href="연수원_데이터_관리.html" target="_blank">⚙️ 데이터 관리</a>
       <div class="live-badge"><div class="live-dot"></div>LIVE</div>
       <div class="date-tag" id="dateTag"></div>
     </div>
