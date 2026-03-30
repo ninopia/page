@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연수원 데이터 관리</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f9;
+  --white: #ffffff;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --accent-hover: #1d4ed8;
+  --green: #059669;
+  --green-light: #ecfdf5;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --amber: #d97706;
+  --amber-light: #fffbeb;
+  --purple: #7c3aed;
+  --purple-light: #f5f3ff;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --radius: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Layout */
+.app { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: #0f172a;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 50;
+}
+
+.sidebar-logo {
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.logo-mark {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; margin-bottom: 10px;
+}
+
+.logo-name { font-size: 13px; font-weight: 700; color: #fff; }
+.logo-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
+
+.sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+
+.nav-section-label {
+  font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.25);
+  text-transform: uppercase; letter-spacing: 1px;
+  padding: 8px 8px 4px;
+  margin-top: 8px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 7px;
+  cursor: pointer; transition: all 0.15s;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px; font-weight: 500;
+  border: none; background: none; width: 100%; text-align: left;
+}
+
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: var(--accent); color: #fff; }
+.nav-item .icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+
+.sidebar-footer {
+  padding: 16px 12px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.back-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 7px;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.4);
+  font-size: 12px; cursor: pointer;
+  border: none; width: 100%; text-align: left;
+  transition: all 0.15s;
+}
+
+.back-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+
+/* Main */
+.main {
+  margin-left: 220px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Topbar */
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 40;
+  box-shadow: var(--shadow);
+}
+
+.topbar-left { display: flex; flex-direction: column; }
+.topbar-title { font-size: 15px; font-weight: 700; }
+.topbar-breadcrumb { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; transition: all 0.15s;
+  font-family: 'Noto Sans KR', sans-serif;
+  white-space: nowrap;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-success { background: var(--green); color: #fff; }
+.btn-success:hover { background: #047857; }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-outline {
+  background: var(--white); color: var(--text);
+  border: 1px solid var(--border2);
+}
+.btn-outline:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+.btn-ghost { background: transparent; color: var(--text-muted); padding: 6px 10px; }
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+.btn-icon {
+  width: 32px; height: 32px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 7px; border: 1px solid var(--border);
+  background: var(--white); cursor: pointer;
+  font-size: 14px; color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+.btn-icon:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.btn-icon.danger:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+/* Content */
+.content { padding: 24px 28px; flex: 1; }
+
+/* Page sections */
+.page { display: none; }
+.page.active { display: block; animation: fadeUp 0.25s ease; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Stats bar */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+
+.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; }
+.stat-value.blue { color: var(--accent); }
+.stat-value.green { color: var(--green); }
+.stat-value.amber { color: var(--amber); }
+.stat-value.red { color: var(--red); }
+
+/* Toolbar */
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px; gap: 12px;
+}
+
+.toolbar-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+
+.search-box {
+  display: flex; align-items: center;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0 12px;
+  gap: 8px; flex: 1; max-width: 320px;
+  box-shadow: var(--shadow);
+}
+
+.search-box input {
+  border: none; outline: none; background: none;
+  font-size: 13px; color: var(--text);
+  padding: 9px 0; flex: 1;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.search-box input::placeholder { color: var(--text-dim); }
+
+.filter-select {
+  padding: 8px 12px; border: 1px solid var(--border);
+  border-radius: 8px; font-size: 13px;
+  background: var(--white); color: var(--text);
+  cursor: pointer; outline: none;
+  font-family: 'Noto Sans KR', sans-serif;
+  box-shadow: var(--shadow);
+}
+
+/* Table */
+.table-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.table-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.table-header-title { font-size: 13px; font-weight: 700; }
+.table-count { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  padding: 10px 14px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text);
+  vertical-align: middle;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #fafbff; }
+
+/* Badges */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 5px;
+  font-size: 11px; font-weight: 600;
+}
+
+.badge-blue { background: var(--accent-light); color: var(--accent); }
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-gray { background: #f1f5f9; color: var(--text-muted); }
+.badge-purple { background: var(--purple-light); color: var(--purple); }
+
+/* Actions cell */
+.actions { display: flex; gap: 6px; align-items: center; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: none; align-items: center; justify-content: center;
+}
+
+.modal-overlay.open { display: flex; animation: fadeIn 0.15s ease; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--white);
+  border-radius: 14px;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; background: var(--white); z-index: 1;
+  border-radius: 14px 14px 0 0;
+}
+
+.modal-title { font-size: 15px; font-weight: 700; }
+.modal-close {
+  width: 30px; height: 30px; border-radius: 7px;
+  background: var(--surface2); border: none; cursor: pointer;
+  font-size: 16px; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.modal-close:hover { background: var(--border); color: var(--text); }
+
+.modal-body { padding: 20px 24px; }
+.modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px;
+  position: sticky; bottom: 0; background: var(--white);
+  border-radius: 0 0 14px 14px;
+}
+
+/* Form */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid.full { grid-template-columns: 1fr; }
+
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.span2 { grid-column: span 2; }
+
+.form-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+.form-input, .form-select, .form-textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  font-size: 13px; color: var(--text);
+  background: var(--white);
+  outline: none; transition: border-color 0.15s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+}
+
+.form-textarea { resize: vertical; min-height: 80px; }
+
+/* Toast */
+.toast-container {
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.toast {
+  background: #0f172a; color: #fff;
+  padding: 12px 16px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  animation: toastIn 0.2s ease;
+  max-width: 300px;
+}
+
+@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error { border-left: 3px solid var(--red); }
+.toast.info { border-left: 3px solid var(--accent); }
+
+/* Delete confirm */
+.confirm-modal { width: 380px; }
+.confirm-body { padding: 24px; text-align: center; }
+.confirm-icon { font-size: 36px; margin-bottom: 12px; }
+.confirm-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.confirm-desc { font-size: 13px; color: var(--text-muted); }
+
+/* Empty state */
+.empty-state {
+  padding: 48px; text-align: center; color: var(--text-muted);
+}
+.empty-icon { font-size: 32px; margin-bottom: 10px; }
+.empty-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.empty-sub { font-size: 12px; }
+
+/* Mono text */
+.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">🏢</div>
+      <div class="logo-name">연수원 관리시스템</div>
+      <div class="logo-sub">DATA MANAGER v1.0</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">데이터 관리</div>
+      <button class="nav-item active" onclick="showPage('room', this)">
+        <span class="icon">🏨</span> 객실 예약/현황
+      </button>
+      <button class="nav-item" onclick="showPage('program', this)">
+        <span class="icon">📚</span> 교육 프로그램
+      </button>
+      <button class="nav-item" onclick="showPage('finance', this)">
+        <span class="icon">💰</span> 수입/지출 내역
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="back-btn">← 대시보드로 돌아가기</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title" id="topbarTitle">객실 예약 / 현황 관리</div>
+        <div class="topbar-breadcrumb" id="topbarBreadcrumb">연수원 관리 › 객실</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline" onclick="exportCSV()">⬇ CSV 내보내기</button>
+        <button class="btn btn-primary" id="addBtn" onclick="openAddModal()">+ 새 항목 추가</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ===== 객실 페이지 ===== -->
+      <div class="page active" id="page-room">
+        <div class="stats-bar" id="roomStats"></div>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" placeholder="객실번호, 예약자명 검색..." oninput="renderRoomTable()" id="roomSearch">
+            </div>
+            <select class="filter-select" onchange="renderRoomTable()" id="roomFilter">
+              <option value="">전체 상태</option>
+              <option value="입실">입실 중</option>
+              <option value="공실">공실</option>
+              <option value="예약">예약 확정</option>
+              <option value="점검">점검 중</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-header-title">객실 목록</span>
+            <span class="table-count" id="roomCount">0건</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>객실번호</th>
+                <th>유형</th>
+                <th>상태</th>
+                <th>예약자</th>
+                <th>입실일</th>
+                <th>퇴실일</th>
+                <th>단체/소속</th>
+                <th>비고</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="roomTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== 교육 프로그램 페이지 ===== -->
+      <div class="page" id="page-program">
+        <div class="stats-bar" id="programStats"></div>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" placeholder="프로그램명, 담당자 검색..." oninput="renderProgramTable()" id="programSearch">
+            </div>
+            <select class="filter-select" onchange="renderProgramTable()" id="programFilter">
+              <option value="">전체 상태</option>
+              <option value="운영중">운영 중</option>
+              <option value="예정">예정</option>
+              <option value="종료">종료</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-header-title">교육 프로그램 목록</span>
+            <span class="table-count" id="programCount">0건</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>프로그램명</th>
+                <th>대상</th>
+                <th>기간</th>
+                <th>신청/정원</th>
+                <th>충원율</th>
+                <th>담당자</th>
+                <th>장소</th>
+                <th>상태</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="programTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== 수입/지출 페이지 ===== -->
+      <div class="page" id="page-finance">
+        <div class="stats-bar" id="financeStats"></div>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" placeholder="항목명 검색..." oninput="renderFinanceTable()" id="financeSearch">
+            </div>
+            <select class="filter-select" onchange="renderFinanceTable()" id="financeTypeFilter">
+              <option value="">수입+지출</option>
+              <option value="수입">수입만</option>
+              <option value="지출">지출만</option>
+            </select>
+            <select class="filter-select" onchange="renderFinanceTable()" id="financeCatFilter">
+              <option value="">전체 카테고리</option>
+              <option value="객실">객실</option>
+              <option value="교육">교육</option>
+              <option value="식음료">식음료</option>
+              <option value="인건비">인건비</option>
+              <option value="시설">시설</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-header-title">수입 / 지출 내역</span>
+            <span class="table-count" id="financeCount">0건</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th>구분</th>
+                <th>카테고리</th>
+                <th>항목명</th>
+                <th>금액 (만원)</th>
+                <th>담당자</th>
+                <th>메모</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="financeTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 객실 -->
+<div class="modal-overlay" id="roomModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="roomModalTitle">객실 추가</span>
+      <button class="modal-close" onclick="closeModal('roomModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">객실번호 *</label>
+          <input class="form-input" id="r_num" placeholder="예) 101">
+        </div>
+        <div class="form-group">
+          <label class="form-label">유형 *</label>
+          <select class="form-select" id="r_type">
+            <option>1인실</option><option>2인실</option><option>4인실</option><option>세미나실</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">상태 *</label>
+          <select class="form-select" id="r_status">
+            <option>공실</option><option>입실</option><option>예약</option><option>점검</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">예약자명</label>
+          <input class="form-input" id="r_guest" placeholder="예) 홍길동">
+        </div>
+        <div class="form-group">
+          <label class="form-label">단체/소속</label>
+          <input class="form-input" id="r_org" placeholder="예) 인사팀">
+        </div>
+        <div class="form-group">
+          <label class="form-label">입실일</label>
+          <input class="form-input" id="r_checkin" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">퇴실일</label>
+          <input class="form-input" id="r_checkout" type="date">
+        </div>
+        <div class="form-group span2">
+          <label class="form-label">비고</label>
+          <input class="form-input" id="r_note" placeholder="특이사항 등">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('roomModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveRoom()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 교육 프로그램 -->
+<div class="modal-overlay" id="programModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="programModalTitle">프로그램 추가</span>
+      <button class="modal-close" onclick="closeModal('programModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group span2">
+          <label class="form-label">프로그램명 *</label>
+          <input class="form-input" id="p_name" placeholder="예) 신입사원 입문교육">
+        </div>
+        <div class="form-group">
+          <label class="form-label">대상</label>
+          <input class="form-input" id="p_target" placeholder="예) 신입직원">
+        </div>
+        <div class="form-group">
+          <label class="form-label">담당자</label>
+          <input class="form-input" id="p_manager" placeholder="예) 김담당">
+        </div>
+        <div class="form-group">
+          <label class="form-label">시작일</label>
+          <input class="form-input" id="p_start" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">종료일</label>
+          <input class="form-input" id="p_end" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">신청인원</label>
+          <input class="form-input" id="p_applied" type="number" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">정원</label>
+          <input class="form-input" id="p_cap" type="number" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">장소</label>
+          <input class="form-input" id="p_venue" placeholder="예) 대강당">
+        </div>
+        <div class="form-group">
+          <label class="form-label">상태</label>
+          <select class="form-select" id="p_status">
+            <option>예정</option><option>운영중</option><option>종료</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('programModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveProgram()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 수입/지출 -->
+<div class="modal-overlay" id="financeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="financeModalTitle">수입/지출 추가</span>
+      <button class="modal-close" onclick="closeModal('financeModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">날짜 *</label>
+          <input class="form-input" id="f_date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">구분 *</label>
+          <select class="form-select" id="f_type">
+            <option>수입</option><option>지출</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">카테고리</label>
+          <select class="form-select" id="f_cat">
+            <option>객실</option><option>교육</option><option>식음료</option><option>인건비</option><option>시설</option><option>기타</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">담당자</label>
+          <input class="form-input" id="f_manager" placeholder="예) 홍길동">
+        </div>
+        <div class="form-group span2">
+          <label class="form-label">항목명 *</label>
+          <input class="form-input" id="f_name" placeholder="예) 1월 객실 이용료">
+        </div>
+        <div class="form-group">
+          <label class="form-label">금액 (만원) *</label>
+          <input class="form-input" id="f_amount" type="number" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">메모</label>
+          <input class="form-input" id="f_memo" placeholder="관련 메모">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('financeModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveFinance()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal confirm-modal">
+    <div class="confirm-body">
+      <div class="confirm-icon">🗑️</div>
+      <div class="confirm-title">정말 삭제할까요?</div>
+      <div class="confirm-desc" id="confirmDesc">이 작업은 되돌릴 수 없습니다.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirmModal')">취소</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ================= STATE =================
+let currentPage = 'room';
+let editingId = null;
+let deleteCallback = null;
+
+// ================= SAMPLE DATA =================
+let roomData = [
+  { id: 1, num: '101', type: '1인실', status: '입실', guest: '김민준', org: '인사팀', checkin: '2025-01-06', checkout: '2025-01-17', note: '' },
+  { id: 2, num: '102', type: '1인실', status: '입실', guest: '이서연', org: '경영지원팀', checkin: '2025-01-06', checkout: '2025-01-10', note: '' },
+  { id: 3, num: '103', type: '1인실', status: '공실', guest: '', org: '', checkin: '', checkout: '', note: '' },
+  { id: 4, num: '104', type: '1인실', status: '예약', guest: '박준호', org: '개발팀', checkin: '2025-01-20', checkout: '2025-01-24', note: '채식 식단 요청' },
+  { id: 5, num: '105', type: '2인실', status: '점검', guest: '', org: '', checkin: '', checkout: '', note: '에어컨 수리 중' },
+  { id: 6, num: '201', type: '2인실', status: '입실', guest: '최지우', org: '마케팅팀', checkin: '2025-01-13', checkout: '2025-01-15', note: '' },
+  { id: 7, num: '202', type: '2인실', status: '입실', guest: '정하은', org: '전략기획팀', checkin: '2025-01-13', checkout: '2025-01-15', note: '' },
+  { id: 8, num: '203', type: '4인실', status: '예약', guest: '강민서', org: 'IT팀', checkin: '2025-02-03', checkout: '2025-02-05', note: '' },
+  { id: 9, num: '301', type: '세미나실', status: '입실', guest: '(단체)', org: '전체직원', checkin: '2025-01-13', checkout: '2025-01-13', note: '리더십 과정 사용' },
+  { id: 10, num: '302', type: '세미나실', status: '공실', guest: '', org: '', checkin: '', checkout: '', note: '' },
+];
+
+let programData = [
+  { id: 1, name: '신입사원 입문교육', target: '신입직원', start: '2025-01-06', end: '2025-01-17', applied: 42, cap: 50, manager: '김담당', venue: '대강당', status: '운영중' },
+  { id: 2, name: '리더십 과정', target: '팀장급', start: '2025-01-13', end: '2025-01-15', applied: 28, cap: 30, manager: '이부장', venue: '301호 세미나실', status: '운영중' },
+  { id: 3, name: '디지털 전환 교육', target: '전직원', start: '2025-01-20', end: '2025-01-24', applied: 35, cap: 40, manager: '박과장', venue: '대강당', status: '운영중' },
+  { id: 4, name: '안전교육 기초', target: '현장직', start: '2025-02-03', end: '2025-02-05', applied: 18, cap: 30, manager: '최담당', venue: '소강의실', status: '예정' },
+  { id: 5, name: '글로벌 비즈니스', target: '해외사업부', start: '2025-02-10', end: '2025-02-14', applied: 22, cap: 25, manager: '정팀장', venue: '302호 세미나실', status: '예정' },
+  { id: 6, name: '소통·협업 워크숍', target: '전직원', start: '2024-12-09', end: '2024-12-11', applied: 60, cap: 60, manager: '강매니저', venue: '대강당', status: '종료' },
+];
+
+let financeData = [
+  { id: 1, date: '2025-01-03', type: '수입', cat: '객실', name: '1월 객실 이용료 (1차)', amount: 1200, manager: '총무팀', memo: '' },
+  { id: 2, date: '2025-01-05', type: '지출', cat: '인건비', name: '1월 직원 급여', amount: 1240, manager: '인사팀', memo: '정규직 기준' },
+  { id: 3, date: '2025-01-08', type: '수입', cat: '교육', name: '신입사원 입문교육 수강료', amount: 840, manager: '교육팀', memo: '42명 × 20만원' },
+  { id: 4, date: '2025-01-10', type: '지출', cat: '시설', name: '시설 유지보수비', amount: 380, manager: '시설팀', memo: '에어컨 수리 포함' },
+  { id: 5, date: '2025-01-12', type: '수입', cat: '식음료', name: '구내식당 수입', amount: 420, manager: '급식팀', memo: '' },
+  { id: 6, date: '2025-01-15', type: '지출', cat: '식음료', name: '식재료 구매비', amount: 520, manager: '급식팀', memo: '이달치 일괄 구매' },
+  { id: 7, date: '2025-01-18', type: '수입', cat: '객실', name: '1월 객실 이용료 (2차)', amount: 920, manager: '총무팀', memo: '' },
+  { id: 8, date: '2025-01-20', type: '수입', cat: '교육', name: '리더십 과정 수강료', amount: 740, manager: '교육팀', memo: '28명 × 26.4만원' },
+  { id: 9, date: '2025-01-22', type: '지출', cat: '기타', name: '사무용품 및 소모품', amount: 160, manager: '총무팀', memo: '' },
+  { id: 10, date: '2025-01-25', type: '수입', cat: '기타', name: '부대시설 이용료', amount: 340, manager: '총무팀', memo: '세미나룸, 헬스장 등' },
+  { id: 11, date: '2025-01-28', type: '지출', cat: '교육', name: '강사 강의료', amount: 340, manager: '교육팀', memo: '외부 강사 3명' },
+  { id: 12, date: '2025-01-30', type: '수입', cat: '교육', name: '디지털 전환 교육 수강료', amount: 360, manager: '교육팀', memo: '' },
+];
+
+let nextId = { room: 11, program: 7, finance: 13 };
+
+// ================= NAVIGATION =================
+function showPage(name, btn) {
+  currentPage = name;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  const titles = { room: ['객실 예약 / 현황 관리', '연수원 관리 › 객실'], program: ['교육 프로그램 관리', '연수원 관리 › 프로그램'], finance: ['수입 / 지출 내역 관리', '연수원 관리 › 재정'] };
+  document.getElementById('topbarTitle').textContent = titles[name][0];
+  document.getElementById('topbarBreadcrumb').textContent = titles[name][1];
+  renderAll();
+}
+
+// ================= RENDER =================
+function renderAll() {
+  renderRoomStats(); renderRoomTable();
+  renderProgramStats(); renderProgramTable();
+  renderFinanceStats(); renderFinanceTable();
+}
+
+// --- Room ---
+function renderRoomStats() {
+  const total = roomData.length;
+  const occupied = roomData.filter(r => r.status === '입실').length;
+  const reserved = roomData.filter(r => r.status === '예약').length;
+  const maint = roomData.filter(r => r.status === '점검').length;
+  const rate = total ? Math.round((occupied / total) * 100) : 0;
+  document.getElementById('roomStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">전체 객실</div><div class="stat-value blue">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">입실 중</div><div class="stat-value green">${occupied}</div></div>
+    <div class="stat-card"><div class="stat-label">예약 확정</div><div class="stat-value amber">${reserved}</div></div>
+    <div class="stat-card"><div class="stat-label">가동률</div><div class="stat-value blue">${rate}%</div></div>`;
+}
+
+function renderRoomTable() {
+  const q = (document.getElementById('roomSearch')?.value || '').toLowerCase();
+  const f = document.getElementById('roomFilter')?.value || '';
+  const filtered = roomData.filter(r =>
+    (!q || r.num.includes(q) || r.guest.toLowerCase().includes(q) || r.org.toLowerCase().includes(q)) &&
+    (!f || r.status === f)
+  );
+  document.getElementById('roomCount').textContent = filtered.length + '건';
+  const tbody = document.getElementById('roomTableBody');
+  if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🏨</div><div class="empty-title">조건에 맞는 객실이 없습니다</div></div></td></tr>`; return; }
+  const badgeMap = { '입실': 'badge-blue', '공실': 'badge-green', '예약': 'badge-amber', '점검': 'badge-red' };
+  tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td><strong class="mono">${r.num}</strong></td>
+      <td><span class="badge badge-gray">${r.type}</span></td>
+      <td><span class="badge ${badgeMap[r.status]}">${r.status}</span></td>
+      <td>${r.guest || '<span style="color:var(--text-dim)">-</span>'}</td>
+      <td class="mono">${r.checkin || '-'}</td>
+      <td class="mono">${r.checkout || '-'}</td>
+      <td>${r.org || '-'}</td>
+      <td style="color:var(--text-muted);font-size:12px">${r.note || '-'}</td>
+      <td><div class="actions">
+        <button class="btn-icon" onclick="editRoom(${r.id})" title="수정">✏️</button>
+        <button class="btn-icon danger" onclick="deleteItem('room', ${r.id})" title="삭제">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// --- Program ---
+function renderProgramStats() {
+  const running = programData.filter(p => p.status === '운영중').length;
+  const planned = programData.filter(p => p.status === '예정').length;
+  const closed = programData.filter(p => p.status === '종료').length;
+  const totalApplied = programData.reduce((a, p) => a + (+p.applied), 0);
+  document.getElementById('programStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">운영 중</div><div class="stat-value green">${running}</div></div>
+    <div class="stat-card"><div class="stat-label">예정</div><div class="stat-value blue">${planned}</div></div>
+    <div class="stat-card"><div class="stat-label">종료</div><div class="stat-value" style="color:var(--text-muted)">${closed}</div></div>
+    <div class="stat-card"><div class="stat-label">총 신청 인원</div><div class="stat-value amber">${totalApplied.toLocaleString()}명</div></div>`;
+}
+
+function renderProgramTable() {
+  const q = (document.getElementById('programSearch')?.value || '').toLowerCase();
+  const f = document.getElementById('programFilter')?.value || '';
+  const filtered = programData.filter(p =>
+    (!q || p.name.toLowerCase().includes(q) || p.manager.toLowerCase().includes(q)) &&
+    (!f || p.status === f)
+  );
+  document.getElementById('programCount').textContent = filtered.length + '건';
+  const tbody = document.getElementById('programTableBody');
+  if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">프로그램이 없습니다</div></div></td></tr>`; return; }
+  const badgeMap = { '운영중': 'badge-green', '예정': 'badge-blue', '종료': 'badge-gray' };
+  tbody.innerHTML = filtered.map(p => {
+    const pct = p.cap ? Math.round((p.applied / p.cap) * 100) : 0;
+    const barColor = pct >= 90 ? '#059669' : pct >= 60 ? '#2563eb' : '#d97706';
+    return `<tr>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.target}</td>
+      <td class="mono" style="font-size:11px">${p.start}<br>${p.end}</td>
+      <td>${p.applied}/${p.cap}명</td>
+      <td style="min-width:100px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;background:#f1f5f9;border-radius:3px;height:5px">
+            <div style="width:${pct}%;background:${barColor};height:5px;border-radius:3px"></div>
+          </div>
+          <span style="font-size:11px;color:${barColor};font-family:'JetBrains Mono',monospace">${pct}%</span>
+        </div>
+      </td>
+      <td>${p.manager}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${p.venue}</td>
+      <td><span class="badge ${badgeMap[p.status]}">${p.status}</span></td>
+      <td><div class="actions">
+        <button class="btn-icon" onclick="editProgram(${p.id})">✏️</button>
+        <button class="btn-icon danger" onclick="deleteItem('program', ${p.id})">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// --- Finance ---
+function renderFinanceStats() {
+  const income = financeData.filter(f => f.type === '수입').reduce((a, f) => a + (+f.amount), 0);
+  const expense = financeData.filter(f => f.type === '지출').reduce((a, f) => a + (+f.amount), 0);
+  const net = income - expense;
+  document.getElementById('financeStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">총 수입</div><div class="stat-value green">${income.toLocaleString()}만원</div></div>
+    <div class="stat-card"><div class="stat-label">총 지출</div><div class="stat-value red">${expense.toLocaleString()}만원</div></div>
+    <div class="stat-card"><div class="stat-label">순이익</div><div class="stat-value ${net >= 0 ? 'blue' : 'red'}">${net.toLocaleString()}만원</div></div>
+    <div class="stat-card"><div class="stat-label">건수</div><div class="stat-value amber">${financeData.length}건</div></div>`;
+}
+
+function renderFinanceTable() {
+  const q = (document.getElementById('financeSearch')?.value || '').toLowerCase();
+  const tf = document.getElementById('financeTypeFilter')?.value || '';
+  const cf = document.getElementById('financeCatFilter')?.value || '';
+  const filtered = financeData.filter(f =>
+    (!q || f.name.toLowerCase().includes(q)) &&
+    (!tf || f.type === tf) &&
+    (!cf || f.cat === cf)
+  ).sort((a, b) => b.date.localeCompare(a.date));
+  document.getElementById('financeCount').textContent = filtered.length + '건';
+  const tbody = document.getElementById('financeTableBody');
+  if (!filtered.length) { tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">💰</div><div class="empty-title">내역이 없습니다</div></div></td></tr>`; return; }
+  const catBadge = { '객실': 'badge-blue', '교육': 'badge-purple', '식음료': 'badge-amber', '인건비': 'badge-red', '시설': 'badge-gray', '기타': 'badge-gray' };
+  tbody.innerHTML = filtered.map(f => `
+    <tr>
+      <td class="mono">${f.date}</td>
+      <td><span class="badge ${f.type === '수입' ? 'badge-green' : 'badge-red'}">${f.type}</span></td>
+      <td><span class="badge ${catBadge[f.cat] || 'badge-gray'}">${f.cat}</span></td>
+      <td>${f.name}</td>
+      <td><strong class="mono" style="color:${f.type === '수입' ? 'var(--green)' : 'var(--red)'}">${f.type === '수입' ? '+' : '-'}${(+f.amount).toLocaleString()}</strong></td>
+      <td style="font-size:12px">${f.manager}</td>
+      <td style="color:var(--text-muted);font-size:12px">${f.memo || '-'}</td>
+      <td><div class="actions">
+        <button class="btn-icon" onclick="editFinance(${f.id})">✏️</button>
+        <button class="btn-icon danger" onclick="deleteItem('finance', ${f.id})">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// ================= MODAL HELPERS =================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); editingId = null; }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// ================= ADD/EDIT MODAL =================
+function openAddModal() {
+  editingId = null;
+  if (currentPage === 'room') { openRoomModal(); }
+  else if (currentPage === 'program') { openProgramModal(); }
+  else { openFinanceModal(); }
+}
+
+// Room Modal
+function openRoomModal(data = null) {
+  document.getElementById('roomModalTitle').textContent = data ? '객실 수정' : '객실 추가';
+  document.getElementById('r_num').value = data?.num || '';
+  document.getElementById('r_type').value = data?.type || '1인실';
+  document.getElementById('r_status').value = data?.status || '공실';
+  document.getElementById('r_guest').value = data?.guest || '';
+  document.getElementById('r_org').value = data?.org || '';
+  document.getElementById('r_checkin').value = data?.checkin || '';
+  document.getElementById('r_checkout').value = data?.checkout || '';
+  document.getElementById('r_note').value = data?.note || '';
+  openModal('roomModal');
+}
+
+function editRoom(id) { editingId = id; openRoomModal(roomData.find(r => r.id === id)); }
+
+function saveRoom() {
+  const num = document.getElementById('r_num').value.trim();
+  if (!num) { showToast('객실번호를 입력해주세요', 'error'); return; }
+  const obj = {
+    num, type: document.getElementById('r_type').value,
+    status: document.getElementById('r_status').value,
+    guest: document.getElementById('r_guest').value,
+    org: document.getElementById('r_org').value,
+    checkin: document.getElementById('r_checkin').value,
+    checkout: document.getElementById('r_checkout').value,
+    note: document.getElementById('r_note').value,
+  };
+  if (editingId) {
+    const idx = roomData.findIndex(r => r.id === editingId);
+    roomData[idx] = { ...roomData[idx], ...obj };
+    showToast('객실 정보가 수정됐습니다', 'success');
+  } else {
+    roomData.push({ id: nextId.room++, ...obj });
+    showToast('객실이 추가됐습니다', 'success');
+  }
+  closeModal('roomModal');
+  renderRoomStats(); renderRoomTable();
+}
+
+// Program Modal
+function openProgramModal(data = null) {
+  document.getElementById('programModalTitle').textContent = data ? '프로그램 수정' : '프로그램 추가';
+  document.getElementById('p_name').value = data?.name || '';
+  document.getElementById('p_target').value = data?.target || '';
+  document.getElementById('p_manager').value = data?.manager || '';
+  document.getElementById('p_start').value = data?.start || '';
+  document.getElementById('p_end').value = data?.end || '';
+  document.getElementById('p_applied').value = data?.applied || '';
+  document.getElementById('p_cap').value = data?.cap || '';
+  document.getElementById('p_venue').value = data?.venue || '';
+  document.getElementById('p_status').value = data?.status || '예정';
+  openModal('programModal');
+}
+
+function editProgram(id) { editingId = id; openProgramModal(programData.find(p => p.id === id)); }
+
+function saveProgram() {
+  const name = document.getElementById('p_name').value.trim();
+  if (!name) { showToast('프로그램명을 입력해주세요', 'error'); return; }
+  const obj = {
+    name, target: document.getElementById('p_target').value,
+    manager: document.getElementById('p_manager').value,
+    start: document.getElementById('p_start').value,
+    end: document.getElementById('p_end').value,
+    applied: +document.getElementById('p_applied').value || 0,
+    cap: +document.getElementById('p_cap').value || 0,
+    venue: document.getElementById('p_venue').value,
+    status: document.getElementById('p_status').value,
+  };
+  if (editingId) {
+    const idx = programData.findIndex(p => p.id === editingId);
+    programData[idx] = { ...programData[idx], ...obj };
+    showToast('프로그램이 수정됐습니다', 'success');
+  } else {
+    programData.push({ id: nextId.program++, ...obj });
+    showToast('프로그램이 추가됐습니다', 'success');
+  }
+  closeModal('programModal');
+  renderProgramStats(); renderProgramTable();
+}
+
+// Finance Modal
+function openFinanceModal(data = null) {
+  document.getElementById('financeModalTitle').textContent = data ? '내역 수정' : '수입/지출 추가';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f_date').value = data?.date || today;
+  document.getElementById('f_type').value = data?.type || '수입';
+  document.getElementById('f_cat').value = data?.cat || '객실';
+  document.getElementById('f_name').value = data?.name || '';
+  document.getElementById('f_amount').value = data?.amount || '';
+  document.getElementById('f_manager').value = data?.manager || '';
+  document.getElementById('f_memo').value = data?.memo || '';
+  openModal('financeModal');
+}
+
+function editFinance(id) { editingId = id; openFinanceModal(financeData.find(f => f.id === id)); }
+
+function saveFinance() {
+  const name = document.getElementById('f_name').value.trim();
+  const amount = +document.getElementById('f_amount').value;
+  if (!name || !amount) { showToast('항목명과 금액을 입력해주세요', 'error'); return; }
+  const obj = {
+    date: document.getElementById('f_date').value,
+    type: document.getElementById('f_type').value,
+    cat: document.getElementById('f_cat').value,
+    name, amount,
+    manager: document.getElementById('f_manager').value,
+    memo: document.getElementById('f_memo').value,
+  };
+  if (editingId) {
+    const idx = financeData.findIndex(f => f.id === editingId);
+    financeData[idx] = { ...financeData[idx], ...obj };
+    showToast('내역이 수정됐습니다', 'success');
+  } else {
+    financeData.push({ id: nextId.finance++, ...obj });
+    showToast('내역이 추가됐습니다', 'success');
+  }
+  closeModal('financeModal');
+  renderFinanceStats(); renderFinanceTable();
+}
+
+// ================= DELETE =================
+function deleteItem(type, id) {
+  const names = { room: '객실', program: '프로그램', finance: '내역' };
+  document.getElementById('confirmDesc').textContent = `이 ${names[type]} 항목을 삭제합니다. 되돌릴 수 없습니다.`;
+  deleteCallback = () => {
+    if (type === 'room') { roomData = roomData.filter(r => r.id !== id); renderRoomStats(); renderRoomTable(); }
+    else if (type === 'program') { programData = programData.filter(p => p.id !== id); renderProgramStats(); renderProgramTable(); }
+    else { financeData = financeData.filter(f => f.id !== id); renderFinanceStats(); renderFinanceTable(); }
+    showToast('삭제됐습니다', 'info');
+    closeModal('confirmModal');
+  };
+  openModal('confirmModal');
+}
+
+function confirmDelete() { if (deleteCallback) deleteCallback(); }
+
+// ================= CSV EXPORT =================
+function exportCSV() {
+  let rows, filename;
+  if (currentPage === 'room') {
+    filename = '객실현황_' + today() + '.csv';
+    rows = [['객실번호','유형','상태','예약자','단체/소속','입실일','퇴실일','비고'],
+      ...roomData.map(r => [r.num, r.type, r.status, r.guest, r.org, r.checkin, r.checkout, r.note])];
+  } else if (currentPage === 'program') {
+    filename = '교육프로그램_' + today() + '.csv';
+    rows = [['프로그램명','대상','시작일','종료일','신청','정원','담당자','장소','상태'],
+      ...programData.map(p => [p.name, p.target, p.start, p.end, p.applied, p.cap, p.manager, p.venue, p.status])];
+  } else {
+    filename = '수입지출_' + today() + '.csv';
+    rows = [['날짜','구분','카테고리','항목명','금액(만원)','담당자','메모'],
+      ...financeData.map(f => [f.date, f.type, f.cat, f.name, f.amount, f.manager, f.memo])];
+  }
+  const bom = '\uFEFF';
+  const csv = bom + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  showToast('CSV 파일로 내보냈습니다 ✓', 'success');
+}
+
+function today() {
+  return new Date().toISOString().split('T')[0].replace(/-/g,'');
+}
+
+// ================= TOAST =================
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(8px)'; toast.style.transition = '0.3s'; setTimeout(() => toast.remove(), 300); }, 2500);
+}
+
+// ================= INIT =================
+renderAll();
+</script>
+</body>
+</html>
