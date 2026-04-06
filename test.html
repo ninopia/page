@@ -2,118 +2,101 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Basecamp Tokyo Management System</title>
+    <title>Basecamp Tokyo Full Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 이미지 기반 객실 타입 색상 (범례 반영) */
+        /* 이미지 기반 타입/상태 색상 */
         .type-sw { background-color: #FFFF00; } /* 고정형 워케이션 */
-        .type-sw-plus { background-color: #FFB6C1; } /* 변동형 워케이션/출장 */
+        .type-sw-plus { background-color: #FFB6C1; } /* 변동형/출장 */
         .type-reserve { background-color: #FFA500; } /* 예비용 */
-        
-        /* 이미지 기반 상태 색상 */
+        .status-staying { background-color: #00BFFF; color: white; } /* 재실중 */
         .status-checkin { background-color: #FFC0CB; } /* 체크인 일 */
         .status-checkout { background-color: #FFFFE0; } /* 체크아웃 일 */
-        .status-staying { background-color: #00BFFF; color: white; } /* 재실중 */
-        
-        .room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 1px; background-color: #e2e8f0; border: 1px solid #cbd5e1; }
-        .room-cell { background-color: #f8fafc; font-size: 10px; display: flex; flex-direction: column; align-items: center; padding: 4px 2px; height: 100%; border: 0.5px solid #e2e8f0; }
-        .room-header { background-color: #000; color: #fff; width: 100%; text-align: center; font-weight: bold; padding: 2px 0; }
+
+        .room-row { display: grid; grid-template-columns: repeat(23, minmax(60px, 1fr)); gap: 1px; background-color: #cbd5e1; margin-bottom: 20px; }
+        .room-cell { background-color: #f1f5f9; border: 0.5px solid #cbd5e1; font-size: 9px; min-height: 110px; display: flex; flex-direction: column; }
+        .room-no { background-color: #000; color: #fff; text-align: center; font-weight: bold; padding: 2px 0; font-size: 10px; }
+        .data-row { border-bottom: 0.5px solid #e2e8f0; padding: 2px; text-align: center; min-height: 18px; }
     </style>
 </head>
-<body class="bg-[#D1D5DB] p-4 font-sans text-[12px]">
+<body class="bg-[#E5E7EB] p-4">
 
-    <div class="flex justify-between items-start mb-4">
-        <div class="flex items-center space-x-2 bg-white p-2 border border-slate-400">
-            <span class="font-bold">기간 필터</span>
-            <input type="text" value="[ 2026.04.06 ]" class="border px-2 py-1 w-32 text-center">
-        </div>
-        
-        <div class="bg-white border border-slate-400">
-            <table class="w-48 text-center">
-                <tr class="border-b">
-                    <td class="bg-slate-100 border-r p-1">객실 수</td><td class="p-1">63</td>
-                </tr>
-                <tr class="border-b">
-                    <td class="bg-slate-100 border-r p-1">이용객실수</td><td class="p-1">21</td>
-                </tr>
-                <tr>
-                    <td class="bg-slate-100 border-r p-1 font-bold">가동률</td><td class="p-1 font-bold">33%</td>
-                </tr>
+    <div class="flex justify-between items-center bg-white p-4 mb-6 border border-gray-400 shadow-sm">
+        <div class="flex gap-4 items-center font-bold">
+            <span class="bg-gray-100 px-3 py-1 border">기간 필터 [ 2026.04.06 ]</span>
+            <table class="border-collapse border border-gray-400 text-xs">
+                <tr><td class="border bg-gray-50 px-2">객실 수</td><td class="border px-4">63</td></tr>
+                <tr><td class="border bg-gray-50 px-2 font-bold text-blue-600">가동률</td><td class="border px-4 font-bold text-blue-600">33%</td></tr>
             </table>
         </div>
-
-        <div class="flex space-x-1">
-            <button class="bg-[#1e293b] text-white px-4 py-2 border border-slate-600">새로고침</button>
-            <button class="bg-[#166534] text-white px-4 py-2 border border-slate-600">다운로드</button>
-            <button class="bg-[#1e293b] text-white px-4 py-2 border border-slate-600">출력</button>
+        <div class="flex gap-1">
+            <button class="bg-slate-800 text-white px-4 py-2 text-xs font-bold">새로고침</button>
+            <button class="bg-green-700 text-white px-4 py-2 text-xs font-bold">다운로드</button>
+            <button class="bg-slate-800 text-white px-4 py-2 text-xs font-bold">출력</button>
         </div>
     </div>
 
-    <div class="flex gap-4">
-        <div class="flex-1 space-y-4">
-            <div class="bg-white p-2">
-                <div class="room-grid">
-                    <script>
-                        const rooms = [
-                            {no: 501, type: 'L', corp: 'NAVER', status: ''},
-                            {no: 502, type: 'S', corp: 'NAVER', status: ''},
-                            {no: 503, type: 'S(W)', corp: 'NAVER', status: 'checkin', name: '김보화'},
-                            {no: 504, type: 'S(W)', corp: 'NAVER', status: 'checkout', name: '이유진'},
-                            {no: 505, type: 'S(W)', corp: 'NAVER', status: ''},
-                            {no: 506, type: 'L', corp: 'NAVER', status: ''},
-                            {no: 507, type: 'M', corp: 'NAVER', status: 'staying', name: '박정윤'},
-                            {no: 508, type: '린넨실', corp: '', status: ''}
-                        ];
-                        
-                        rooms.forEach(r => {
-                            let typeClass = r.type === 'S(W)' ? 'type-sw' : '';
-                            let statusClass = r.status === 'checkin' ? 'status-checkin' : r.status === 'checkout' ? 'status-checkout' : r.status === 'staying' ? 'status-staying' : '';
-                            
-                            document.write(`
-                                <div class="room-cell">
-                                    <div class="room-header">${r.no}</div>
-                                    <div class="w-full text-center py-1 font-bold ${typeClass}">${r.type}</div>
-                                    <div class="text-[9px] text-slate-500">${r.corp}</div>
-                                    <div class="mt-2 h-8 w-full flex items-center justify-center font-bold ${statusClass}">
-                                        ${r.name || ''}
-                                    </div>
-                                    <div class="mt-2 flex space-x-1">
-                                        <span class="text-[8px]">●</span><span class="text-[8px]">●</span>
-                                    </div>
-                                </div>
-                            `);
-                        });
-                    </script>
-                </div>
-            </div>
+    <div class="overflow-x-auto bg-white p-4 border border-gray-400">
+        
+        <h4 class="font-black mb-2 text-slate-700 underline italic">5F - GLOBAL HR / OPERATION</h4>
+        <div id="floor5" class="room-row"></div>
 
-            <div class="bg-white p-2">
-                <div class="room-grid">
-                    <script>
-                        const rooms2 = [
-                            {no: 201, type: 'M', corp: 'LINE+', status: ''},
-                            {no: 202, type: 'S', corp: 'LINE+', status: ''},
-                            {no: 203, type: 'S', corp: 'LINE+', status: ''},
-                            {no: 207, type: 'S', corp: 'WEVERSE', status: ''},
-                            {no: 208, type: 'S', corp: 'WEVERSE', status: ''}
-                        ];
-                        rooms2.forEach(r => {
-                            document.write(`
-                                <div class="room-cell">
-                                    <div class="room-header">${r.no}</div>
-                                    <div class="w-full text-center py-1 font-bold text-blue-600">${r.type}</div>
-                                    <div class="text-[9px] font-bold">${r.corp}</div>
-                                    <div class="mt-2 h-8"></div>
-                                    <div class="flex space-x-1 text-slate-300">
-                                        <span>x</span><span>x</span>
-                                    </div>
-                                </div>
-                            `);
-                        });
-                    </script>
-                </div>
-            </div>
-        </div>
+        <h4 class="font-black mb-2 text-slate-700 underline italic">4F - NAVER CLOUD / HUB</h4>
+        <div id="floor4" class="room-row"></div>
 
-        <div class="w-64 space-y-4">
-            <div class
+        <h4 class="font-black mb-2 text-slate-700 underline italic">3F - WEBTOON / FINANCIAL / SNOW</h4>
+        <div id="floor3" class="room-row"></div>
+
+        <h4 class="font-black mb-2 text-slate-700 underline italic">2F - EXTERNAL (LINE+, WEVERSE, I&S)</h4>
+        <div id="floor2" class="room-row"></div>
+
+    </div>
+
+    <script>
+        function createRoomHTML(no, type, corp, status, name) {
+            const typeClass = type.includes('S(W)') ? 'type-sw' : type.includes('S(+W)') ? 'type-sw-plus' : '';
+            const statusClass = status === '재실' ? 'status-staying' : status === '입실' ? 'status-checkin' : status === '퇴실' ? 'status-checkout' : '';
+            
+            return `
+                <div class="room-cell">
+                    <div class="room-no">${no}</div>
+                    <div class="data-row font-bold ${typeClass}">${type}</div>
+                    <div class="data-row text-[8px] text-gray-500">${corp || '&nbsp;'}</div>
+                    <div class="data-row font-black h-8 flex items-center justify-center ${statusClass}">${name || ''}</div>
+                    <div class="data-row text-[8px] flex justify-around"><span>●</span><span>●</span></div>
+                </div>
+            `;
+        }
+
+        // 5층 데이터 (예시)
+        const f5 = document.getElementById('floor5');
+        for(let i=501; i<=513; i++) {
+            let data = {type: 'S(W)', corp: 'NAVER', status: '', name: ''};
+            if(i === 503) data = {type: 'S(W)', corp: 'NAVER', status: '입실', name: '김보화'};
+            if(i === 507) data = {type: 'M', corp: 'NAVER', status: '재실', name: '박정윤'};
+            f5.innerHTML += createRoomHTML(i, data.type, data.corp, data.status, data.name);
+        }
+
+        // 4층 데이터 (401~418)
+        const f4 = document.getElementById('floor4');
+        for(let i=401; i<=418; i++) {
+            let corp = (i >= 406 && i <= 412) ? 'N CLOUD' : 'NAVER';
+            f4.innerHTML += createRoomHTML(i, 'S', corp, '', '');
+        }
+
+        // 3층 데이터 (301~322)
+        const f3 = document.getElementById('floor3');
+        const corps3 = ['CAKE','KREAM','NAVER Z','SNOW','WEBTOON','FINANCIAL'];
+        for(let i=301; i<=322; i++) {
+            f3.innerHTML += createRoomHTML(i, 'S(+W)', corps3[i%6], '', '');
+        }
+
+        // 2층 데이터 (201~223)
+        const f2 = document.getElementById('floor2');
+        for(let i=201; i<=223; i++) {
+            let corp = (i <= 205) ? 'LINE+' : (i >= 208 && i <= 210) ? 'WEVERSE' : '예비';
+            f2.innerHTML += createRoomHTML(i, 'M', corp, '', '');
+        }
+    </script>
+</body>
+</html>
