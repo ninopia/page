@@ -1,212 +1,92 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  LayoutDashboard, Users, Search, Download, Plus, 
-  X, Filter, Calendar, Building2, UserCircle 
-} from 'lucide-react';
-
-// 1. 기획서 3.3 기반 더미 데이터 생성 (CONNECT 연동 및 수기 등록 데이터)
-const DUMMY_USERS = [
-  { id: 1, checkIn: '2026-04-06', checkOut: '2026-04-10', days: 4, purpose: '출장', name: '김철수', corp: '네이버', dept: '글로벌HR', empId: 'N12345', gender: '남', status: '승인', room: '501', type: 'M', stayStatus: '체크인', key: true, memo: '조식 불포함' },
-  { id: 2, checkIn: '2026-04-06', checkOut: '2026-04-13', days: 7, purpose: '워케이션', name: '이영희', corp: '네이버', dept: '운영팀', empId: 'N67890', gender: '여', status: '승인', room: '503', type: 'S', stayStatus: '예정', key: false, memo: '추가 침구 요청' },
-  { id: 3, checkIn: '2026-04-05', checkOut: '2026-04-07', days: 2, purpose: '출장', name: '박정윤', corp: '라인', dept: '경영지원', empId: 'L10022', gender: '여', status: '관리자승인', room: '506', type: 'L', stayStatus: '체크아웃 예정', key: true, memo: '외부사 이용객' }, // 외부사 수기 등록 사례 
-  { id: 4, checkIn: '2026-04-07', checkOut: '2026-04-11', days: 4, purpose: '출장', name: '최현우', corp: '네이버', dept: '개발센터', empId: 'N11223', gender: '남', status: '대기', room: '-', type: 'S', stayStatus: '예정', key: false, memo: '' },
-];
-
-// 2. 기획서 3.2.1 객실 상태별 색상 매핑 
-const ROOM_STATUS_THEME = {
-  '공실': 'bg-white border-gray-200 text-gray-400',
-  '재실 중': 'bg-cyan-100 border-cyan-400 text-cyan-700',
-  '체크인 예정': 'bg-pink-100 border-pink-400 text-pink-700',
-  '체크아웃 예정': 'bg-yellow-100 border-yellow-400 text-yellow-700',
-  '정비/사용불가': 'bg-gray-200 border-gray-400 text-gray-600'
-};
-
-export default function BasecampTokyo() {
-  const [activeMenu, setActiveMenu] = useState('dashboard'); // IA 기반 메뉴 관리 [cite: 74]
-  const [selectedRoom, setSelectedRoom] = useState(null); // 객실 클릭 팝업용
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterPurpose, setFilterPurpose] = useState('전체');
-
-  // 가동률 계산 (기획서 3.2.2) [cite: 47]
-  const stats = { total: 40, occupied: 28, rate: '70%' };
-
-  // 필터링 로직 (기획서 3.1.2) [cite: 29]
-  const filteredUsers = useMemo(() => {
-    return DUMMY_USERS.filter(user => {
-      const matchSearch = user.name.includes(searchTerm) || user.empId.includes(searchTerm) || user.dept.includes(searchTerm);
-      const matchPurpose = filterPurpose === '전체' || user.purpose === filterPurpose;
-      return matchSearch && matchPurpose;
-    });
-  }, [searchTerm, filterPurpose]);
-
-  return (
-    <div className="flex h-screen bg-[#F8FAFC]">
-      {/* 사이드 내비게이션 [cite: 75] */}
-      <nav className="w-64 bg-[#0F172A] text-white flex flex-col p-6">
-        <h1 className="text-xl font-bold mb-10 tracking-tight border-b border-slate-700 pb-4">BASECAMP TOKYO</h1>
-        <div className="space-y-2 flex-1">
-          <button onClick={() => setActiveMenu('dashboard')} className={`flex items-center space-x-3 w-full p-3 rounded-lg transition ${activeMenu === 'dashboard' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-            <LayoutDashboard size={20} /> <span>대시보드</span>
-          </button>
-          <button onClick={() => setActiveMenu('users')} className={`flex items-center space-x-3 w-full p-3 rounded-lg transition ${activeMenu === 'users' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-            <Users size={20} /> <span>이용자 현황</span>
-          </button>
-        </div>
-        <div className="text-xs text-slate-500 border-t border-slate-700 pt-4">v1.0 (Draft) [cite: 4]</div>
-      </nav>
-
-      {/* 메인 콘텐츠 */}
-      <main className="flex-1 overflow-y-auto p-8">
-        <header className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-slate-800 uppercase">
-            {activeMenu === 'dashboard' ? 'Room Visualization' : 'User Management'}
-          </h2>
-          <div className="flex space-x-3">
-            <button className="flex items-center space-x-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:shadow-sm">
-              <Download size={16} /> <span>엑셀 다운로드</span>
-            </button>
-            <button className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 shadow-md">
-              <Plus size={16} /> <span>수기 등록</span>
-            </button>
-          </div>
-        </header>
-
-        {activeMenu === 'dashboard' ? (
-          <section className="space-y-6">
-            {/* 가동률 요약 카드 [cite: 47] */}
-            <div className="grid grid-cols-3 gap-6">
-              {Object.entries(stats).map(([key, val]) => (
-                <div key={key} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                  <p className="text-slate-500 text-sm uppercase font-semibold">{key === 'rate' ? '가동률' : key === 'total' ? '총 객실' : '이용 객실'}</p>
-                  <p className="text-3xl font-black mt-2 text-slate-900">{val}</p>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basecamp Tokyo 예약 관리 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 기획서 3.2.1 상태별 색상 정의 */
+        .status-empty { background-color: #ffffff; border: 1px solid #e2e8f0; }
+        .status-occupied { background-color: #cffafe; border: 1px solid #22d3ee; color: #0e7490; }
+        .status-checkin { background-color: #fce7f3; border: 1px solid #f472b6; color: #be185d; }
+        .status-checkout { background-color: #fef9c3; border: 1px solid #facc15; color: #a16207; }
+        .status-maintenance { background-color: #e2e8f0; border: 1px solid #94a3b8; color: #475569; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans">
+    <div class="flex h-screen">
+        <aside class="w-64 bg-slate-900 text-white p-6 flex flex-col">
+            <h1 class="text-xl font-bold mb-8 tracking-tighter">BASECAMP TOKYO</h1>
+            <nav class="space-y-3 flex-1">
+                <div class="p-3 bg-blue-600 rounded-lg flex items-center space-x-3 cursor-pointer">
+                    <span>📊</span> <span>대시보드</span>
                 </div>
-              ))}
+                <div class="p-3 hover:bg-slate-800 rounded-lg flex items-center space-x-3 cursor-pointer text-slate-400">
+                    <span>👥</span> <span>이용자 현황</span>
+                </div>
+                <div class="p-3 hover:bg-slate-800 rounded-lg flex items-center space-x-3 cursor-pointer text-slate-400">
+                    <span>🛠️</span> <span>시설 관리</span>
+                </div>
+            </nav>
+            <div class="text-xs text-slate-500 border-t border-slate-700 pt-4">v1.0 (Draft)</div>
+        </aside>
+
+        <main class="flex-1 p-10 overflow-y-auto">
+            <header class="flex justify-between items-center mb-10">
+                <h2 class="text-2xl font-black text-slate-800">ROOM VISUALIZATION</h2>
+                <div class="flex space-x-3">
+                    <button class="bg-white border px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50">엑셀 다운로드</button>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-blue-700">수기 등록</button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-slate-400 text-xs font-bold uppercase">총 객실 수</p>
+                    <p class="text-3xl font-black text-slate-900 mt-1">40</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-slate-400 text-xs font-bold uppercase">이용 중</p>
+                    <p class="text-3xl font-black text-blue-600 mt-1">28</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-slate-400 text-xs font-bold uppercase">가동률</p>
+                    <p class="text-3xl font-black text-emerald-500 mt-1">70%</p>
+                </div>
             </div>
 
-            {/* 층별 시각화 배치도 [cite: 41, 42] */}
-            <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-lg font-bold">5층 객실 배치도 (5F)</h3>
-                <div className="flex flex-wrap gap-4 text-xs font-medium">
-                  {Object.entries(ROOM_STATUS_THEME).map(([label, color]) => (
-                    <div key={label} className="flex items-center space-x-2">
-                      <div className={`w-3 h-3 border rounded-sm ${color.split(' ')[0]}`}></div>
-                      <span className="text-slate-600">{label}</span>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="font-bold text-lg text-slate-700">5층 객실 배치도</h3>
+                    <div class="flex gap-4 text-[11px] font-bold">
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-empty rounded-sm"></div> 공실</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-occupied rounded-sm"></div> 재실 중</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-checkin rounded-sm"></div> 체크인 예정</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-checkout rounded-sm"></div> 체크아웃 예정</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-maintenance rounded-sm"></div> 정비</div>
                     </div>
-                  ))}
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-5 gap-6">
-                {[501, 502, 503, 504, 505, 506, 507, 508, 509, 510].map((num) => {
-                  const user = DUMMY_USERS.find(u => u.room === String(num));
-                  let status = '공실';
-                  if (user) status = user.stayStatus === '체크인' ? '재실 중' : user.stayStatus === '체크아웃 예정' ? '체크아웃 예정' : '체크인 예정';
-                  if (num === 505) status = '정비/사용불가';
 
-                  return (
-                    <div 
-                      key={num} 
-                      onClick={() => user && setSelectedRoom(user)}
-                      className={`relative h-28 border-2 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105 hover:shadow-lg ${ROOM_STATUS_THEME[status]}`}
-                    >
-                      <span className="text-lg font-black">{num}</span>
-                      <span className="text-[10px] mt-1 font-bold">{status}</span>
-                      {user && <div className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>}
+                <div class="grid grid-cols-5 gap-6">
+                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-occupied">
+                        <span class="font-black text-lg">501</span><span class="text-[10px] font-bold mt-1">김철수 (재실)</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-empty">
+                        <span class="font-black text-lg">502</span><span class="text-[10px] font-bold mt-1">공실</span>
+                    </div>
+                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-checkin">
+                        <span class="font-black text-lg">503</span><span class="text-[10px] font-bold mt-1">이영희 (예정)</span>
+                    </div>
+                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-empty">
+                        <span class="font-black text-lg">504</span><span class="text-[10px] font-bold mt-1">공실</span>
+                    </div>
+                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-maintenance">
+                        <span class="font-black text-lg">505</span><span class="text-[10px] font-bold mt-1">정비 중</span>
+                    </div>
+                    </div>
             </div>
-          </section>
-        ) : (
-          /* 이용자 현황 페이지 (기획서 3.1.1 및 필터) [cite: 25, 28] */
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-5 border-b flex gap-4 bg-slate-50/50">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="이름, 사번, 부서명 검색..." 
-                  className="pl-10 w-full border border-slate-200 rounded-lg py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <select 
-                className="border border-slate-200 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none"
-                onChange={(e) => setFilterPurpose(e.target.value)}
-              >
-                <option value="전체">이용 목적 전체</option>
-                <option value="출장">출장</option>
-                <option value="워케이션">워케이션</option>
-              </select>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 border-b text-slate-500 font-bold uppercase text-[11px] tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4">이름 (사번)</th>
-                    <th className="px-6 py-4">이용 기간</th>
-                    <th className="px-6 py-4">목적</th>
-                    <th className="px-6 py-4">법인/부서</th>
-                    <th className="px-6 py-4">결재 상태</th>
-                    <th className="px-6 py-4">객실(타입)</th>
-                    <th className="px-6 py-4">체크인 상태</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-slate-50/80 transition">
-                      <td className="px-6 py-4 font-semibold text-slate-800">{user.name} <span className="text-slate-400 font-normal ml-1">({user.empId})</span></td>
-                      <td className="px-6 py-4 text-slate-600">{user.checkIn} ~ {user.checkOut} <br/><span className="text-[10px] text-blue-500">총 {user.days}일</span></td>
-                      <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-[11px] font-bold ${user.purpose === '출장' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>{user.purpose}</span></td>
-                      <td className="px-6 py-4 text-slate-500">{user.corp} / {user.dept}</td>
-                      <td className="px-6 py-4"><span className={`font-bold ${user.status === '관리자승인' ? 'text-orange-500' : user.status === '승인' ? 'text-green-600' : 'text-slate-400'}`}>{user.status}</span></td>
-                      <td className="px-6 py-4">{user.room} ({user.type})</td>
-                      <td className="px-6 py-4 font-medium text-blue-600">{user.stayStatus}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* 객실 클릭 시 이용자 정보 팝업 (Modal) [cite: 48] */}
-        {selectedRoom && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl w-96 shadow-2xl overflow-hidden border border-slate-200">
-              <div className="bg-slate-900 p-6 text-white flex justify-between items-center">
-                <h3 className="text-lg font-bold">객실 {selectedRoom.room} 상세 정보</h3>
-                <button onClick={() => setSelectedRoom(null)}><X size={20} /></button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="flex items-center space-x-4 pb-4 border-b">
-                  <div className="bg-blue-100 p-3 rounded-full text-blue-600"><UserCircle size={32} /></div>
-                  <div>
-                    <p className="text-lg font-black text-slate-800">{selectedRoom.name}</p>
-                    <p className="text-sm text-slate-500">{selectedRoom.empId} | {selectedRoom.dept}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><p className="text-slate-400 text-xs">법인</p><p className="font-bold">{selectedRoom.corp}</p></div>
-                  <div><p className="text-slate-400 text-xs">목적</p><p className="font-bold">{selectedRoom.purpose}</p></div>
-                  <div><p className="text-slate-400 text-xs">체크인</p><p className="font-bold text-blue-600">{selectedRoom.checkIn}</p></div>
-                  <div><p className="text-slate-400 text-xs">체크아웃</p><p className="font-bold text-red-500">{selectedRoom.checkOut}</p></div>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  <p className="text-xs text-slate-400 mb-1">특이사항 [cite: 28]</p>
-                  <p className="text-sm text-slate-700 font-medium leading-relaxed">{selectedRoom.memo || '없음'}</p>
-                </div>
-              </div>
-              <div className="p-4 bg-slate-50 border-t flex justify-end">
-                <button onClick={() => setSelectedRoom(null)} className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold">확인</button>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
+        </main>
     </div>
-  );
-}
+</body>
+</html>
