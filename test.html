@@ -2,91 +2,118 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basecamp Tokyo 예약 관리 시스템</title>
+    <title>Basecamp Tokyo Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 기획서 3.2.1 상태별 색상 정의 */
-        .status-empty { background-color: #ffffff; border: 1px solid #e2e8f0; }
-        .status-occupied { background-color: #cffafe; border: 1px solid #22d3ee; color: #0e7490; }
-        .status-checkin { background-color: #fce7f3; border: 1px solid #f472b6; color: #be185d; }
-        .status-checkout { background-color: #fef9c3; border: 1px solid #facc15; color: #a16207; }
-        .status-maintenance { background-color: #e2e8f0; border: 1px solid #94a3b8; color: #475569; }
+        /* 이미지 기반 객실 타입 색상 (범례 반영) */
+        .type-sw { background-color: #FFFF00; } /* 고정형 워케이션 */
+        .type-sw-plus { background-color: #FFB6C1; } /* 변동형 워케이션/출장 */
+        .type-reserve { background-color: #FFA500; } /* 예비용 */
+        
+        /* 이미지 기반 상태 색상 */
+        .status-checkin { background-color: #FFC0CB; } /* 체크인 일 */
+        .status-checkout { background-color: #FFFFE0; } /* 체크아웃 일 */
+        .status-staying { background-color: #00BFFF; color: white; } /* 재실중 */
+        
+        .room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 1px; background-color: #e2e8f0; border: 1px solid #cbd5e1; }
+        .room-cell { background-color: #f8fafc; font-size: 10px; display: flex; flex-direction: column; align-items: center; padding: 4px 2px; height: 100%; border: 0.5px solid #e2e8f0; }
+        .room-header { background-color: #000; color: #fff; width: 100%; text-align: center; font-weight: bold; padding: 2px 0; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans">
-    <div class="flex h-screen">
-        <aside class="w-64 bg-slate-900 text-white p-6 flex flex-col">
-            <h1 class="text-xl font-bold mb-8 tracking-tighter">BASECAMP TOKYO</h1>
-            <nav class="space-y-3 flex-1">
-                <div class="p-3 bg-blue-600 rounded-lg flex items-center space-x-3 cursor-pointer">
-                    <span>📊</span> <span>대시보드</span>
-                </div>
-                <div class="p-3 hover:bg-slate-800 rounded-lg flex items-center space-x-3 cursor-pointer text-slate-400">
-                    <span>👥</span> <span>이용자 현황</span>
-                </div>
-                <div class="p-3 hover:bg-slate-800 rounded-lg flex items-center space-x-3 cursor-pointer text-slate-400">
-                    <span>🛠️</span> <span>시설 관리</span>
-                </div>
-            </nav>
-            <div class="text-xs text-slate-500 border-t border-slate-700 pt-4">v1.0 (Draft)</div>
-        </aside>
+<body class="bg-[#D1D5DB] p-4 font-sans text-[12px]">
 
-        <main class="flex-1 p-10 overflow-y-auto">
-            <header class="flex justify-between items-center mb-10">
-                <h2 class="text-2xl font-black text-slate-800">ROOM VISUALIZATION</h2>
-                <div class="flex space-x-3">
-                    <button class="bg-white border px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50">엑셀 다운로드</button>
-                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-blue-700">수기 등록</button>
-                </div>
-            </header>
+    <div class="flex justify-between items-start mb-4">
+        <div class="flex items-center space-x-2 bg-white p-2 border border-slate-400">
+            <span class="font-bold">기간 필터</span>
+            <input type="text" value="[ 2026.04.06 ]" class="border px-2 py-1 w-32 text-center">
+        </div>
+        
+        <div class="bg-white border border-slate-400">
+            <table class="w-48 text-center">
+                <tr class="border-b">
+                    <td class="bg-slate-100 border-r p-1">객실 수</td><td class="p-1">63</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="bg-slate-100 border-r p-1">이용객실수</td><td class="p-1">21</td>
+                </tr>
+                <tr>
+                    <td class="bg-slate-100 border-r p-1 font-bold">가동률</td><td class="p-1 font-bold">33%</td>
+                </tr>
+            </table>
+        </div>
 
-            <div class="grid grid-cols-3 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p class="text-slate-400 text-xs font-bold uppercase">총 객실 수</p>
-                    <p class="text-3xl font-black text-slate-900 mt-1">40</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p class="text-slate-400 text-xs font-bold uppercase">이용 중</p>
-                    <p class="text-3xl font-black text-blue-600 mt-1">28</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p class="text-slate-400 text-xs font-bold uppercase">가동률</p>
-                    <p class="text-3xl font-black text-emerald-500 mt-1">70%</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 class="font-bold text-lg text-slate-700">5층 객실 배치도</h3>
-                    <div class="flex gap-4 text-[11px] font-bold">
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-empty rounded-sm"></div> 공실</div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-occupied rounded-sm"></div> 재실 중</div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-checkin rounded-sm"></div> 체크인 예정</div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-checkout rounded-sm"></div> 체크아웃 예정</div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 status-maintenance rounded-sm"></div> 정비</div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-5 gap-6">
-                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-occupied">
-                        <span class="font-black text-lg">501</span><span class="text-[10px] font-bold mt-1">김철수 (재실)</span>
-                    </div>
-                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-empty">
-                        <span class="font-black text-lg">502</span><span class="text-[10px] font-bold mt-1">공실</span>
-                    </div>
-                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-checkin">
-                        <span class="font-black text-lg">503</span><span class="text-[10px] font-bold mt-1">이영희 (예정)</span>
-                    </div>
-                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-empty">
-                        <span class="font-black text-lg">504</span><span class="text-[10px] font-bold mt-1">공실</span>
-                    </div>
-                    <div class="h-28 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm border-2 status-maintenance">
-                        <span class="font-black text-lg">505</span><span class="text-[10px] font-bold mt-1">정비 중</span>
-                    </div>
-                    </div>
-            </div>
-        </main>
+        <div class="flex space-x-1">
+            <button class="bg-[#1e293b] text-white px-4 py-2 border border-slate-600">새로고침</button>
+            <button class="bg-[#166534] text-white px-4 py-2 border border-slate-600">다운로드</button>
+            <button class="bg-[#1e293b] text-white px-4 py-2 border border-slate-600">출력</button>
+        </div>
     </div>
-</body>
-</html>
+
+    <div class="flex gap-4">
+        <div class="flex-1 space-y-4">
+            <div class="bg-white p-2">
+                <div class="room-grid">
+                    <script>
+                        const rooms = [
+                            {no: 501, type: 'L', corp: 'NAVER', status: ''},
+                            {no: 502, type: 'S', corp: 'NAVER', status: ''},
+                            {no: 503, type: 'S(W)', corp: 'NAVER', status: 'checkin', name: '김보화'},
+                            {no: 504, type: 'S(W)', corp: 'NAVER', status: 'checkout', name: '이유진'},
+                            {no: 505, type: 'S(W)', corp: 'NAVER', status: ''},
+                            {no: 506, type: 'L', corp: 'NAVER', status: ''},
+                            {no: 507, type: 'M', corp: 'NAVER', status: 'staying', name: '박정윤'},
+                            {no: 508, type: '린넨실', corp: '', status: ''}
+                        ];
+                        
+                        rooms.forEach(r => {
+                            let typeClass = r.type === 'S(W)' ? 'type-sw' : '';
+                            let statusClass = r.status === 'checkin' ? 'status-checkin' : r.status === 'checkout' ? 'status-checkout' : r.status === 'staying' ? 'status-staying' : '';
+                            
+                            document.write(`
+                                <div class="room-cell">
+                                    <div class="room-header">${r.no}</div>
+                                    <div class="w-full text-center py-1 font-bold ${typeClass}">${r.type}</div>
+                                    <div class="text-[9px] text-slate-500">${r.corp}</div>
+                                    <div class="mt-2 h-8 w-full flex items-center justify-center font-bold ${statusClass}">
+                                        ${r.name || ''}
+                                    </div>
+                                    <div class="mt-2 flex space-x-1">
+                                        <span class="text-[8px]">●</span><span class="text-[8px]">●</span>
+                                    </div>
+                                </div>
+                            `);
+                        });
+                    </script>
+                </div>
+            </div>
+
+            <div class="bg-white p-2">
+                <div class="room-grid">
+                    <script>
+                        const rooms2 = [
+                            {no: 201, type: 'M', corp: 'LINE+', status: ''},
+                            {no: 202, type: 'S', corp: 'LINE+', status: ''},
+                            {no: 203, type: 'S', corp: 'LINE+', status: ''},
+                            {no: 207, type: 'S', corp: 'WEVERSE', status: ''},
+                            {no: 208, type: 'S', corp: 'WEVERSE', status: ''}
+                        ];
+                        rooms2.forEach(r => {
+                            document.write(`
+                                <div class="room-cell">
+                                    <div class="room-header">${r.no}</div>
+                                    <div class="w-full text-center py-1 font-bold text-blue-600">${r.type}</div>
+                                    <div class="text-[9px] font-bold">${r.corp}</div>
+                                    <div class="mt-2 h-8"></div>
+                                    <div class="flex space-x-1 text-slate-300">
+                                        <span>x</span><span>x</span>
+                                    </div>
+                                </div>
+                            `);
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-64 space-y-4">
+            <div class
