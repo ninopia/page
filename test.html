@@ -2,73 +2,149 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Basecamp Tokyo - 분석 및 운영 대시보드</title>
+    <title>Basecamp Tokyo Integrated Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .type-sw { background-color: #FFFF00; }
-        .type-sw-plus { background-color: #FFB6C1; }
-        .status-staying { background-color: #00BFFF; color: white; }
+        /* 이미지 기반 색상 규격 적용  */
+        .type-sw { background-color: #FFFF00; border: 1px solid #d4d447; } /* 고정형 */
+        .type-sw-plus { background-color: #FFB6C1; border: 1px solid #e0a3ad; } /* 변동형 */
+        .type-reserve { background-color: #FFA500; border: 1px solid #d48a00; } /* 예비 */
+        .status-staying { background-color: #00BFFF; color: white; } /* 재실  */
+        .status-checkin { background-color: #FFC0CB; } /* 입실예정  */
+        .status-checkout { background-color: #FFFFE0; } /* 퇴실예정  */
+
+        /* 엑셀 스타일 그리드 레이아웃 */
+        .floor-grid { 
+            display: grid; 
+            grid-template-columns: repeat(23, minmax(60px, 1fr)); 
+            gap: 1px; 
+            background-color: #cbd5e1; 
+            border: 1px solid #94a3b8;
+        }
+        .room-box { 
+            background-color: #ffffff; 
+            display: flex; 
+            flex-direction: column; 
+            font-size: 9px; 
+            min-height: 100px;
+        }
+        .room-no { background-color: #000; color: #fff; text-align: center; font-weight: bold; padding: 2px 0; font-size: 10px; }
+        .cell-data { border-bottom: 0.5px solid #f1f5f9; padding: 2px; text-align: center; min-height: 18px; line-height: 1.2; }
     </style>
 </head>
-<body class="bg-[#F1F5F9] p-8 font-sans">
+<body class="bg-gray-100 p-6 font-sans">
 
-    <div class="max-w-[1400px] mx-auto mb-10">
-        <header class="flex justify-between items-end mb-6">
+    <div class="max-w-[1600px] mx-auto mb-8">
+        <div class="flex justify-between items-end mb-4">
             <div>
-                <h1 class="text-2xl font-bold text-slate-800">전체 이용 현황 대시보드</h1>
-                <p class="text-slate-500">Basecamp Tokyo — 베이스캠프 도쿄</p>
+                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">전체 이용 현황 대시보드</h1>
+                <p class="text-slate-500 text-sm italic">Basecamp Tokyo — 운영 및 통계 통합 관리</p>
             </div>
             <div class="flex gap-2">
-                <select class="border p-2 rounded-lg text-sm bg-white"><option>월별 보기</option></select>
-                <select class="border p-2 rounded-lg text-sm bg-white"><option>2026년</option></select>
-                <select class="border p-2 rounded-lg text-sm bg-white"><option>4월</option></select>
+                <select class="border p-2 rounded bg-white text-xs shadow-sm"><option>2026년 4월</option></select>
+                <button class="bg-green-700 text-white px-4 py-2 rounded text-xs font-bold shadow-md">엑셀 다운로드 [cite: 36]</button>
             </div>
-        </header>
-
-        <div class="grid grid-cols-4 gap-4 mb-6">
-            <div class="card"><p class="text-xs text-slate-500 mb-1">총 이용 인원</p><p class="text-2xl font-bold">194명</p><p class="text-xs text-green-600 mt-1">↑ 전기 대비 +12%</p></div>
-            <div class="card"><p class="text-xs text-slate-500 mb-1">평균 객실 가동률</p><p class="text-2xl font-bold">33%</p><p class="text-xs text-green-600 mt-1">↑ 전기 대비 +4%p</p></div>
-            <div class="card"><p class="text-xs text-slate-500 mb-1">평균 체류 기간</p><p class="text-2xl font-bold">3.8일</p></div>
-            <div class="card"><p class="text-xs text-slate-500 mb-1">누적 이용 법인</p><p class="text-2xl font-bold">7개사</p></div>
         </div>
 
-        <div class="grid grid-cols-3 gap-6 mb-10">
-            <div class="card col-span-2">
-                <h3 class="font-bold text-sm mb-4">월별 이용 인원 및 가동률</h3>
-                <div class="h-48 w-full bg-slate-50 rounded flex items-end justify-around p-4 border-b">
-                    <div class="w-10 bg-blue-500 h-[40%] rounded-t"></div>
-                    <div class="w-10 bg-blue-500 h-[45%] rounded-t"></div>
-                    <div class="w-10 bg-blue-500 h-[55%] rounded-t"></div>
-                    <div class="w-10 bg-blue-600 h-[70%] rounded-t"></div>
-                    <div class="w-10 bg-slate-200 h-[10%] rounded-t"></div>
-                    <div class="w-10 bg-slate-200 h-[10%] rounded-t"></div>
-                </div>
-                <div class="flex justify-around text-[10px] text-slate-400 mt-2 font-bold">
-                    <span>1월</span><span>2월</span><span>3월</span><span>4월</span><span>5월</span><span>6월</span>
-                </div>
+        <div class="grid grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400 text-[10px] font-bold uppercase">총 이용 인원 </p>
+                <p class="text-2xl font-black mt-1">194명 <span class="text-xs text-green-500 ml-2">↑ 12%</span></p>
             </div>
-            <div class="card">
-                <h3 class="font-bold text-sm mb-4">이용 목적 구성</h3>
-                <div class="flex flex-col items-center">
-                    <div class="w-32 h-32 rounded-full border-[15px] border-blue-500 flex items-center justify-center relative">
-                        <div class="absolute inset-0 rounded-full border-[15px] border-emerald-500" style="clip-path: polygon(50% 50%, 100% 0, 100% 100%, 0 100%);"></div>
-                    </div>
-                    <div class="mt-6 w-full text-[11px] space-y-2">
-                        <div class="flex justify-between"><span>🟦 출장 38%</span><span>🟩 워케이션 43%</span></div>
-                        <div class="text-center text-orange-400 font-bold">🟧 외부사 19%</div>
-                    </div>
-                </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400 text-[10px] font-bold uppercase">객실 가동률 </p>
+                <p class="text-2xl font-black mt-1 text-blue-600">33% <span class="text-xs text-green-500 ml-2">↑ 4%p</span></p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400 text-[10px] font-bold uppercase">평균 체류 기간</p>
+                <p class="text-2xl font-black mt-1">3.8일</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <p class="text-slate-400 text-[10px] font-bold uppercase">누적 이용 법인 [cite: 28]</p>
+                <p class="text-2xl font-black mt-1">7개사</p>
             </div>
         </div>
     </div>
 
-    <div class="max-w-[1400px] mx-auto border-t-2 border-slate-300 pt-10">
+    <div class="max-w-[1600px] mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-200">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-slate-800 italic underline">REAL-TIME FLOOR STATUS (2F-5F)</h2>
-            <button class="bg-green-700 text-white px-4 py-2 rounded text-xs font-bold">현황 데이터 엑셀 다운로드</button>
+            <h2 class="text-lg font-black text-slate-700 border-l-4 border-black pl-3 uppercase">Real-Time Floor Status (2F - 5F)</h2>
+            <div class="flex gap-4 text-[10px] font-bold p-2 bg-slate-50 rounded-lg border">
+                <div class="flex items-center gap-1"><div class="w-3 h-3 type-sw"></div> 고정형</div>
+                <div class="flex items-center gap-1"><div class="w-3 h-3 type-sw-plus"></div> 변동/출장</div>
+                <div class="flex items-center gap-1"><div class="w-3 h-3 type-reserve"></div> 예비용</div>
+                <div class="flex items-center gap-1 text-blue-500 font-black ml-4">● 청소완료 [cite: 70]</div>
+            </div>
         </div>
-        
-        <div class="space-y-8 overflow-x-auto bg-white p-6 border rounded-xl shadow-inner">
-            <div class="mb-4 font-bold text-slate-500">5F GLOBAL SECTOR</div>
-            <div
+
+        <div class="space-y-10 overflow-x-auto">
+            <section>
+                <h3 class="text-xs font-black text-slate-400 mb-2 italic">5F - GLOBAL HR / OPERATION [cite: 4]</h3>
+                <div id="f5" class="floor-grid"></div>
+            </section>
+
+            <section>
+                <h3 class="text-xs font-black text-slate-400 mb-2 italic">4F - NAVER CLOUD / HUB</h3>
+                <div id="f4" class="floor-grid"></div>
+            </section>
+
+            <section>
+                <h3 class="text-xs font-black text-slate-400 mb-2 italic">3F - WEBTOON / FINANCIAL / SNOW</h3>
+                <div id="f3" class="floor-grid"></div>
+            </section>
+
+            <section>
+                <h3 class="text-xs font-black text-slate-400 mb-2 italic">2F - EXTERNAL PARTNERS (LINE, WEVERSE) [cite: 23]</h3>
+                <div id="f2" class="floor-grid"></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // 객실 박스 생성기 (이미지의 엑셀 데이터 구조 반영) [cite: 28]
+        function createRoom(no, type, corp, status, name) {
+            const typeClass = type.includes('S(W)') ? 'type-sw' : type.includes('S(+W)') ? 'type-sw-plus' : type === '예비' ? 'type-reserve' : '';
+            const statusClass = status === '재실' ? 'status-staying' : status === '입실' ? 'status-checkin' : status === '퇴실' ? 'status-checkout' : '';
+            
+            return `
+                <div class="room-box">
+                    <div class="room-no">${no}</div>
+                    <div class="cell-data font-bold ${typeClass}">${type}</div>
+                    <div class="cell-data text-slate-400 font-medium">${corp || '-'}</div>
+                    <div class="cell-data font-black h-8 flex items-center justify-center ${statusClass}">${name || ''}</div>
+                    <div class="cell-data text-[8px] flex justify-around"><span>●</span><span>●</span></div>
+                </div>
+            `;
+        }
+
+        // 5층 (501~513)
+        const f5 = document.getElementById('f5');
+        for(let i=501; i<=513; i++) {
+            let data = {t: 'S(W)', c: 'NAVER', s: '', n: ''};
+            if(i === 503) data = {t: 'S(W)', c: 'NAVER', s: '입실', n: '김보화'};
+            if(i === 507) data = {t: 'M', c: 'NAVER', s: '재실', n: '박정윤'};
+            f5.innerHTML += createRoom(i, data.t, data.c, data.s, data.n);
+        }
+
+        // 4층 (401~418)
+        const f4 = document.getElementById('f4');
+        for(let i=401; i<=418; i++) {
+            let corp = (i >= 406 && i <= 412) ? 'N CLOUD' : 'NAVER';
+            f4.innerHTML += createRoom(i, 'S', corp, '', '');
+        }
+
+        // 3층 (301~322)
+        const f3 = document.getElementById('f3');
+        for(let i=301; i<=322; i++) {
+            f3.innerHTML += createRoom(i, 'S(+W)', 'WEBTOON', (i==308?'퇴실':''), (i==308?'권영한':''));
+        }
+
+        // 2층 (201~223)
+        const f2 = document.getElementById('f2');
+        for(let i=201; i<=223; i++) {
+            let corp = (i <= 205) ? 'LINE+' : (i >= 208 && i <= 210) ? 'WEVERSE' : '예비';
+            f2.innerHTML += createRoom(i, 'M', corp, '', '');
+        }
+    </script>
+</body>
+</html>
