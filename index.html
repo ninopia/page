@@ -5,57 +5,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NAVER 연수원 운영현황 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Nanum+Gothic+Coding:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a1a0f;
-    --surface: #0f1f14;
-    --surface2: #162b1c;
-    --surface3: #1c3524;
-    --border: #1e3d27;
-    --accent: #03C75A;
-    --accent2: #00983A;
-    --accent3: #f59e0b;
-    --accent4: #ef4444;
-    --text: #e2ebe5;
-    --text-muted: #5a7a63;
-    --text-dim: #8aab92;
+    --bg: #060401;
+    --surface: #0e0a02;
+    --surface2: #181200;
+    --surface3: #221900;
+    --border: #3a2c00;
+    --accent: #ffaa00;
+    --accent2: #cc8800;
+    --accent3: #ff6600;
+    --accent4: #ee3311;
+    --text: #ffcc55;
+    --text-muted: #6b5000;
+    --text-dim: #aa8822;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: 'Noto Sans KR', sans-serif;
+    font-family: 'Nanum Gothic Coding', 'Share Tech Mono', monospace;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  /* Background grid */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(3,199,90,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(3,199,90,0.03) 1px, transparent 1px);
+      linear-gradient(rgba(255,170,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,170,0,0.04) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
   }
 
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.1) 2px,
+        rgba(0,0,0,0.1) 4px
+      ),
+      radial-gradient(ellipse at 50% 50%, transparent 65%, rgba(0,0,0,0.45) 100%);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
   .wrapper { position: relative; z-index: 1; }
 
-  /* Header */
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 32px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(17,24,39,0.8);
-    backdrop-filter: blur(12px);
+    padding: 16px 32px;
+    border-bottom: 2px solid var(--accent);
+    background: var(--surface);
+    box-shadow: 0 2px 24px rgba(255,170,0,0.2);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -65,115 +80,141 @@
 
   .logo-mark {
     width: 36px; height: 36px;
-    background: #03C75A;
-    border-radius: 8px;
+    background: transparent;
+    border: 2px solid var(--accent);
+    border-radius: 0;
     display: flex; align-items: center; justify-content: center;
     font-size: 18px;
-    box-shadow: 0 0 20px rgba(3,199,90,0.4);
+    box-shadow: 0 0 14px rgba(255,170,0,0.35), inset 0 0 8px rgba(255,170,0,0.08);
   }
 
-  .header-title { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
-  .header-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; font-family: 'DM Mono', monospace; }
+  .header-title {
+    font-family: 'Nanum Gothic Coding', monospace;
+    font-size: 18px; font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(255,170,0,0.55);
+  }
+
+  .header-sub {
+    font-size: 10px; color: var(--text-muted);
+    margin-top: 2px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 2px;
+  }
 
   .header-right { display: flex; align-items: center; gap: 16px; }
 
   .manage-btn {
     display: flex; align-items: center; gap: 7px;
-    padding: 7px 15px; border-radius: 8px;
-    background: rgba(3,199,90,0.12);
-    border: 1px solid rgba(3,199,90,0.35);
+    padding: 6px 14px;
+    border-radius: 0;
+    background: transparent;
+    border: 1px solid rgba(255,170,0,0.5);
     color: var(--accent);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 12px; font-weight: 600;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
     cursor: pointer; text-decoration: none;
-    transition: all 0.18s;
+    transition: all 0.12s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 0 8px rgba(255,170,0,0.12);
   }
   .manage-btn:hover {
-    background: rgba(3,199,90,0.22);
+    background: rgba(255,170,0,0.08);
     border-color: var(--accent);
-    box-shadow: 0 0 14px rgba(3,199,90,0.25);
-    transform: translateY(-1px);
+    box-shadow: 0 0 16px rgba(255,170,0,0.35);
+    text-shadow: 0 0 6px rgba(255,170,0,0.5);
   }
 
   .live-badge {
     display: flex; align-items: center; gap: 6px;
-    padding: 5px 12px; border-radius: 20px;
-    background: rgba(3,199,90,0.1);
-    border: 1px solid rgba(3,199,90,0.3);
+    padding: 4px 10px;
+    border-radius: 0;
+    background: transparent;
+    border: 1px solid rgba(255,170,0,0.35);
     font-size: 11px; color: var(--accent);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 2px;
+    text-shadow: 0 0 6px rgba(255,170,0,0.4);
   }
 
   .live-dot {
-    width: 6px; height: 6px; border-radius: 50%;
+    width: 8px; height: 8px;
     background: var(--accent);
-    animation: pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 6px rgba(255,170,0,0.8);
+    animation: blink 1s step-end infinite;
+    border-radius: 0;
   }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
   }
 
   .date-tag {
-    font-size: 12px; color: var(--text-muted);
-    font-family: 'DM Mono', monospace;
+    font-size: 11px; color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
   }
 
-  /* Tab Navigation */
   .tab-nav {
     display: flex;
-    padding: 16px 32px 0;
+    padding: 12px 32px 0;
     gap: 2px;
     border-bottom: 1px solid var(--border);
   }
 
   .tab-btn {
-    padding: 10px 20px;
-    border: none; cursor: pointer;
+    padding: 8px 18px;
+    cursor: pointer;
     background: transparent;
     color: var(--text-muted);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
+    font-family: 'Nanum Gothic Coding', monospace;
+    font-size: 12px; font-weight: 400;
+    border: 1px solid transparent;
+    border-bottom: none;
+    transition: all 0.12s;
+    letter-spacing: 1px;
     margin-bottom: -1px;
   }
 
   .tab-btn.active {
     color: var(--accent);
-    border-bottom-color: var(--accent);
+    border-color: var(--border);
+    background: var(--surface);
+    border-bottom: 1px solid var(--surface);
+    text-shadow: 0 0 6px rgba(255,170,0,0.4);
+    box-shadow: inset 0 1px 0 var(--accent);
   }
 
   .tab-btn:hover:not(.active) { color: var(--text-dim); }
 
-  /* Main Content */
   .main { padding: 28px 32px; }
 
   .tab-content { display: none; }
-  .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+  .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
 
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* Section Title */
   .section-header {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 20px;
   }
 
   .section-title {
-    font-size: 13px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1.5px;
+    font-size: 11px; font-weight: 400;
+    text-transform: uppercase; letter-spacing: 2px;
     color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
   }
 
   .section-period {
-    font-size: 11px; color: var(--text-muted);
-    font-family: 'DM Mono', monospace;
+    font-size: 10px; color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
   }
 
-  /* KPI Cards */
   .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -184,14 +225,17 @@
   .kpi-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 0;
     padding: 20px;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.2s;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
-  .kpi-card:hover { border-color: var(--accent); }
+  .kpi-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 16px rgba(255,170,0,0.12), inset 0 0 20px rgba(255,170,0,0.03);
+  }
 
   .kpi-card::before {
     content: '';
@@ -200,30 +244,42 @@
     height: 2px;
   }
 
-  .kpi-card.blue::before { background: var(--accent); }
-  .kpi-card.green::before { background: var(--accent); }
-  .kpi-card.amber::before { background: var(--accent3); }
-  .kpi-card.red::before { background: var(--accent4); }
+  .kpi-card.blue::before  { background: var(--accent);  box-shadow: 0 0 8px rgba(255,170,0,0.6); }
+  .kpi-card.green::before { background: var(--accent2); box-shadow: 0 0 8px rgba(204,136,0,0.6); }
+  .kpi-card.amber::before { background: var(--accent3); box-shadow: 0 0 8px rgba(255,102,0,0.6); }
+  .kpi-card.red::before   { background: var(--accent4); box-shadow: 0 0 8px rgba(238,51,17,0.6); }
 
-  .kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .kpi-value { font-size: 28px; font-weight: 900; letter-spacing: -1px; line-height: 1; }
-  .kpi-value.blue { color: var(--accent); }
-  .kpi-value.green { color: var(--accent2); }
-  .kpi-value.amber { color: var(--accent3); }
-  .kpi-value.red { color: var(--accent4); }
+  .kpi-label {
+    font-size: 10px; color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: 400;
+    margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
 
-  .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  .kpi-value {
+    font-family: 'VT323', monospace;
+    font-size: 46px; font-weight: 400;
+    letter-spacing: 2px; line-height: 1;
+  }
+
+  .kpi-value.blue  { color: var(--accent);  text-shadow: 0 0 12px rgba(255,170,0,0.5); }
+  .kpi-value.green { color: var(--accent2); text-shadow: 0 0 12px rgba(204,136,0,0.5); }
+  .kpi-value.amber { color: var(--accent3); text-shadow: 0 0 12px rgba(255,102,0,0.5); }
+  .kpi-value.red   { color: var(--accent4); text-shadow: 0 0 12px rgba(238,51,17,0.5); }
+
+  .kpi-sub { font-size: 10px; color: var(--text-muted); margin-top: 6px; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.5px; }
 
   .kpi-change {
     display: inline-flex; align-items: center; gap: 3px;
-    font-size: 11px; font-family: 'DM Mono', monospace;
-    padding: 2px 7px; border-radius: 4px; margin-top: 8px;
+    font-size: 10px; font-family: 'Share Tech Mono', monospace;
+    padding: 2px 6px; border-radius: 0; margin-top: 8px;
+    border: 1px solid;
   }
 
-  .kpi-change.up { background: rgba(16,185,129,0.1); color: var(--accent2); }
-  .kpi-change.down { background: rgba(239,68,68,0.1); color: var(--accent4); }
+  .kpi-change.up   { background: rgba(255,170,0,0.06); color: var(--accent2); border-color: rgba(255,170,0,0.2); }
+  .kpi-change.down { background: rgba(238,51,17,0.06); color: var(--accent4); border-color: rgba(238,51,17,0.2); }
 
-  /* Charts Grid */
   .charts-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -241,19 +297,28 @@
   .chart-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 0;
     padding: 20px;
   }
 
   .chart-title {
-    font-size: 13px; font-weight: 700; margin-bottom: 4px;
+    font-size: 11px; font-weight: 400;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    color: var(--text-dim);
   }
 
-  .chart-desc { font-size: 11px; color: var(--text-muted); margin-bottom: 16px; }
+  .chart-desc {
+    font-size: 10px; color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
 
   .chart-wrap { position: relative; }
 
-  /* Room Status Table */
   .room-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -262,54 +327,55 @@
   }
 
   .room-cell {
-    border-radius: 8px;
+    border-radius: 0;
     padding: 10px;
     font-size: 11px;
-    font-family: 'DM Mono', monospace;
+    font-family: 'Share Tech Mono', monospace;
     text-align: center;
     cursor: pointer;
-    transition: transform 0.15s;
+    transition: transform 0.1s, box-shadow 0.1s;
   }
 
-  .room-cell:hover { transform: scale(1.05); }
-  .room-cell.occupied { background: rgba(3,199,90,0.15); border: 1px solid rgba(3,199,90,0.4); color: var(--accent); }
-  .room-cell.available { background: rgba(0,152,58,0.1); border: 1px solid rgba(0,152,58,0.3); color: var(--accent2); }
-  .room-cell.maintenance { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--accent4); }
-  .room-cell.reserved { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--accent3); }
+  .room-cell:hover { transform: scale(1.05); box-shadow: 0 0 10px rgba(255,170,0,0.2); }
+  .room-cell.occupied    { background: rgba(255,170,0,0.12); border: 1px solid rgba(255,170,0,0.4);  color: var(--accent); }
+  .room-cell.available   { background: rgba(204,136,0,0.08); border: 1px solid rgba(204,136,0,0.25); color: var(--accent2); }
+  .room-cell.maintenance { background: rgba(238,51,17,0.08);  border: 1px solid rgba(238,51,17,0.3);  color: var(--accent4); }
+  .room-cell.reserved    { background: rgba(255,102,0,0.08);  border: 1px solid rgba(255,102,0,0.3);  color: var(--accent3); }
 
-  .room-num { font-weight: 700; font-size: 13px; }
-  .room-status-label { font-size: 9px; margin-top: 2px; opacity: 0.8; }
+  .room-num { font-family: 'VT323', monospace; font-weight: 400; font-size: 20px; text-shadow: 0 0 6px currentColor; }
+  .room-status-label { font-size: 9px; margin-top: 2px; opacity: 0.7; letter-spacing: 1px; }
 
-  /* Legend */
   .legend { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
-  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted); font-family: 'Share Tech Mono', monospace; letter-spacing: 1px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 0; }
 
-  /* Program Table */
   .prog-table { width: 100%; border-collapse: collapse; font-size: 12px; }
   .prog-table th {
     text-align: left; padding: 10px 12px;
-    font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
-    color: var(--text-muted); font-weight: 600;
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-muted); font-weight: 400;
+    font-family: 'Share Tech Mono', monospace;
     border-bottom: 1px solid var(--border);
   }
 
-  .prog-table td { padding: 12px 12px; border-bottom: 1px solid rgba(36,48,71,0.5); }
-  .prog-table tr:hover td { background: rgba(3,199,90,0.03); }
+  .prog-table td { padding: 12px 12px; border-bottom: 1px solid rgba(58,44,0,0.5); font-family: 'Nanum Gothic Coding', monospace; }
+  .prog-table tr:hover td { background: rgba(255,170,0,0.02); }
 
   .badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 10px; font-weight: 600; font-family: 'DM Mono', monospace;
+    display: inline-block; padding: 2px 8px; border-radius: 0;
+    font-size: 9px; font-weight: 400;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    border: 1px solid;
   }
 
-  .badge.running { background: rgba(16,185,129,0.15); color: var(--accent2); }
-  .badge.planned { background: rgba(59,130,246,0.15); color: var(--accent); }
-  .badge.closed { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+  .badge.running { background: rgba(255,170,0,0.08); color: var(--accent);  border-color: rgba(255,170,0,0.3); }
+  .badge.planned { background: rgba(204,136,0,0.08); color: var(--accent2); border-color: rgba(204,136,0,0.3); }
+  .badge.closed  { background: rgba(100,80,0,0.08);  color: var(--text-muted); border-color: rgba(80,60,0,0.2); }
 
-  .progress-bar-wrap { width: 100%; background: var(--surface3); border-radius: 4px; height: 6px; margin-top: 4px; }
-  .progress-bar { height: 6px; border-radius: 4px; transition: width 0.5s ease; }
+  .progress-bar-wrap { width: 100%; background: var(--surface3); border-radius: 0; height: 8px; margin-top: 4px; }
+  .progress-bar { height: 8px; border-radius: 0; transition: width 0.5s ease; }
 
-  /* Finance rows */
   .finance-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -320,40 +386,37 @@
   .finance-row {
     display: flex; align-items: center; justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(36,48,71,0.5);
+    border-bottom: 1px solid rgba(58,44,0,0.5);
   }
 
   .finance-row:last-child { border-bottom: none; }
-  .finance-label { font-size: 12px; color: var(--text-dim); }
-  .finance-val { font-size: 14px; font-weight: 700; font-family: 'DM Mono', monospace; }
-  .finance-val.income { color: var(--accent2); }
-  .finance-val.expense { color: var(--accent4); }
+  .finance-label { font-size: 12px; color: var(--text-dim); font-family: 'Nanum Gothic Coding', monospace; }
+  .finance-val { font-family: 'VT323', monospace; font-size: 22px; font-weight: 400; letter-spacing: 1px; }
+  .finance-val.income  { color: var(--accent);  text-shadow: 0 0 8px rgba(255,170,0,0.4); }
+  .finance-val.expense { color: var(--accent4); text-shadow: 0 0 8px rgba(238,51,17,0.4); }
 
-  /* Gauge */
   .gauge-wrap { position: relative; width: 120px; height: 70px; margin: 0 auto 8px; }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
 
   @media (max-width: 768px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
     .charts-grid, .charts-grid-3, .finance-grid { grid-template-columns: 1fr; }
     .main { padding: 16px; }
-    header { padding: 14px 16px; }
-    .tab-nav { padding: 12px 16px 0; overflow-x: auto; }
+    header { padding: 12px 16px; }
+    .tab-nav { padding: 10px 16px 0; overflow-x: auto; }
   }
 </style>
 </head>
 <body>
 <div class="wrapper">
 
-  <!-- Header -->
   <header>
     <div class="header-left">
       <div class="logo-mark">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffaa00" xmlns="http://www.w3.org/2000/svg">
           <path d="M13.6 12.4L10.2 7H7v10h3.4v-5.4L14.1 17H17V7h-3.4z"/>
         </svg>
       </div>
@@ -363,23 +426,20 @@
       </div>
     </div>
     <div class="header-right">
-      <a class="manage-btn" href="연수원_데이터_관리.html" target="_blank">⚙️ 데이터 관리</a>
+      <a class="manage-btn" href="연수원_데이터_관리.html" target="_blank">⚙ 데이터 관리</a>
       <div class="live-badge"><div class="live-dot"></div>LIVE</div>
       <div class="date-tag" id="dateTag"></div>
     </div>
   </header>
 
-  <!-- Tab Navigation -->
   <nav class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('room')">🏨 객실 현황</button>
-    <button class="tab-btn" onclick="switchTab('program')">📚 교육 프로그램</button>
-    <button class="tab-btn" onclick="switchTab('finance')">💰 재정 현황</button>
+    <button class="tab-btn active" onclick="switchTab('room')">▶ 객실 현황</button>
+    <button class="tab-btn" onclick="switchTab('program')">▶ 교육 프로그램</button>
+    <button class="tab-btn" onclick="switchTab('finance')">▶ 재정 현황</button>
   </nav>
 
-  <!-- Main Content -->
   <div class="main">
 
-    <!-- ===== TAB 1: 객실 현황 ===== -->
     <div class="tab-content active" id="tab-room">
       <div class="section-header">
         <span class="section-title">객실 예약 및 가동률</span>
@@ -410,7 +470,6 @@
       </div>
 
       <div class="charts-grid">
-        <!-- 월별 가동률 추이 -->
         <div class="chart-card">
           <div class="chart-title">월별 객실 가동률 추이</div>
           <div class="chart-desc">최근 12개월 가동률 및 예약률 비교</div>
@@ -418,8 +477,6 @@
             <canvas id="roomTrendChart"></canvas>
           </div>
         </div>
-
-        <!-- 객실 유형별 현황 -->
         <div class="chart-card">
           <div class="chart-title">객실 유형별 현황</div>
           <div class="chart-desc">당일 기준 점유 현황</div>
@@ -429,7 +486,6 @@
         </div>
       </div>
 
-      <!-- 객실 배치도 -->
       <div class="chart-card" style="margin-bottom:0">
         <div class="chart-title">실시간 객실 현황</div>
         <div class="chart-desc">동관 A동 기준 · 클릭으로 상세 확인</div>
@@ -443,7 +499,6 @@
       </div>
     </div>
 
-    <!-- ===== TAB 2: 교육 프로그램 ===== -->
     <div class="tab-content" id="tab-program">
       <div class="section-header">
         <span class="section-title">교육 프로그램 운영 현황</span>
@@ -474,7 +529,6 @@
       </div>
 
       <div class="charts-grid">
-        <!-- 프로그램 참여 현황 -->
         <div class="chart-card">
           <div class="chart-title">분기별 교육 참여 인원</div>
           <div class="chart-desc">내부 / 외부 참여자 구분</div>
@@ -482,8 +536,6 @@
             <canvas id="programChart"></canvas>
           </div>
         </div>
-
-        <!-- 만족도 분포 -->
         <div class="chart-card">
           <div class="chart-title">교육 만족도 분포</div>
           <div class="chart-desc">최근 설문 결과 기준</div>
@@ -493,7 +545,6 @@
         </div>
       </div>
 
-      <!-- 프로그램 목록 -->
       <div class="chart-card">
         <div class="chart-title">프로그램별 운영 현황</div>
         <div class="chart-desc">2025년 1분기 기준</div>
@@ -513,7 +564,6 @@
       </div>
     </div>
 
-    <!-- ===== TAB 3: 재정 현황 ===== -->
     <div class="tab-content" id="tab-finance">
       <div class="section-header">
         <span class="section-title">재정 / 수입 현황</span>
@@ -547,7 +597,6 @@
       </div>
 
       <div class="charts-grid">
-        <!-- 월별 수입/지출 -->
         <div class="chart-card">
           <div class="chart-title">월별 수입 / 지출 추이</div>
           <div class="chart-desc">2024년 하반기 ~ 2025년 1월</div>
@@ -555,8 +604,6 @@
             <canvas id="financeChart"></canvas>
           </div>
         </div>
-
-        <!-- 수입 항목 비율 -->
         <div class="chart-card">
           <div class="chart-title">수입 항목별 비율</div>
           <div class="chart-desc">이번 달 기준 구성 비율</div>
@@ -566,7 +613,6 @@
         </div>
       </div>
 
-      <!-- 수입/지출 상세 -->
       <div class="finance-grid">
         <div class="chart-card">
           <div class="chart-title" style="margin-bottom:12px">수입 상세</div>
@@ -583,13 +629,11 @@
 </div>
 
 <script>
-// Date
 const now = new Date();
 document.getElementById('dateTag').textContent =
   now.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' +
   now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
-// Tab Switch
 function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -597,15 +641,12 @@ function switchTab(name) {
   event.target.classList.add('active');
 }
 
-// Chart defaults
-Chart.defaults.color = '#64748b';
-Chart.defaults.borderColor = '#243047';
-Chart.defaults.font.family = "'Noto Sans KR', sans-serif";
+Chart.defaults.color = '#6b5000';
+Chart.defaults.borderColor = '#221900';
+Chart.defaults.font.family = "'Share Tech Mono', monospace";
 
 const months = ['2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월'];
 
-// ========= ROOM CHARTS =========
-// 월별 가동률 추이
 new Chart(document.getElementById('roomTrendChart'), {
   type: 'line',
   data: {
@@ -614,18 +655,18 @@ new Chart(document.getElementById('roomTrendChart'), {
       {
         label: '가동률',
         data: [62, 58, 71, 76, 82, 89, 91, 85, 77, 68, 72, 78],
-        borderColor: '#03C75A',
-        backgroundColor: 'rgba(3,199,90,0.08)',
+        borderColor: '#ffaa00',
+        backgroundColor: 'rgba(255,170,0,0.07)',
         fill: true, tension: 0.4, borderWidth: 2,
-        pointBackgroundColor: '#03C75A', pointRadius: 3
+        pointBackgroundColor: '#ffaa00', pointRadius: 3
       },
       {
         label: '예약률',
         data: [70, 65, 79, 83, 87, 93, 95, 90, 84, 75, 80, 84],
-        borderColor: '#00983A',
+        borderColor: '#cc8800',
         backgroundColor: 'transparent',
         tension: 0.4, borderWidth: 2, borderDash: [5,3],
-        pointBackgroundColor: '#00983A', pointRadius: 3
+        pointBackgroundColor: '#cc8800', pointRadius: 3
       }
     ]
   },
@@ -633,21 +674,20 @@ new Chart(document.getElementById('roomTrendChart'), {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { position: 'top', labels: { usePointStyle: true, pointStyleWidth: 8, boxHeight: 6 } } },
     scales: {
-      y: { min: 40, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#1a2235' } },
-      x: { grid: { color: '#1a2235' } }
+      y: { min: 40, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#1a1200' } },
+      x: { grid: { color: '#1a1200' } }
     }
   }
 });
 
-// 객실 유형별
 new Chart(document.getElementById('roomTypeChart'), {
   type: 'doughnut',
   data: {
     labels: ['1인실', '2인실', '4인실', '세미나실'],
     datasets: [{
       data: [18, 14, 10, 8],
-      backgroundColor: ['#03C75A','#00983A','#f59e0b','#1D1D1B'],
-      borderColor: '#111827', borderWidth: 2
+      backgroundColor: ['#ffaa00','#cc8800','#ff6600','#3a2c00'],
+      borderColor: '#0e0a02', borderWidth: 2
     }]
   },
   options: {
@@ -660,7 +700,6 @@ new Chart(document.getElementById('roomTypeChart'), {
   }
 });
 
-// Room Grid
 const rooms = Array.from({length: 50}, (_, i) => {
   const num = i + 101;
   const r = Math.random();
@@ -679,22 +718,21 @@ rooms.forEach(r => {
   grid.appendChild(cell);
 });
 
-// ========= PROGRAM CHARTS =========
 new Chart(document.getElementById('programChart'), {
   type: 'bar',
   data: {
     labels: ['Q1 \'24', 'Q2 \'24', 'Q3 \'24', 'Q4 \'24', 'Q1 \'25'],
     datasets: [
-      { label: '내부 직원', data: [180, 210, 240, 195, 230], backgroundColor: 'rgba(3,199,90,0.8)', borderRadius: 4 },
-      { label: '외부 참가자', data: [90, 120, 150, 105, 140], backgroundColor: 'rgba(0,152,58,0.7)', borderRadius: 4 }
+      { label: '내부 직원',   data: [180, 210, 240, 195, 230], backgroundColor: 'rgba(255,170,0,0.75)', borderRadius: 0 },
+      { label: '외부 참가자', data: [90, 120, 150, 105, 140],  backgroundColor: 'rgba(204,136,0,0.65)', borderRadius: 0 }
     ]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
     scales: {
-      x: { stacked: true, grid: { color: '#1a2235' } },
-      y: { stacked: true, grid: { color: '#1a2235' }, ticks: { callback: v => v + '명' } }
+      x: { stacked: true, grid: { color: '#1a1200' } },
+      y: { stacked: true, grid: { color: '#1a1200' }, ticks: { callback: v => v + '명' } }
     }
   }
 });
@@ -706,8 +744,8 @@ new Chart(document.getElementById('satisfactionChart'), {
     datasets: [{
       label: '응답 수',
       data: [312, 198, 54, 12, 4],
-      backgroundColor: ['#03C75A','#00983A','#f59e0b','#f97316','#ef4444'],
-      borderRadius: 6, borderSkipped: false
+      backgroundColor: ['#ffaa00','#cc8800','#ff6600','#ff3300','#aa2200'],
+      borderRadius: 0, borderSkipped: false
     }]
   },
   options: {
@@ -715,62 +753,60 @@ new Chart(document.getElementById('satisfactionChart'), {
     indexAxis: 'y',
     plugins: { legend: { display: false } },
     scales: {
-      x: { grid: { color: '#1a2235' }, ticks: { callback: v => v + '명' } },
+      x: { grid: { color: '#1a1200' }, ticks: { callback: v => v + '명' } },
       y: { grid: { display: false } }
     }
   }
 });
 
-// Program table
 const programs = [
-  { name: '신입사원 입문교육', target: '신입직원', period: '1/6 ~ 1/17', applied: 42, cap: 50, status: 'running' },
-  { name: '리더십 과정', target: '팀장급', period: '1/13 ~ 1/15', applied: 28, cap: 30, status: 'running' },
-  { name: '디지털 전환 교육', target: '전직원', period: '1/20 ~ 1/24', applied: 35, cap: 40, status: 'running' },
-  { name: '안전교육 기초', target: '현장직', period: '2/3 ~ 2/5', applied: 18, cap: 30, status: 'planned' },
-  { name: '글로벌 비즈니스', target: '해외사업부', period: '2/10 ~ 2/14', applied: 22, cap: 25, status: 'planned' },
-  { name: '프로젝트 관리', target: '중간관리자', period: '3/3 ~ 3/7', applied: 0, cap: 25, status: 'planned' },
-  { name: '소통·협업 워크숍', target: '전직원', period: '12/9 ~ 12/11', applied: 60, cap: 60, status: 'closed' },
-  { name: '연말 성과공유회', target: '전직원', period: '12/20', applied: 210, cap: 210, status: 'closed' },
+  { name: '신입사원 입문교육', target: '신입직원',   period: '1/6 ~ 1/17',   applied: 42,  cap: 50,  status: 'running' },
+  { name: '리더십 과정',       target: '팀장급',     period: '1/13 ~ 1/15',  applied: 28,  cap: 30,  status: 'running' },
+  { name: '디지털 전환 교육',  target: '전직원',     period: '1/20 ~ 1/24',  applied: 35,  cap: 40,  status: 'running' },
+  { name: '안전교육 기초',     target: '현장직',     period: '2/3 ~ 2/5',    applied: 18,  cap: 30,  status: 'planned' },
+  { name: '글로벌 비즈니스',   target: '해외사업부', period: '2/10 ~ 2/14',  applied: 22,  cap: 25,  status: 'planned' },
+  { name: '프로젝트 관리',     target: '중간관리자', period: '3/3 ~ 3/7',    applied: 0,   cap: 25,  status: 'planned' },
+  { name: '소통·협업 워크숍',  target: '전직원',     period: '12/9 ~ 12/11', applied: 60,  cap: 60,  status: 'closed' },
+  { name: '연말 성과공유회',   target: '전직원',     period: '12/20',        applied: 210, cap: 210, status: 'closed' },
 ];
 
 const statusLabel = { running: '운영 중', planned: '예정', closed: '종료' };
 const tbody = document.getElementById('programTable');
 programs.forEach(p => {
   const pct = Math.round(p.applied / p.cap * 100);
-  const color = pct >= 90 ? '#03C75A' : pct >= 60 ? '#00983A' : '#f59e0b';
+  const color = pct >= 90 ? '#ffaa00' : pct >= 60 ? '#cc8800' : '#ff6600';
   tbody.innerHTML += `
     <tr>
-      <td style="font-weight:600">${p.name}</td>
+      <td style="font-weight:700">${p.name}</td>
       <td style="color:var(--text-muted)">${p.target}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted)">${p.period}</td>
+      <td style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-muted)">${p.period}</td>
       <td>${p.applied}/${p.cap}명</td>
       <td style="min-width:100px">
         <div style="display:flex;align-items:center;gap:8px">
           <div class="progress-bar-wrap" style="flex:1"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
-          <span style="font-size:11px;color:${color};font-family:'DM Mono',monospace">${pct}%</span>
+          <span style="font-size:11px;color:${color};font-family:'Share Tech Mono',monospace">${pct}%</span>
         </div>
       </td>
       <td><span class="badge ${p.status}">${statusLabel[p.status]}</span></td>
     </tr>`;
 });
 
-// ========= FINANCE CHARTS =========
 const finMonths = ['8월', '9월', '10월', '11월', '12월', '1월'];
 new Chart(document.getElementById('financeChart'), {
   type: 'bar',
   data: {
     labels: finMonths,
     datasets: [
-      { label: '수입', data: [3820, 4100, 3650, 4320, 4580, 4820], backgroundColor: 'rgba(0,152,58,0.7)', borderRadius: 4 },
-      { label: '지출', data: [2600, 2720, 2580, 2810, 2850, 2940], backgroundColor: 'rgba(239,68,68,0.5)', borderRadius: 4 }
+      { label: '수입', data: [3820, 4100, 3650, 4320, 4580, 4820], backgroundColor: 'rgba(255,170,0,0.65)', borderRadius: 0 },
+      { label: '지출', data: [2600, 2720, 2580, 2810, 2850, 2940], backgroundColor: 'rgba(238,51,17,0.45)',  borderRadius: 0 }
     ]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
     plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
     scales: {
-      x: { grid: { color: '#1a2235' } },
-      y: { grid: { color: '#1a2235' }, ticks: { callback: v => (v/10000).toFixed(1) + '억' } }
+      x: { grid: { color: '#1a1200' } },
+      y: { grid: { color: '#1a1200' }, ticks: { callback: v => (v/10000).toFixed(1) + '억' } }
     }
   }
 });
@@ -781,8 +817,8 @@ new Chart(document.getElementById('incomeBreakChart'), {
     labels: ['객실 이용료', '교육 수강료', '식음료 수입', '기타 부대시설'],
     datasets: [{
       data: [2120, 1580, 760, 360],
-      backgroundColor: ['#03C75A','#00983A','#f59e0b','#1D1D1B'],
-      borderColor: '#111827', borderWidth: 2
+      backgroundColor: ['#ffaa00','#cc8800','#ff6600','#3a2c00'],
+      borderColor: '#0e0a02', borderWidth: 2
     }]
   },
   options: {
@@ -795,19 +831,18 @@ new Chart(document.getElementById('incomeBreakChart'), {
   }
 });
 
-// Income / Expense details
 const incomes = [
-  { label: '객실 이용료', val: '2,120만원' },
-  { label: '교육 수강료', val: '1,580만원' },
-  { label: '식음료 수입', val: '760만원' },
-  { label: '기타 부대시설', val: '360만원' },
+  { label: '객실 이용료',   val: '2,120만원' },
+  { label: '교육 수강료',   val: '1,580만원' },
+  { label: '식음료 수입',   val: '760만원'   },
+  { label: '기타 부대시설', val: '360만원'   },
 ];
 const expenses = [
-  { label: '인건비', val: '1,240만원' },
-  { label: '시설 유지비', val: '680만원' },
-  { label: '식재료비', val: '520만원' },
-  { label: '프로그램 운영비', val: '340만원' },
-  { label: '기타 관리비', val: '160만원' },
+  { label: '인건비',         val: '1,240만원' },
+  { label: '시설 유지비',    val: '680만원'   },
+  { label: '식재료비',       val: '520만원'   },
+  { label: '프로그램 운영비',val: '340만원'   },
+  { label: '기타 관리비',    val: '160만원'   },
 ];
 
 const incomeEl = document.getElementById('incomeDetail');
