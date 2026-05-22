@@ -4,37 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NAVER CONNECT ONE 운영현황</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
-// ===== 별점 렌더링 =====
-(function renderStars() {
-  const score = 4.82;
-  const container = document.getElementById('starDisplay');
-  if (!container) return;
-  let html = '';
-  for (let i = 1; i <= 5; i++) {
-    const fill = Math.min(1, Math.max(0, score - (i - 1)));
-    if (fill >= 1) {
-      // 꽉찬 별
-      html += `<svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"/></svg>`;
-    } else if (fill > 0) {
-      // 반별 (clip path로 정확히)
-      const pct = Math.round(fill * 100);
-      html += `<svg width="22" height="22" viewBox="0 0 24 24">
-        <defs><clipPath id="half${i}"><rect x="0" y="0" width="${pct * 0.24}" height="24"/></clipPath></defs>
-        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#2d3548" stroke="#3d4558" stroke-width="1"/>
-        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1" clip-path="url(#half${i})"/>
-      </svg>`;
-    } else {
-      // 빈별
-      html += `<svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#2d3548" stroke="#3d4558" stroke-width="1"/></svg>`;
-    }
-  }
-  container.innerHTML = html;
-})();
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" charset="utf-8"></script>
 
-
-
-</script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/nanum-gothic@1.0.2/nanum-gothic.min.css" rel="stylesheet">
 <style>@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareR.woff') format('woff');font-weight:400;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareB.woff') format('woff');font-weight:700;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareEB.woff') format('woff');font-weight:800 900;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareL.woff') format('woff');font-weight:300;font-style:normal;}</style>
@@ -375,6 +346,23 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 .upload-guide-title{font-size:11px;font-weight:700;color:#92400e;margin-bottom:5px;}
 .upload-guide li{font-size:11px;color:#78350f;margin-left:14px;line-height:1.7;}
 
+
+/* ===== SUB TAB ===== */
+.sub-tab-bar{
+  display:flex;gap:4px;padding:16px 0 0;
+  border-bottom:2px solid var(--border);margin-bottom:4px;
+}
+.sub-tab{
+  padding:8px 18px;border:none;background:none;cursor:pointer;
+  font-family:'NanumSquare',sans-serif;font-size:13px;font-weight:700;
+  color:var(--text3);border-radius:8px 8px 0 0;transition:all .15s;
+  border-bottom:2px solid transparent;margin-bottom:-2px;
+}
+.sub-tab.active{color:var(--green2);border-bottom-color:var(--green);}
+.sub-tab:hover:not(.active){background:var(--gray1);color:var(--text);}
+.sub-page{display:none;}
+.sub-page.active{display:block;animation:fadeUp .2s ease;}
+
 /* ===== CENTER LAYOUT ===== */
 .center-wrap{
   max-width: 1280px;
@@ -430,7 +418,8 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   </div>
   <div class="topbar-nav">
     <button class="nav-tab active" onclick="showPage('ops',this)">운영현황 · 이용만족도</button>
-    <button class="nav-tab" onclick="showPage('room',this)">객실 관리</button>
+    <button class="nav-tab" onclick="showPage('facility',this)">시설 이용현황</button>
+    <button class="nav-tab" onclick="showPage('room',this)" style="display:none">객실 관리</button>
   </div>
   <div class="topbar-right">
     <div class="period-filter">
@@ -745,9 +734,239 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   </div>
 
 
-</div>
+</div></div><!-- /page-ops -->
 
 <!-- ========== PAGE 2: 객실 관리 ========== -->
+
+<!-- ========== PAGE: 시설 이용현황 ========== -->
+<div class="page" id="page-facility"><div class="center-wrap">
+
+  <!-- 서브탭 -->
+  <div class="sub-tab-bar">
+    <button class="sub-tab active" onclick="showSubTab('dog',this)">🐕 강아지 산책</button>
+    <button class="sub-tab" onclick="showSubTab('gym',this)">🏋️ 체육관</button>
+    <button class="sub-tab" onclick="showSubTab('core',this)">🧘 코어센터</button>
+    <button class="sub-tab" onclick="showSubTab('board',this)">🎲 보드게임</button>
+  </div>
+
+  <!-- ── 강아지 산책 ── -->
+  <div class="sub-page active" id="sub-dog">
+    <div class="section-head" style="margin-top:20px;">
+      <div class="section-bar"></div>
+      <div class="section-title">강아지 산책 이용현황</div>
+      <div class="section-sub">2025년 기준</div>
+    </div>
+    <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-card">
+        <div class="kpi-label">총 이용 건수</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">248</div><div class="kpi-unit">건</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">62건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">총 이용 인원</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">742</div><div class="kpi-unit">명</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">185명</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">참여 강아지 수</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">6</div><div class="kpi-unit">마리</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">산책 코스</span><span class="kpi-avg-val">3개</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">이용 만족도</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">4.8</div><div class="kpi-unit">/ 5</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">32명</span></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:12px;">
+      <div class="card">
+        <div class="card-title">월별 이용 현황</div>
+        <div class="card-sub">이용건수 및 이용인원 추이</div>
+        <div style="height:200px;"><canvas id="dogMonthChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">코스별 이용 현황</div>
+        <div class="card-sub">산책 코스 선택 비율</div>
+        <div style="height:200px;"><canvas id="dogCourseChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">시간대별 이용 분포</div>
+      <div class="card-sub">하루 중 산책 이용이 집중되는 시간대</div>
+      <div style="height:160px;"><canvas id="dogTimeChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── 체육관 ── -->
+  <div class="sub-page" id="sub-gym">
+    <div class="section-head" style="margin-top:20px;">
+      <div class="section-bar"></div>
+      <div class="section-title">체육관 이용현황</div>
+      <div class="section-sub">2025년 기준</div>
+    </div>
+    <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-card">
+        <div class="kpi-label">총 이용 인원</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">1,284</div><div class="kpi-unit">명</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">321명</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">풋살코트 예약</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">86</div><div class="kpi-unit">건</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">21건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">헬스장 이용</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">968</div><div class="kpi-unit">명</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">242명</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">이용 만족도</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">4.6</div><div class="kpi-unit">/ 5</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">54명</span></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:12px;">
+      <div class="card">
+        <div class="card-title">월별 이용 인원</div>
+        <div class="card-sub">헬스장 · 풋살코트 구분</div>
+        <div style="height:200px;"><canvas id="gymMonthChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">시설별 이용 비율</div>
+        <div class="card-sub">전체 이용 중 시설별 비중</div>
+        <div style="height:200px;"><canvas id="gymFacilChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">시간대별 이용 분포</div>
+      <div class="card-sub">하루 중 이용이 집중되는 시간대</div>
+      <div style="height:160px;"><canvas id="gymTimeChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── 코어센터 ── -->
+  <div class="sub-page" id="sub-core">
+    <div class="section-head" style="margin-top:20px;">
+      <div class="section-bar"></div>
+      <div class="section-title">코어센터 이용현황</div>
+      <div class="section-sub">2025년 기준</div>
+    </div>
+    <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-card">
+        <div class="kpi-label">총 이용 인원</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">638</div><div class="kpi-unit">명</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">160명</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">클래스 운영 수</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">12</div><div class="kpi-unit">개</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">월별 신규</span><span class="kpi-avg-val">2개</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">예약 완료율</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">88</div><div class="kpi-unit">%</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">취소율</span><span class="kpi-avg-val">12%</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">이용 만족도</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">4.7</div><div class="kpi-unit">/ 5</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">78명</span></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:12px;">
+      <div class="card">
+        <div class="card-title">월별 이용 인원</div>
+        <div class="card-sub">클래스별 구분</div>
+        <div style="height:200px;"><canvas id="coreMonthChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">클래스별 이용 비율</div>
+        <div class="card-sub">전체 중 클래스 유형별 비중</div>
+        <div style="height:200px;"><canvas id="coreClassChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">요일별 이용 분포</div>
+      <div class="card-sub">요일별 코어센터 이용 집중도</div>
+      <div style="height:160px;"><canvas id="coreDayChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ── 보드게임 ── -->
+  <div class="sub-page" id="sub-board">
+    <div class="section-head" style="margin-top:20px;">
+      <div class="section-bar"></div>
+      <div class="section-title">보드게임 이용현황</div>
+      <div class="section-sub">2025년 기준</div>
+    </div>
+    <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-card">
+        <div class="kpi-label">총 이용 건수</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">412</div><div class="kpi-unit">건</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">103건</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">보유 게임 수</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">48</div><div class="kpi-unit">종</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">신규 입고</span><span class="kpi-avg-val">3종</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">평균 이용 시간</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">82</div><div class="kpi-unit">분</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">최장</span><span class="kpi-avg-val">180분</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">이용 만족도</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">4.9</div><div class="kpi-unit">/ 5</div></div>
+        <div class="kpi-divider"></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">89명</span></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:12px;">
+      <div class="card">
+        <div class="card-title">보드게임별 이용 현황 TOP 10</div>
+        <div class="card-sub">이용 건수 기준 인기 게임 순위</div>
+        <div style="height:280px;"><canvas id="boardGameChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">월별 이용 추이</div>
+        <div class="card-sub">월별 총 이용 건수</div>
+        <div style="height:180px;margin-bottom:16px;"><canvas id="boardMonthChart"></canvas></div>
+        <div class="card-title" style="margin-bottom:8px;">카테고리별 비율</div>
+        <div style="height:120px;"><canvas id="boardCatChart"></canvas></div>
+      </div>
+    </div>
+    <!-- 전체 게임 목록 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div><div class="card-title" style="margin:0;">보드게임 전체 목록</div><div class="card-sub" style="margin:3px 0 0;">게임명 · 카테고리 · 이용 건수</div></div>
+        <select id="boardCatFilter" onchange="filterBoardList()" style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 10px;background:white;color:var(--text2);">
+          <option value="">전체 카테고리</option>
+          <option>전략</option><option>협력</option><option>파티</option><option>추리</option><option>가족</option>
+        </select>
+      </div>
+      <div id="boardGameList"></div>
+    </div>
+  </div>
+
+</div></div></div><!-- /center-wrap facility -->
+
 <div class="page" id="page-room"><div class="center-wrap">
 
   <div class="section-head">
@@ -834,7 +1053,6 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <button class="btn btn-primary" id="uploadConfirmBtn" onclick="confirmUpload()" disabled style="opacity:.4;cursor:not-allowed;">데이터 적용</button>
     </div>
   </div>
-</div>
 
 </div><!-- /app -->
 
@@ -872,6 +1090,35 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 </div>
 
 <script>
+
+// ===== 별점 렌더링 =====
+(function renderStars() {
+  const score = 4.82;
+  const container = document.getElementById('starDisplay');
+  if (!container) return;
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const fill = Math.min(1, Math.max(0, score - (i - 1)));
+    if (fill >= 1) {
+      // 꽉찬 별
+      html += `<svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"/></svg>`;
+    } else if (fill > 0) {
+      // 반별 (clip path로 정확히)
+      const pct = Math.round(fill * 100);
+      html += `<svg width="22" height="22" viewBox="0 0 24 24">
+        <defs><clipPath id="half${i}"><rect x="0" y="0" width="${pct * 0.24}" height="24"/></clipPath></defs>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#2d3548" stroke="#3d4558" stroke-width="1"/>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1" clip-path="url(#half${i})"/>
+      </svg>`;
+    } else {
+      // 빈별
+      html += `<svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#2d3548" stroke="#3d4558" stroke-width="1"/></svg>`;
+    }
+  }
+  container.innerHTML = html;
+})();
+
+
 // ===== PAGE NAVIGATION =====
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -880,8 +1127,14 @@ function showPage(name, btn) {
   if (btn) btn.classList.add('active');
   if (name === 'room') renderRoomSummary();
   else window.scrollTo({ top: 0 });
+  if (name === 'facility') {
+    // 첫 진입 시 강아지 산책 서브탭 활성화
+    const firstSubTab = document.querySelector('#page-facility .sub-tab');
+    showSubTab('dog', firstSubTab);
+  }
 }
 
+try {
 // ===== CHART DEFAULTS =====
 Chart.defaults.font.family = "'NanumSquare', sans-serif";
 Chart.defaults.font.size = 11;
@@ -958,6 +1211,8 @@ new Chart(document.getElementById('respChart'), {
 
 
 
+
+} catch(e) { console.warn("차트 초기화 오류:", e); }
 
 // ===== ROOM DATA =====
 // 객실명 형식: 층수.호실번호 (예: 5.01, 4.09, 2.13)
@@ -1599,7 +1854,7 @@ document.getElementById('uploadArea').addEventListener('click', e => {
 });
 
 // yearChart 참조 저장 (업로드 시 업데이트용)
-document.addEventListener('DOMContentLoaded', () => {});
+
 
 
 // ===== 연간 이용만족도 추이 차트 =====
@@ -1790,6 +2045,196 @@ function applyPeriodFilter(year, month) {
 }
 
 // 차트 인스턴스 저장
+
+
+// ===== 시설 서브탭 =====
+function showSubTab(name, btn) {
+  document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('sub-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  // 해당 탭 차트 초기화 (한 번만)
+  if (!window._facilityInited) window._facilityInited = {};
+  if (!window._facilityInited[name]) {
+    window._facilityInited[name] = true;
+    initFacilityCharts(name);
+  }
+}
+
+function initFacilityCharts(name) {
+  const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const mkLine = (id, datasets, yLabel='') => new Chart(document.getElementById(id), {
+    type:'line', data:{ labels:MONTHS, datasets },
+    options:{ responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ position:'top', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, boxHeight:8 }}},
+      scales:{ x:{ grid:{display:false}}, y:{ grid:{color:'#eaebec'}, ticks:{ callback: v=>v+(yLabel) }}}}
+  });
+  const mkBar = (id, labels, data, color, horizontal=false, yLabel='') => new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:color, borderRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      indexAxis: horizontal ? 'y' : 'x',
+      plugins:{ legend:{ display:false }},
+      scales:{ x:{ grid:{ display: horizontal }, ticks:{ font:{size:11}}},
+               y:{ grid:{ color:'#eaebec'}, ticks:{ callback: v=>v+(yLabel) }}}}
+  });
+  const mkDonut = (id, labels, data, colors) => new Chart(document.getElementById(id), {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderColor:'#fff', borderWidth:2 }]},
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{ legend:{ position:'right', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, boxHeight:8 }}}}
+  });
+
+  if (name === 'dog') {
+    mkLine('dogMonthChart', [
+      { label:'이용건수', data:[48,42,68,90,null,null,null,null,null,null,null,null], borderColor:'#03C75A', backgroundColor:'rgba(3,199,90,0.08)', fill:true, tension:0.4, pointBackgroundColor:'#03C75A', pointRadius:4 },
+      { label:'이용인원', data:[145,126,198,273,null,null,null,null,null,null,null,null], borderColor:'#4e7fff', backgroundColor:'transparent', tension:0.4, pointBackgroundColor:'#4e7fff', pointRadius:4 }
+    ]);
+    mkDonut('dogCourseChart',
+      ['A코스 (숲길 1km)','B코스 (연못 1.5km)','C코스 (언덕 2km)'],
+      [198, 142, 68],
+      ['#03C75A','#4e7fff','#f59e0b']
+    );
+    mkBar('dogTimeChart', ['09시','10시','11시','12시','13시','14시','15시','16시','17시','18시'],
+      [12,28,42,38,55,62,48,32,18,8],
+      ['#03C75A','#03C75A','#03C75A','#03C75A','#4e7fff','#f59e0b','#f59e0b','#03C75A','#03C75A','#03C75A'],
+      false, '건'
+    );
+  }
+
+  if (name === 'gym') {
+    mkLine('gymMonthChart', [
+      { label:'헬스장', data:[210,188,264,306,null,null,null,null,null,null,null,null], borderColor:'#03C75A', backgroundColor:'rgba(3,199,90,0.08)', fill:true, tension:0.4, pointBackgroundColor:'#03C75A', pointRadius:4 },
+      { label:'풋살코트', data:[18,16,24,28,null,null,null,null,null,null,null,null], borderColor:'#4e7fff', backgroundColor:'transparent', tension:0.4, pointBackgroundColor:'#4e7fff', pointRadius:4 }
+    ]);
+    mkDonut('gymFacilChart',
+      ['헬스장','풋살코트','탁구장','배드민턴'],
+      [968,172,96,48],
+      ['#03C75A','#4e7fff','#f59e0b','#8b5cf6']
+    );
+    mkBar('gymTimeChart', ['06시','07시','08시','09시','10시','11시','12시','13시','14시','15시','16시','17시','18시','19시','20시','21시','22시'],
+      [8,22,45,62,58,72,88,64,52,68,76,94,82,46,28,14,6],
+      '#03C75A', false, '명'
+    );
+  }
+
+  if (name === 'core') {
+    mkLine('coreMonthChart', [
+      { label:'요가/필라테스', data:[62,54,80,96,null,null,null,null,null,null,null,null], borderColor:'#03C75A', backgroundColor:'rgba(3,199,90,0.08)', fill:true, tension:0.4, pointBackgroundColor:'#03C75A', pointRadius:4 },
+      { label:'스트레칭', data:[48,40,62,76,null,null,null,null,null,null,null,null], borderColor:'#4e7fff', backgroundColor:'transparent', tension:0.4, pointBackgroundColor:'#4e7fff', pointRadius:4 },
+      { label:'명상', data:[24,20,30,46,null,null,null,null,null,null,null,null], borderColor:'#f59e0b', backgroundColor:'transparent', tension:0.4, pointBackgroundColor:'#f59e0b', pointRadius:4 }
+    ]);
+    mkDonut('coreClassChart',
+      ['요가/필라테스','스트레칭','명상','호흡운동'],
+      [292,226,120,48],
+      ['#03C75A','#4e7fff','#f59e0b','#8b5cf6']
+    );
+    mkBar('coreDayChart', ['월','화','수','목','금','토','일'],
+      [82,96,88,110,124,68,48],
+      '#03C75A', false, '명'
+    );
+  }
+
+  if (name === 'board') {
+    // TOP 10 가로 바차트
+    const games = [
+      { name:'스플렌더', count:68, cat:'전략' },
+      { name:'뱅!', count:54, cat:'파티' },
+      { name:'카르카손', count:48, cat:'전략' },
+      { name:'딕싯', count:45, cat:'파티' },
+      { name:'한밤의 살인마', count:42, cat:'추리' },
+      { name:'러브레터', count:38, cat:'파티' },
+      { name:'윙스팬', count:35, cat:'전략' },
+      { name:'팬데믹', count:32, cat:'협력' },
+      { name:'코드네임', count:28, cat:'파티' },
+      { name:'아줄', count:24, cat:'전략' },
+    ];
+    const catColor = { '전략':'#4e7fff','파티':'#f59e0b','추리':'#8b5cf6','협력':'#03C75A','가족':'#ff6b35' };
+    new Chart(document.getElementById('boardGameChart'), {
+      type:'bar',
+      data:{
+        labels: games.map(g=>g.name),
+        datasets:[{ data: games.map(g=>g.count),
+          backgroundColor: games.map(g=>catColor[g.cat]||'#4e7fff'),
+          borderRadius:4 }]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y',
+        plugins:{ legend:{display:false},
+          tooltip:{ callbacks:{ label: ctx=> ` ${ctx.raw}건 (${games[ctx.dataIndex].cat})` }}},
+        scales:{ x:{grid:{color:'#eaebec'}, ticks:{callback:v=>v+'건'}}, y:{grid:{display:false}, ticks:{font:{size:11}}}}}
+    });
+
+    mkLine('boardMonthChart', [
+      { label:'이용건수', data:[88,76,110,138,null,null,null,null,null,null,null,null], borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.08)', fill:true, tension:0.4, pointBackgroundColor:'#f59e0b', pointRadius:4 }
+    ]);
+
+    mkDonut('boardCatChart',
+      ['전략','파티','추리','협력','가족'],
+      [175,165,80,52,40],
+      ['#4e7fff','#f59e0b','#8b5cf6','#03C75A','#ff6b35']
+    );
+
+    renderBoardList('');
+  }
+}
+
+// 보드게임 전체 목록
+const BOARD_GAMES = [
+  { name:'스플렌더',     cat:'전략', count:68, time:65  },
+  { name:'뱅!',         cat:'파티', count:54, time:45  },
+  { name:'카르카손',     cat:'전략', count:48, time:80  },
+  { name:'딕싯',        cat:'파티', count:45, time:40  },
+  { name:'한밤의 살인마',cat:'추리', count:42, time:90  },
+  { name:'러브레터',     cat:'파티', count:38, time:20  },
+  { name:'윙스팬',      cat:'전략', count:35, time:120 },
+  { name:'팬데믹',      cat:'협력', count:32, time:100 },
+  { name:'코드네임',    cat:'파티', count:28, time:35  },
+  { name:'아줄',        cat:'전략', count:24, time:60  },
+  { name:'보난자',      cat:'가족', count:22, time:45  },
+  { name:'티켓 투 라이드',cat:'전략',count:20, time:90  },
+  { name:'도미니언',    cat:'전략', count:18, time:70  },
+  { name:'클루',        cat:'추리', count:16, time:55  },
+  { name:'할리갈리',    cat:'가족', count:14, time:15  },
+  { name:'텔레스트레이션',cat:'파티',count:12, time:30  },
+  { name:'다빈치코드',  cat:'추리', count:10, time:25  },
+  { name:'쉐도우 헌터',  cat:'추리', count:9,  time:60  },
+  { name:'이스탄불',    cat:'전략', count:8,  time:75  },
+  { name:'협력의 땅',   cat:'협력', count:7,  time:90  },
+];
+
+const CAT_COLORS = { '전략':'#eef3ff:#4e7fff','파티':'#fffbeb:#d97706','추리':'#f5f3ff:#7c3aed','협력':'#edfff4:#03C75A','가족':'#fff1f0:#e03e2d' };
+
+function filterBoardList() {
+  const cat = document.getElementById('boardCatFilter')?.value || '';
+  renderBoardList(cat);
+}
+
+function renderBoardList(filterCat) {
+  const el = document.getElementById('boardGameList');
+  if (!el) return;
+  const filtered = filterCat ? BOARD_GAMES.filter(g=>g.cat===filterCat) : BOARD_GAMES;
+  const maxCount = Math.max(...filtered.map(g=>g.count));
+  el.innerHTML = filtered.map((g,i) => {
+    const [bg,fg] = (CAT_COLORS[g.cat]||'#f1f5f9:#64748b').split(':');
+    const pct = Math.round(g.count/maxCount*100);
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);${i===filtered.length-1?'border-bottom:none':''}">
+      <div style="width:22px;text-align:center;font-size:12px;font-weight:800;color:var(--text3);font-family:'JetBrains Mono',monospace;">${i+1}</div>
+      <div style="width:130px;flex-shrink:0;">
+        <div style="font-size:13px;font-weight:700;">${g.name}</div>
+        <div style="margin-top:3px;"><span style="padding:2px 7px;background:${bg};color:${fg};border-radius:4px;font-size:10px;font-weight:700;">${g.cat}</span></div>
+      </div>
+      <div style="flex:1;background:var(--gray2);border-radius:4px;height:8px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${fg};border-radius:4px;transition:width .5s ease;"></div>
+      </div>
+      <div style="width:50px;text-align:right;font-size:13px;font-weight:700;color:${fg};font-family:'JetBrains Mono',monospace;">${g.count}건</div>
+      <div style="width:50px;text-align:right;font-size:11px;color:var(--text3);">~${g.time}분</div>
+    </div>`;
+  }).join('');
+}
+
+// 시설 탭 첫 진입 시 강아지 산책 차트 초기화
+
 
 </script>
 </body>
