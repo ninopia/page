@@ -3,1046 +3,1651 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NAVER 연수원 운영현황 대시보드</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<title>NAVER CONNECT ONE 운영현황</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
+// ===== 별점 렌더링 =====
+(function renderStars() {
+  const score = 4.82;
+  const container = document.getElementById('starDisplay');
+  if (!container) return;
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    const fill = Math.min(1, Math.max(0, score - (i - 1)));
+    if (fill >= 1) {
+      // 꽉찬 별
+      html += `<svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"/></svg>`;
+    } else if (fill > 0) {
+      // 반별 (clip path로 정확히)
+      const pct = Math.round(fill * 100);
+      html += `<svg width="22" height="22" viewBox="0 0 24 24">
+        <defs><clipPath id="half${i}"><rect x="0" y="0" width="${pct * 0.24}" height="24"/></clipPath></defs>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#2d3548" stroke="#3d4558" stroke-width="1"/>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b" stroke="#f59e0b" stroke-width="1" clip-path="url(#half${i})"/>
+      </svg>`;
+    } else {
+      // 빈별
+      html += `<svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#2d3548" stroke="#3d4558" stroke-width="1"/></svg>`;
+    }
+  }
+  container.innerHTML = html;
+})();
+
+
+
+</script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/nanum-gothic@1.0.2/nanum-gothic.min.css" rel="stylesheet">
+<style>@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareR.woff') format('woff');font-weight:400;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareB.woff') format('woff');font-weight:700;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareEB.woff') format('woff');font-weight:800 900;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareL.woff') format('woff');font-weight:300;font-style:normal;}</style>
 <style>
-  :root {
-    --bg: #F5F6F7;
-    --surface: #FFFFFF;
-    --surface2: #F8F9FA;
-    --surface3: #F1F3F5;
-    --border: #E8EBED;
-    --border-light: #F2F4F6;
-    --accent: #03C75A;
-    --accent-dark: #029e47;
-    --accent-light: rgba(3,199,90,0.08);
-    --accent2: #00983A;
-    --accent3: #FF9500;
-    --accent4: #FF4B4B;
-    --blue: #0078FF;
-    --text: #1a1a1a;
-    --text-muted: #909090;
-    --text-dim: #555;
-    --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  /* Header */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 32px;
-    height: 58px;
-    background: #FFFFFF;
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .header-left { display: flex; align-items: center; gap: 14px; }
-
-  .logo-mark {
-    width: 34px; height: 34px;
-    background: var(--accent);
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .header-title {
-    font-size: 15px; font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.3px;
-  }
-
-  .header-sub {
-    font-size: 11px; color: var(--text-muted);
-    margin-top: 1px; font-weight: 400;
-  }
-
-  .header-right { display: flex; align-items: center; gap: 12px; }
-
-  .manage-btn {
-    display: flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 6px;
-    background: var(--accent);
-    border: none;
-    color: #fff;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 12px; font-weight: 600;
-    cursor: pointer; text-decoration: none;
-    transition: background 0.15s;
-  }
-  .manage-btn:hover { background: var(--accent-dark); }
-
-  .live-badge {
-    display: flex; align-items: center; gap: 5px;
-    padding: 4px 10px; border-radius: 20px;
-    background: var(--accent-light);
-    border: 1px solid rgba(3,199,90,0.25);
-    font-size: 11px; color: var(--accent); font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-
-  .live-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.8); }
-  }
-
-  .date-tag { font-size: 12px; color: var(--text-muted); }
-
-  /* Tab Navigation */
-  .tab-nav {
-    display: flex;
-    padding: 0 32px;
-    background: #FFFFFF;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .tab-btn {
-    padding: 15px 20px;
-    border: none; cursor: pointer;
-    background: transparent;
-    color: var(--text-muted);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px; font-weight: 500;
-    border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-    margin-bottom: -1px;
-  }
-
-  .tab-btn.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-    font-weight: 700;
-  }
-
-  .tab-btn:hover:not(.active) { color: var(--text-dim); }
-
-  /* Main */
-  .main { padding: 24px 32px; }
-
-  .tab-content { display: none; }
-  .tab-content.active { display: block; animation: fadeIn 0.25s ease; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Section Header */
-  .section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 16px;
-  }
-
-  .section-title {
-    font-size: 16px; font-weight: 700;
-    color: var(--text); letter-spacing: -0.3px;
-  }
-
-  .section-period { font-size: 12px; color: var(--text-muted); }
-
-  /* KPI Cards */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .kpi-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    position: relative; overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.2s, transform 0.2s;
-  }
-
-  .kpi-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-  }
-
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-
-  .kpi-card.blue::before  { background: var(--accent); }
-  .kpi-card.green::before { background: var(--accent2); }
-  .kpi-card.amber::before { background: var(--accent3); }
-  .kpi-card.red::before   { background: var(--accent4); }
-
-  .kpi-label {
-    font-size: 12px; color: var(--text-muted);
-    font-weight: 500; margin-bottom: 10px;
-  }
-
-  .kpi-value {
-    font-size: 32px; font-weight: 800;
-    letter-spacing: -1.5px; line-height: 1;
-  }
-
-  .kpi-value.blue  { color: var(--accent); }
-  .kpi-value.green { color: var(--accent2); }
-  .kpi-value.amber { color: var(--accent3); }
-  .kpi-value.red   { color: var(--accent4); }
-
-  .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
-
-  .kpi-change {
-    display: inline-flex; align-items: center; gap: 3px;
-    font-size: 11px; font-weight: 600;
-    padding: 3px 8px; border-radius: 4px; margin-top: 8px;
-  }
-
-  .kpi-change.up   { background: rgba(3,199,90,0.08);  color: var(--accent2); }
-  .kpi-change.down { background: rgba(255,75,75,0.08); color: var(--accent4); }
-
-  /* Charts Grid */
-  .charts-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .charts-grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .chart-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .chart-title {
-    font-size: 14px; font-weight: 700;
-    color: var(--text); letter-spacing: -0.2px;
-    margin-bottom: 4px;
-  }
-
-  .chart-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
-
-  .chart-wrap { position: relative; }
-
-  /* Room Grid */
-  .room-grid { margin-top: 8px; }
-
-  .floor-section { margin-bottom: 20px; }
-  .floor-section:last-child { margin-bottom: 0; }
-
-  .floor-header {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  .floor-label {
-    font-size: 11px; font-weight: 700;
-    color: var(--text-dim);
-    padding: 3px 10px; border-radius: 4px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .floor-label.vip {
-    color: #9a6e00;
-    background: rgba(218,165,32,0.1);
-    border-color: rgba(218,165,32,0.4);
-  }
-
-  .floor-count {
-    font-size: 11px; color: var(--text-muted);
-    white-space: nowrap; flex-shrink: 0;
-  }
-
-  .floor-divider { flex: 1; height: 1px; background: var(--border-light); }
-
-  .floor-rooms {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-  }
-
-  .room-cell {
-    border-radius: 8px; padding: 10px;
-    font-size: 11px; text-align: center;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
-  }
-
-  .room-cell:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-  .room-cell.occupied    { background: rgba(3,199,90,0.08);   border: 1px solid rgba(3,199,90,0.3);   color: #03C75A; }
-  .room-cell.available   { background: rgba(0,152,58,0.07);   border: 1px solid rgba(0,152,58,0.22);  color: #00983A; }
-  .room-cell.maintenance { background: rgba(255,75,75,0.07);  border: 1px solid rgba(255,75,75,0.25); color: #FF4B4B; }
-  .room-cell.reserved    { background: rgba(255,149,0,0.08);  border: 1px solid rgba(255,149,0,0.28); color: #FF9500; }
-
-  .room-cell.vip-room.occupied  { background: rgba(218,165,32,0.15); border-color: rgba(218,165,32,0.5);  color: #9a6e00; }
-  .room-cell.vip-room.available { background: rgba(218,165,32,0.06); border-color: rgba(218,165,32,0.25); color: #b8960c; }
-  .room-cell.vip-room.reserved  { background: rgba(218,165,32,0.12); border-color: rgba(218,165,32,0.4);  color: #9a6e00; }
-
-  .room-num { font-size: 14px; font-weight: 700; }
-  .room-status-label { font-size: 10px; margin-top: 2px; opacity: 0.8; }
-
-  /* Legend */
-  .legend { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
-  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
-
-  /* Program Table */
-  .prog-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .prog-table th {
-    text-align: left; padding: 10px 12px;
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
-    color: var(--text-muted); font-weight: 600;
-    border-bottom: 2px solid var(--border);
-    background: var(--surface2);
-  }
-  .prog-table th:first-child { border-radius: 6px 0 0 0; }
-  .prog-table th:last-child  { border-radius: 0 6px 0 0; }
-
-  .prog-table td { padding: 12px 12px; border-bottom: 1px solid var(--border-light); }
-  .prog-table tr:last-child td { border-bottom: none; }
-  .prog-table tr:hover td { background: rgba(3,199,90,0.025); }
-
-  .badge {
-    display: inline-block; padding: 3px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 600;
-  }
-
-  .badge.running { background: rgba(3,199,90,0.1);    color: #03C75A; }
-  .badge.planned { background: rgba(0,120,255,0.1);   color: #0078FF; }
-  .badge.closed  { background: rgba(144,144,144,0.12); color: #909090; }
-
-  .progress-bar-wrap { width: 100%; background: var(--surface3); border-radius: 4px; height: 6px; margin-top: 4px; }
-  .progress-bar { height: 6px; border-radius: 4px; transition: width 0.5s ease; }
-
-  /* Finance */
-  .finance-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  .finance-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-light);
-  }
-  .finance-row:last-child { border-bottom: none; }
-  .finance-label { font-size: 13px; color: var(--text-dim); }
-  .finance-val { font-size: 15px; font-weight: 700; }
-  .finance-val.income  { color: var(--accent2); }
-  .finance-val.expense { color: var(--accent4); }
-
-  /* Divider label */
-  .card-divider {
-    font-size: 11px; font-weight: 600; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.8px;
-    padding: 8px 0 6px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 4px;
-  }
-
-  /* Maintenance Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 2000;
-    align-items: center; justify-content: center;
-    backdrop-filter: blur(3px);
-  }
-  .modal-overlay.active { display: flex; animation: modalFadeIn 0.18s ease; }
-
-  @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-  .modal-card {
-    background: #FFFFFF;
-    border-radius: 16px;
-    width: 400px;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
-    overflow: hidden;
-    animation: modalSlideUp 0.2s ease;
-  }
-
-  @keyframes modalSlideUp {
-    from { transform: translateY(14px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-
-  .modal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 20px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .modal-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; color: var(--text); }
-
-  .modal-room-badge {
-    background: rgba(255,75,75,0.1);
-    color: #FF4B4B;
-    border: 1px solid rgba(255,75,75,0.3);
-    padding: 3px 10px; border-radius: 6px;
-    font-size: 13px; font-weight: 700;
-  }
-
-  .modal-close {
-    width: 28px; height: 28px; border: none;
-    background: var(--surface2); border-radius: 6px;
-    cursor: pointer; color: var(--text-muted); font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s;
-  }
-  .modal-close:hover { background: var(--border); color: var(--text); }
-
-  .modal-body { padding: 8px 20px 4px; }
-
-  .modal-row {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-light);
-  }
-  .modal-row:last-child { border-bottom: none; }
-
-  .modal-label { font-size: 12px; color: var(--text-muted); font-weight: 500; min-width: 90px; flex-shrink: 0; padding-top: 1px; }
-  .modal-value { font-size: 13px; color: var(--text); font-weight: 600; }
-  .modal-value.highlight { color: #FF4B4B; }
-
-  .modal-footer { padding: 12px 20px 20px; display: flex; justify-content: flex-end; gap: 8px; }
-
-  .modal-btn {
-    padding: 8px 20px; border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-dim);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: background 0.15s;
-  }
-  .modal-btn:hover { background: var(--border); }
-  .modal-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .modal-btn.primary:hover { background: var(--accent-dark); }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--surface2); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  @media (max-width: 768px) {
-    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    .charts-grid, .charts-grid-3, .finance-grid { grid-template-columns: 1fr; }
-    .main { padding: 16px; }
-    header { padding: 0 16px; }
-    .tab-nav { padding: 0 16px; overflow-x: auto; }
-  }
+:root {
+  --green: #03C75A;
+  --green2: #00983A;
+  --green3: #edfff4;
+  --green4: #c8f0d8;
+  --dark: #1D1D1B;
+  --gray1: #f5f6f7;
+  --gray2: #eaebec;
+  --gray3: #c4c5c7;
+  --gray4: #8c8d8f;
+  --gray5: #4a4b4d;
+  --white: #ffffff;
+  --blue: #4e7fff;
+  --blue2: #7ba7ff;
+  --blue-light: #eef3ff;
+  --orange: #ff6b35;
+  --orange-light: #fff0eb;
+  --text: #1D1D1B;
+  --text2: #5a5b5d;
+  --text3: #9a9b9d;
+  --border: #e4e5e7;
+  --shadow: 0 1px 4px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --r: 12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--text);font-size:13px;line-height:1.5;}
+
+/* ===== LAYOUT ===== */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  background:var(--white);
+  border-bottom:2px solid var(--green);
+  padding:0 28px;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.topbar-logo{display:flex;align-items:center;gap:10px;}
+.n-mark{
+  width:28px;height:28px;background:var(--green);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+}
+.n-mark svg{width:16px;height:16px;}
+.topbar-name{font-size:15px;font-weight:800;letter-spacing:-0.5px;color:var(--dark);}
+.topbar-name span{color:var(--green);}
+.topbar-nav{display:flex;gap:2px;}
+.nav-tab{
+  padding:6px 18px;border:none;background:none;cursor:pointer;
+  font-family:'NanumSquare',sans-serif;font-size:13px;font-weight:600;
+  color:var(--text3);border-radius:6px;transition:all .15s;
+}
+.nav-tab.active{background:var(--green3);color:var(--green2);}
+.nav-tab:hover:not(.active){background:var(--gray1);color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.year-badge{
+  padding:4px 12px;background:var(--gray1);border:1px solid var(--border);
+  border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);
+  font-family:'JetBrains Mono',monospace;
+}
+.live-dot-wrap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green2);font-family:'JetBrains Mono',monospace;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ===== PAGES ===== */
+.page{display:none;padding:20px 28px 32px;}
+.page.active{display:block;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== SECTION TITLE ===== */
+.section-head{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.section-bar{width:3px;height:18px;background:var(--green);border-radius:2px;}
+.section-title{font-size:16px;font-weight:800;letter-spacing:-0.3px;}
+.section-sub{font-size:11px;color:var(--text3);margin-left:auto;font-family:'JetBrains Mono',monospace;}
+
+/* ===== GRID ===== */
+.grid{display:grid;gap:12px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g13{grid-template-columns:1fr 3fr;}
+.g31{grid-template-columns:3fr 1fr;}
+.span2{grid-column:span 2;}
+.span3{grid-column:span 3;}
+
+/* ===== CARD ===== */
+.card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px;box-shadow:var(--shadow);
+}
+.card-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;}
+.card-sub{font-size:10px;color:var(--text3);margin-bottom:14px;}
+
+/* ===== KPI CARDS ===== */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+.kpi-card{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--r);
+  padding:20px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.kpi-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--green);
+}
+.kpi-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;}
+.kpi-main{display:flex;align-items:baseline;gap:6px;}
+.kpi-val{font-size:32px;font-weight:900;color:var(--green);letter-spacing:-1.5px;line-height:1;}
+.kpi-unit{font-size:14px;font-weight:700;color:var(--text2);}
+.kpi-divider{width:100%;height:1px;background:var(--gray2);margin:12px 0;}
+.kpi-avg-label{font-size:11px;color:var(--text3);}
+.kpi-avg-val{font-size:13px;font-weight:700;color:var(--text);margin-left:auto;}
+.kpi-avg-row{display:flex;align-items:center;}
+
+/* ===== DONUT WRAPPER ===== */
+.donut-wrap{position:relative;width:150px;height:150px;margin:0 auto;}
+.donut-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;pointer-events:none;
+}
+.donut-center-val{font-size:20px;font-weight:900;color:var(--dark);}
+.donut-center-sub{font-size:10px;color:var(--text3);}
+
+/* ===== LEGEND ===== */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;justify-content:center;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* ===== BAR CHART HORIZONTAL ===== */
+.hbar-list{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
+.hbar-row{display:flex;align-items:center;gap:10px;}
+.hbar-label{font-size:12px;color:var(--text2);width:90px;text-align:right;flex-shrink:0;}
+.hbar-track{flex:1;background:var(--gray2);border-radius:4px;height:20px;position:relative;overflow:visible;}
+.hbar-fill{height:100%;border-radius:4px;transition:width .6s ease;display:flex;align-items:center;padding-left:8px;}
+.hbar-fill span{font-size:11px;font-weight:700;color:var(--white);}
+.hbar-total{font-size:11px;color:var(--text3);width:30px;text-align:right;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+
+/* ===== SATISFACTION PAGE ===== */
+.sat-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.dark-card{
+  background:#1e2535;border:1px solid #2d3548;border-radius:var(--r);
+  padding:18px;color:#e8eaf0;
+}
+.dark-card .card-title{color:#8892a4;}
+.dark-card .donut-center-val{color:var(--white);}
+.dark-card .legend-item{color:#8892a4;}
+
+/* ===== ROOM PAGE ===== */
+.floor-section{margin-bottom:20px;}
+.floor-head{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--white);border:1px solid var(--border);border-radius:8px 8px 0 0;
+  border-bottom:2px solid var(--green);
+}
+.floor-label{font-size:13px;font-weight:800;color:var(--dark);}
+.floor-tag{
+  padding:2px 10px;background:var(--green3);border-radius:20px;
+  font-size:11px;color:var(--green2);font-weight:600;
+}
+.floor-tag.vip{background:#fff8e6;color:#c47a00;}
+.floor-stats{margin-left:auto;display:flex;gap:12px;font-size:11px;color:var(--text3);}
+.floor-stats span{font-weight:600;color:var(--text2);}
+
+.room-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));
+  gap:6px;padding:10px;
+  background:var(--white);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 8px 8px;
+}
+.room-cell{
+  border-radius:8px;padding:10px 8px;text-align:center;cursor:pointer;
+  transition:all .15s;position:relative;border:1.5px solid transparent;
+  min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;
+}
+.room-cell:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.room-cell.available{background:#f0fdf6;border-color:#a7e8c0;color:var(--green2);}
+.room-cell.assigned{background:#eef3ff;border-color:#b3c8ff;color:var(--blue);}
+.room-cell.unavailable{background:var(--gray2);border-color:var(--gray3);color:var(--text3);cursor:not-allowed;opacity:.6;}
+.room-cell.unavailable:hover{transform:none;box-shadow:none;}
+.room-cell.irregular{background:#fff8e6;border-color:#ffd97a;color:#c47a00;cursor:not-allowed;opacity:.7;}
+.room-num{font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;}
+.room-status{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.room-person{font-size:10px;font-weight:600;line-height:1.3;text-align:center;color:var(--blue);}
+.room-org{font-size:9px;color:var(--blue2);}
+.vip-badge{
+  position:absolute;top:4px;right:4px;
+  width:14px;height:14px;background:#f59e0b;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:7px;color:white;font-weight:700;
+}
+
+/* ===== ROOM LEGEND ===== */
+.room-legend{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.room-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.room-legend-box{width:14px;height:14px;border-radius:4px;border:1.5px solid;}
+
+/* ===== MODAL ===== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);
+  z-index:500;display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{
+  background:var(--white);border-radius:14px;width:360px;
+  box-shadow:0 24px 60px rgba(0,0,0,.18);animation:slideUp .2s ease;
+}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-header{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-size:14px;font-weight:800;}
+.modal-close{
+  width:28px;height:28px;border:none;background:var(--gray1);border-radius:6px;
+  cursor:pointer;font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center;
+}
+.modal-body{padding:18px 20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.3px;}
+.form-input{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:'NanumSquare',sans-serif;color:var(--text);outline:none;
+  transition:border-color .15s;background:var(--white);
+}
+.form-input:focus{border-color:var(--green);}
+.room-info-box{
+  background:var(--gray1);border-radius:8px;padding:12px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.room-info-num{font-size:22px;font-weight:900;color:var(--dark);font-family:'JetBrains Mono',monospace;}
+.room-info-tag{font-size:11px;color:var(--text3);}
+
+.btn{
+  padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;border:none;font-family:'NanumSquare',sans-serif;transition:all .15s;
+}
+.btn-primary{background:var(--green);color:white;}
+.btn-primary:hover{background:var(--green2);}
+.btn-outline{background:white;border:1.5px solid var(--border);color:var(--text2);}
+.btn-outline:hover{border-color:var(--green);color:var(--green);}
+.btn-danger{background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;}
+.btn-danger:hover{background:#fecaca;}
+
+/* ===== FLOOR SUMMARY ===== */
+.floor-summary-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}
+.floor-sum-card{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:14px 12px;text-align:center;box-shadow:var(--shadow);
+}
+.floor-sum-floor{font-size:11px;color:var(--text3);font-weight:600;margin-bottom:4px;}
+.floor-sum-num{font-size:22px;font-weight:900;color:var(--green);letter-spacing:-1px;}
+.floor-sum-label{font-size:10px;color:var(--text3);}
+.floor-sum-bar{height:4px;border-radius:2px;background:var(--gray2);margin-top:8px;overflow:hidden;}
+.floor-sum-fill{height:100%;background:var(--green);border-radius:2px;transition:width .5s ease;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:3px;}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:20px;right:20px;z-index:999;
+  background:#1e2535;color:white;padding:11px 16px;border-radius:10px;
+  font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);animation:toastIn .2s ease;
+  border-left:3px solid var(--green);
+}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+/* ===== PERIOD FILTER ===== */
+.period-filter{display:flex;align-items:center;gap:6px;}
+.period-select{
+  padding:5px 10px;border:1.5px solid var(--border);border-radius:7px;
+  font-size:12px;font-weight:700;font-family:'NanumSquare',sans-serif;
+  color:var(--text);background:var(--white);outline:none;cursor:pointer;
+  transition:border-color .15s;
+}
+.period-select:focus,.period-select:hover{border-color:var(--green);}
+.period-label{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;background:var(--green3);border:1px solid var(--green4);
+  border-radius:6px;font-size:11px;font-weight:700;color:var(--green2);
+}
+
+/* ===== UPLOAD / DOWNLOAD ===== */
+.upload-btn {
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 13px;border-radius:7px;font-size:12px;font-weight:700;
+  cursor:pointer;border:none;font-family:'NanumSquare',sans-serif;
+  transition:all .15s;white-space:nowrap;
+}
+.upload-btn.primary{background:var(--green);color:#fff;}
+.upload-btn.primary:hover{background:var(--green2);}
+.upload-btn.outline{background:var(--white);color:var(--text2);border:1.5px solid var(--border);}
+.upload-btn.outline:hover{border-color:var(--green);color:var(--green);}
+.upload-area{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(4px);z-index:300;align-items:center;justify-content:center;
+}
+.upload-area.open{display:flex;animation:fadeIn .15s ease;}
+.upload-box{
+  background:var(--white);border-radius:14px;width:480px;
+  box-shadow:0 24px 60px rgba(0,0,0,.15);animation:slideUp .2s ease;
+}
+.upload-box-header{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.upload-box-title{font-size:14px;font-weight:800;}
+.upload-drop{
+  margin:18px 20px;border:2px dashed var(--border);border-radius:10px;
+  padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;
+  background:var(--gray1);
+}
+.upload-drop:hover,.upload-drop.dragover{border-color:var(--green);background:var(--green3);}
+.upload-drop-icon{font-size:32px;margin-bottom:10px;}
+.upload-drop-text{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:4px;}
+.upload-drop-sub{font-size:11px;color:var(--text3);}
+.upload-preview{margin:0 20px 18px;display:none;}
+.upload-preview-file{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--green3);border:1px solid var(--green4);border-radius:8px;
+}
+.upload-preview-name{font-size:12px;font-weight:700;color:var(--green2);flex:1;}
+.upload-preview-size{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.upload-sheet-select{margin:0 20px 14px;}
+.upload-sheet-select label{font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
+.upload-sheet-select select{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'NanumSquare',sans-serif;outline:none;}
+.upload-sheet-select select:focus{border-color:var(--green);}
+.upload-box-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.upload-guide{margin:0 20px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;}
+.upload-guide-title{font-size:11px;font-weight:700;color:#92400e;margin-bottom:5px;}
+.upload-guide li{font-size:11px;color:#78350f;margin-left:14px;line-height:1.7;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
+<div class="app">
 
-  <!-- Header -->
-  <header>
-    <div class="header-left">
-      <div class="logo-mark">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13.6 12.4L10.2 7H7v10h3.4v-5.4L14.1 17H17V7h-3.4z"/>
-        </svg>
-      </div>
-      <div>
-        <div class="header-title">연수원 운영현황 대시보드</div>
-        <div class="header-sub">NAVER · TRAINING CENTER OPERATIONS</div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="n-mark">
+      <svg viewBox="0 0 24 24" fill="white"><path d="M13.6 12.4L10.2 7H7v10h3.4v-5.4L14.1 17H17V7h-3.4z"/></svg>
+    </div>
+    <span class="topbar-name">NAVER <span>CONNECT ONE</span> 운영현황</span>
+  </div>
+  <div class="topbar-nav">
+    <button class="nav-tab active" onclick="showPage('ops',this)">운영현황 · 이용만족도</button>
+    <button class="nav-tab" onclick="showPage('room',this)">객실 관리</button>
+  </div>
+  <div class="topbar-right">
+    <div class="period-filter">
+      <select id="filterYear" onchange="onPeriodChange()" class="period-select">
+        <option value="2025">2025년</option>
+        <option value="2024">2024년</option>
+        <option value="2023">2023년</option>
+      </select>
+      <select id="filterMonth" onchange="onPeriodChange()" class="period-select">
+        <option value="all">전체</option>
+        <option value="1">1월</option><option value="2">2월</option>
+        <option value="3">3월</option><option value="4">4월</option>
+        <option value="5">5월</option><option value="6">6월</option>
+        <option value="7">7월</option><option value="8">8월</option>
+        <option value="9">9월</option><option value="10">10월</option>
+        <option value="11">11월</option><option value="12">12월</option>
+      </select>
+    </div>
+    <button class="upload-btn outline" onclick="downloadTemplate()">⬇ 서식 다운로드</button>
+    <button class="upload-btn primary" onclick="openUpload()">⬆ 데이터 업로드</button>
+    <div class="live-dot-wrap"><div class="live-dot"></div>LIVE</div>
+  </div>
+</div>
+
+<!-- ========== PAGE 1: 운영현황 ========== -->
+<div class="page active" id="page-ops">
+
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">워크샵</div>
+      <div class="kpi-main"><div class="kpi-val" id="kpiWorkshop">124</div><div class="kpi-unit">건</div></div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-avg-row">
+        <span class="kpi-avg-label">최근 5년 평균</span>
+        <span class="kpi-avg-val">17 건</span>
       </div>
     </div>
-    <div class="header-right">
-      <a class="manage-btn" href="연수원_데이터_관리.html" target="_blank">⚙️ 데이터 관리</a>
-      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-      <div class="date-tag" id="dateTag"></div>
+    <div class="kpi-card">
+      <div class="kpi-label">누적인원 <span style="font-size:10px;color:var(--text3);font-weight:400;">(이용인원)</span></div>
+      <div class="kpi-main"><div class="kpi-val" id="kpiPerson">2,931</div><div class="kpi-unit">명</div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;"><span id="kpiVisitor">1,345</span>명 방문</div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-avg-row">
+        <span class="kpi-avg-label">최근 5년 평균</span>
+        <span class="kpi-avg-val">671 명</span>
+      </div>
     </div>
-  </header>
-
-  <!-- Tab Navigation -->
-  <nav class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab('room')">🏨 객실 현황</button>
-    <button class="tab-btn" onclick="switchTab('program')">📚 교육 프로그램</button>
-    <button class="tab-btn" onclick="switchTab('finance')">💰 재정 현황</button>
-  </nav>
-
-  <!-- Main Content -->
-  <div class="main">
-
-    <!-- ===== TAB 1: 객실 현황 ===== -->
-    <div class="tab-content active" id="tab-room">
-      <div class="section-header">
-        <span class="section-title">객실 예약 및 가동률</span>
-        <span class="section-period">2025년 1월 기준</span>
+    <div class="kpi-card">
+      <div class="kpi-label">운영일수</div>
+      <div class="kpi-main"><div class="kpi-val" id="kpiOpDays">22</div><div class="kpi-unit">일</div></div>
+      <div class="kpi-divider"></div>
+      <div class="kpi-avg-row">
+        <span class="kpi-avg-label">최근 5년 평균</span>
+        <span class="kpi-avg-val">14 일</span>
       </div>
+    </div>
+  </div>
 
-      <div class="kpi-grid" style="grid-template-columns: repeat(5, 1fr)">
-        <div class="kpi-card blue">
-          <div class="kpi-label">전체 객실</div>
-          <div class="kpi-value blue">141</div>
-          <div class="kpi-sub">전체 1인실 · 6개 층</div>
+  <!-- 차트 행 -->
+  <div class="grid g13" style="margin-bottom:12px;">
+    <!-- 법인별 + 이용일수별 -->
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-title">법인별 이용현황</div>
+        <div class="donut-wrap">
+          <canvas id="corpChart"></canvas>
+          <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
         </div>
-        <div class="kpi-card green">
-          <div class="kpi-label">금일 가동률</div>
-          <div class="kpi-value green">78%</div>
-          <div class="kpi-change up">▲ 5% 전월 대비</div>
-        </div>
-        <div class="kpi-card green">
-          <div class="kpi-label">월 가동률</div>
-          <div class="kpi-value green">76%</div>
-          <div class="kpi-change up">▲ 3% 전월 대비</div>
-        </div>
-        <div class="kpi-card amber">
-          <div class="kpi-label">이번 달 예약률</div>
-          <div class="kpi-value amber">84%</div>
-          <div class="kpi-change up">▲ 2% 전월 대비</div>
-        </div>
-        <div class="kpi-card red">
-          <div class="kpi-label">점검/수리 중</div>
-          <div class="kpi-value red">8</div>
-          <div class="kpi-sub">정비 필요 객실</div>
-        </div>
-      </div>
-
-      <div class="charts-grid">
-        <div class="chart-card">
-          <div class="chart-title">월별 객실 가동률 추이</div>
-          <div class="chart-desc">최근 12개월 가동률 및 예약률 비교</div>
-          <div class="chart-wrap" style="height:220px">
-            <canvas id="roomTrendChart"></canvas>
-          </div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">객실 상태별 현황</div>
-          <div class="chart-desc">당일 기준 1인실 141실 상태 분포</div>
-          <div class="chart-wrap" style="height:220px">
-            <canvas id="roomTypeChart"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <div class="chart-card" style="margin-bottom:0">
-        <div class="chart-title">실시간 객실 현황</div>
-        <div class="chart-desc">클릭으로 상세 확인</div>
         <div class="legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#03C75A"></div>입실 중</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#00983A"></div>공실</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#FF9500"></div>예약 확정</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#FF4B4B"></div>점검 중</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>NAVER 1,249명</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>NAVER계열 1,473명</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>LINE계열 209명</div>
         </div>
-        <div class="room-grid" id="roomGrid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">이용일수별 이용현황</div>
+        <div class="donut-wrap">
+          <canvas id="nightChart"></canvas>
+          <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>1박2일 2,294</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>2박3일 384</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#99bbff"></div>3박4일 68</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>4박5일 165</div>
+        </div>
+      </div>
+    </div>
+    <!-- 년간 운영현황 -->
+    <div class="card">
+      <div class="card-title">년간 운영현황</div>
+      <div style="height:200px;"><canvas id="yearChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 미팅룸 + 숙소 -->
+  <div class="grid g2">
+    <!-- 미팅룸 -->
+    <div class="card">
+      <div class="card-title">미팅룸 이용현황</div>
+      <div class="card-sub">미팅룸 이용률 = 누적 이용실적 / (미팅룸수 × 위킹데이)</div>
+      <div class="grid g2">
+        <div>
+          <div class="donut-wrap" style="width:120px;height:120px;">
+            <canvas id="meetingChart"></canvas>
+            <div class="donut-center"><div class="donut-center-val" style="font-size:18px;">24%</div><div class="donut-center-sub">이용률</div></div>
+          </div>
+          <div class="legend" style="justify-content:flex-start;margin-top:8px;">
+            <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>누적 114개소</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#dde8ff"></div>가능 392개소</div>
+          </div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:10px;">규모별 이용 상세</div>
+          <div class="hbar-list">
+            <div class="hbar-row">
+              <div class="hbar-label">대형</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:13%;background:#4e7fff;"><span>6개소</span></div></div>
+              <div class="hbar-total">44</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">중형</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:41%;background:#4e7fff;"><span>45개소</span></div></div>
+              <div class="hbar-total">110</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">소형</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:100%;background:#4e7fff;"><span>63개소</span></div></div>
+              <div class="hbar-total">330</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">기타</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:1%;background:#c4c5c7;"></div></div>
+              <div class="hbar-total">0</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ===== TAB 2: 교육 프로그램 ===== -->
-    <div class="tab-content" id="tab-program">
-      <div class="section-header">
-        <span class="section-title">교육 프로그램 운영 현황</span>
-        <span class="section-period">2025년 1분기</span>
-      </div>
-
-      <div class="kpi-grid">
-        <div class="kpi-card blue">
-          <div class="kpi-label">운영 중 프로그램</div>
-          <div class="kpi-value blue">8</div>
-          <div class="kpi-change up">▲ 2 전월 대비</div>
-        </div>
-        <div class="kpi-card green">
-          <div class="kpi-label">총 수료 인원</div>
-          <div class="kpi-value green">1,248</div>
-          <div class="kpi-sub">누적 기준</div>
-        </div>
-        <div class="kpi-card amber">
-          <div class="kpi-label">평균 만족도</div>
-          <div class="kpi-value amber">4.6</div>
-          <div class="kpi-sub">5점 만점 기준</div>
-        </div>
-        <div class="kpi-card red">
-          <div class="kpi-label">평균 출석률</div>
-          <div class="kpi-value red">91%</div>
-          <div class="kpi-change down">▼ 1% 전월 대비</div>
-        </div>
-      </div>
-
-      <div class="charts-grid">
-        <div class="chart-card">
-          <div class="chart-title">분기별 교육 참여 인원</div>
-          <div class="chart-desc">내부 / 외부 참여자 구분</div>
-          <div class="chart-wrap" style="height:200px">
-            <canvas id="programChart"></canvas>
+    <!-- 숙소 -->
+    <div class="card">
+      <div class="card-title">숙소 이용현황</div>
+      <div class="card-sub">숙소 이용률 = 누적 이용실적 / (보유숙소수 × 위킹데이)</div>
+      <div class="grid g2">
+        <div>
+          <div class="donut-wrap" style="width:120px;height:120px;">
+            <canvas id="roomUsageChart"></canvas>
+            <div class="donut-center"><div class="donut-center-val" style="font-size:18px;">52%</div><div class="donut-center-sub">이용률</div></div>
+          </div>
+          <div class="legend" style="justify-content:flex-start;margin-top:8px;">
+            <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>누적 1,586개소</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#dde8ff"></div>가능 1,472개소</div>
           </div>
         </div>
-        <div class="chart-card">
-          <div class="chart-title">교육 만족도 분포</div>
-          <div class="chart-desc">최근 설문 결과 기준</div>
-          <div class="chart-wrap" style="height:200px">
-            <canvas id="satisfactionChart"></canvas>
+        <div>
+          <div class="card-title" style="margin-bottom:10px;">층별 이용 상세</div>
+          <div class="hbar-list">
+            <div class="hbar-row">
+              <div class="hbar-label">5층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:0%;background:#4e7fff;"></div></div>
+              <div class="hbar-total" style="color:var(--text3);">0/88</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">4층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:50%;background:#4e7fff;"><span>221개소</span></div></div>
+              <div class="hbar-total">440</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">3층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:39%;background:#4e7fff;"><span>274개소</span></div></div>
+              <div class="hbar-total">704</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">2층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:51%;background:#4e7fff;"><span>435개소</span></div></div>
+              <div class="hbar-total">858</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">1층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:44%;background:#4e7fff;"><span>230개소</span></div></div>
+              <div class="hbar-total">528</div>
+            </div>
+            <div class="hbar-row">
+              <div class="hbar-label">0층</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:38%;background:#4e7fff;"><span>165개소</span></div></div>
+              <div class="hbar-total">440</div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="chart-card">
-        <div class="chart-title">프로그램별 운영 현황</div>
-        <div class="chart-desc">2025년 1분기 기준</div>
-        <table class="prog-table">
-          <thead>
-            <tr>
-              <th>프로그램명</th>
-              <th>대상</th>
-              <th>기간</th>
-              <th>신청/정원</th>
-              <th>충원율</th>
-              <th>상태</th>
-            </tr>
-          </thead>
-          <tbody id="programTable"></tbody>
-        </table>
       </div>
     </div>
+  </div>
 
-    <!-- ===== TAB 3: 재정 현황 ===== -->
-    <div class="tab-content" id="tab-finance">
-      <div class="section-header">
-        <span class="section-title">재정 / 수입 현황</span>
-        <span class="section-period">2025년 1월 기준</span>
+  <!-- 이용만족도 섹션 구분선 -->
+  <div style="margin:28px 0 20px;display:flex;align-items:center;gap:10px;">
+    <div style="width:3px;height:18px;background:var(--green);border-radius:2px;flex-shrink:0;"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-0.3px;">이용만족도</div>
+    <div style="flex:1;height:1px;background:var(--border);margin-left:4px;"></div>
+  </div>
+
+  <!-- 상단 3열 -->
+  <div class="sat-top">
+    <!-- 응답률 -->
+    <div class="dark-card">
+      <div class="card-title">이용만족도 응답률</div>
+      <div class="card-sub" style="color:#5a6680;font-size:10px;">18.09부터 실시</div>
+      <div class="donut-wrap" style="width:130px;height:130px;">
+        <canvas id="respChart"></canvas>
+        <div class="donut-center"><div class="donut-center-val">32%</div></div>
       </div>
-
-      <div class="kpi-grid">
-        <div class="kpi-card green">
-          <div class="kpi-label">이번 달 총 수입</div>
-          <div class="kpi-value green">4,820</div>
-          <div class="kpi-sub">단위: 만원</div>
-          <div class="kpi-change up">▲ 12% 전월 대비</div>
-        </div>
-        <div class="kpi-card red">
-          <div class="kpi-label">이번 달 총 지출</div>
-          <div class="kpi-value red">2,940</div>
-          <div class="kpi-sub">단위: 만원</div>
-          <div class="kpi-change up">▲ 3% 전월 대비</div>
-        </div>
-        <div class="kpi-card blue">
-          <div class="kpi-label">순이익</div>
-          <div class="kpi-value blue">1,880</div>
-          <div class="kpi-sub">단위: 만원</div>
-          <div class="kpi-change up">▲ 28% 전월 대비</div>
-        </div>
-        <div class="kpi-card amber">
-          <div class="kpi-label">예산 집행률</div>
-          <div class="kpi-value amber">61%</div>
-          <div class="kpi-sub">연간 예산 대비</div>
-        </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>응답 437명</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2d3548"></div>미응답 908명</div>
       </div>
-
-      <div class="charts-grid">
-        <div class="chart-card">
-          <div class="chart-title">월별 수입 / 지출 추이</div>
-          <div class="chart-desc">2024년 하반기 ~ 2025년 1월</div>
-          <div class="chart-wrap" style="height:220px">
-            <canvas id="financeChart"></canvas>
+    </div>
+    <!-- 만족도 조사 결과 -->
+    <div class="dark-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div class="card-title">이용만족도 조사 결과</div>
+        <div class="card-sub" style="color:#5a6680;font-size:10px;">18.09부터 실시 · 응답 437명</div>
+      </div>
+      <!-- 100점 환산 점수 -->
+      <div style="text-align:center;padding:10px 0 6px;">
+        <div style="font-size:11px;color:#8892a4;margin-bottom:6px;letter-spacing:.3px;">100점 환산</div>
+        <div style="font-size:46px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1;">96.4</div>
+        <div style="font-size:13px;color:#8892a4;margin-top:2px;">/ 100점</div>
+      </div>
+      <!-- 별점 (4.82 / 5.0) -->
+      <div style="text-align:center;padding-bottom:4px;">
+        <div style="font-size:11px;color:#8892a4;margin-bottom:6px;">평균 별점</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-bottom:4px;" id="starDisplay"></div>
+        <div style="font-size:18px;font-weight:800;color:#f59e0b;letter-spacing:-.5px;">4.82 <span style="font-size:12px;color:#5a6680;font-weight:400;">/ 5.0</span></div>
+      </div>
+      <!-- 점수별 분포 -->
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">5점</span>
+          <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
+            <div style="width:84%;background:#4e7fff;height:100%;border-radius:3px;"></div>
           </div>
+          <span style="font-size:10px;color:#8892a4;width:28px;">215명</span>
         </div>
-        <div class="chart-card">
-          <div class="chart-title">수입 항목별 비율</div>
-          <div class="chart-desc">이번 달 기준 구성 비율</div>
-          <div class="chart-wrap" style="height:220px">
-            <canvas id="incomeBreakChart"></canvas>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">4점</span>
+          <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
+            <div style="width:15%;background:#7ba7ff;height:100%;border-radius:3px;"></div>
           </div>
+          <span style="font-size:10px;color:#8892a4;width:28px;">39명</span>
         </div>
-      </div>
-
-      <div class="finance-grid">
-        <div class="chart-card">
-          <div class="chart-title" style="margin-bottom:12px">수입 상세</div>
-          <div id="incomeDetail"></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title" style="margin-bottom:12px">지출 상세</div>
-          <div id="expenseDetail"></div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">3점</span>
+          <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
+            <div style="width:1%;background:#99bbff;height:100%;border-radius:3px;"></div>
+          </div>
+          <span style="font-size:10px;color:#8892a4;width:28px;">3명</span>
         </div>
       </div>
     </div>
 
   </div>
 
-<!-- Maintenance Modal -->
-<div id="maintenanceModal" class="modal-overlay" onclick="closeMaintenanceModal()">
-  <div class="modal-card" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-title">
-        <span class="modal-room-badge" id="modalRoomNum"></span>
-        점검 상세 정보
+  <!-- 연간 이용만족도 조사결과 추이 -->
+  <div class="card" style="margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);">이용만족도 조사결과 연간 추이</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">100점 환산 점수 · 월별 응답 기준</div>
       </div>
-      <button class="modal-close" onclick="closeMaintenanceModal()">✕</button>
+      <div style="text-align:right;">
+        <div style="font-size:20px;font-weight:900;color:var(--green);letter-spacing:-1px;">96.4<span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:2px;">점</span></div>
+        <div style="font-size:10px;color:var(--text3);">2025년 평균</div>
+      </div>
+    </div>
+    <div style="height:180px;"><canvas id="satTrendChart"></canvas></div>
+  </div>
+
+  <!-- 공간별 만족도 -->
+  <div class="card" style="margin-bottom:0;" id="spaceRatingCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);">공간별 만족도</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">이용자 별점 평균 · 5점 만점</div>
+      </div>
+    </div>
+    <div id="spaceRatingList"></div>
+  </div>
+
+  <!-- 이용자 의견 섹션 구분선 -->
+  <div style="margin:28px 0 20px;display:flex;align-items:center;gap:10px;">
+    <div style="width:3px;height:18px;background:var(--green);border-radius:2px;flex-shrink:0;"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-0.3px;">이용자 의견</div>
+    <div style="flex:1;height:1px;background:var(--border);margin-left:4px;"></div>
+    <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">총 14건</div>
+  </div>
+
+  <div class="card" style="margin-bottom:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);">주관식 의견 목록</div>
+      <div style="display:flex;gap:6px;">
+        <select style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);background:white;">
+          <option>전체 유형</option><option>숙소</option><option>미팅룸</option><option>안내 및 서비스</option><option>체육시설</option><option>산책로, 동물농장</option>
+        </select>
+        <select style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);background:white;">
+          <option>전체 평점</option><option>5점</option><option>4점</option><option>3점 이하</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;" id="opinionList">
+      <!-- JS로 렌더링 -->
+    </div>
+  </div>
+
+
+</div>
+
+<!-- ========== PAGE 2: 객실 관리 ========== -->
+<div class="page" id="page-room">
+
+  <div class="section-head">
+    <div class="section-bar"></div>
+    <div class="section-title">객실 배정 현황</div>
+    <div class="section-sub" id="roomSummaryText">전체 141실</div>
+  </div>
+
+  <!-- 층별 요약 -->
+  <div class="floor-summary-grid" id="floorSummary"></div>
+
+  <!-- 범례 -->
+  <div class="room-legend">
+    <div class="room-legend-item">
+      <div class="room-legend-box" style="background:#f0fdf6;border-color:#a7e8c0;"></div>배정 가능
+    </div>
+    <div class="room-legend-item">
+      <div class="room-legend-box" style="background:#eef3ff;border-color:#b3c8ff;"></div>배정 완료
+    </div>
+    <div class="room-legend-item">
+      <div class="room-legend-box" style="background:var(--gray2);border-color:var(--gray3);"></div>배정 불가 (수동설정)
+    </div>
+    <div class="room-legend-item">
+      <div class="room-legend-box" style="background:#fff8e6;border-color:#ffd97a;"></div>이형 객실
+    </div>
+    <div class="room-legend-item" style="margin-left:auto;">
+      <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;" onclick="resetAll()">전체 초기화</button>
+    </div>
+  </div>
+
+  <!-- 층별 객실 -->
+  <div id="floorContainer"></div>
+</div>
+
+
+<!-- ===== UPLOAD MODAL ===== -->
+<div class="upload-area" id="uploadArea">
+  <div class="upload-box">
+    <div class="upload-box-header">
+      <span class="upload-box-title">📊 운영현황 데이터 업로드</span>
+      <button class="modal-close" onclick="closeUpload()">✕</button>
+    </div>
+
+    <!-- 드래그앤드롭 영역 -->
+    <div class="upload-drop" id="uploadDrop"
+      onclick="document.getElementById('fileInput').click()"
+      ondragover="handleDragOver(event)"
+      ondragleave="handleDragLeave(event)"
+      ondrop="handleDrop(event)">
+      <div class="upload-drop-icon">📂</div>
+      <div class="upload-drop-text">엑셀 파일을 드래그하거나 클릭해서 선택</div>
+      <div class="upload-drop-sub">.xlsx · .xls 파일 지원</div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+
+    <!-- 파일 미리보기 -->
+    <div class="upload-preview" id="uploadPreview">
+      <div class="upload-preview-file">
+        <span style="font-size:20px;">📗</span>
+        <span class="upload-preview-name" id="previewName">-</span>
+        <span class="upload-preview-size" id="previewSize">-</span>
+      </div>
+    </div>
+
+    <!-- 시트 선택 -->
+    <div class="upload-sheet-select" id="sheetSelectWrap" style="display:none;">
+      <label>시트 선택</label>
+      <select id="sheetSelect"></select>
+    </div>
+
+    <!-- 업로드 가이드 -->
+    <div class="upload-guide">
+      <div class="upload-guide-title">📋 업로드 양식 안내</div>
+      <ul>
+        <li>서식 다운로드 후 데이터를 입력하여 업로드해주세요</li>
+        <li>필수 컬럼: 월, 워크샵건수, 누적인원, 방문인원, 운영일수</li>
+        <li>법인별: NAVER, NAVER계열, LINE계열 인원 포함</li>
+        <li>이용일수별: 1박2일, 2박3일, 3박4일, 4박5일 인원 포함</li>
+      </ul>
+    </div>
+
+    <div class="upload-box-footer">
+      <button class="btn btn-outline" onclick="closeUpload()">취소</button>
+      <button class="btn btn-primary" id="uploadConfirmBtn" onclick="confirmUpload()" disabled style="opacity:.4;cursor:not-allowed;">데이터 적용</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="roomModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">객실 배정</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="modal-row">
-        <span class="modal-label">점검 사유</span>
-        <span class="modal-value highlight" id="modalReason"></span>
+      <div class="room-info-box">
+        <div>
+          <div class="room-info-num" id="modalRoomNum">---</div>
+          <div class="room-info-tag" id="modalRoomTag">일반 객실</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--text3);text-align:right;" id="modalCurrentInfo"></div>
       </div>
-      <div class="modal-row">
-        <span class="modal-label">상세 내용</span>
-        <span class="modal-value" id="modalDetail"></span>
-      </div>
-      <div class="modal-row">
-        <span class="modal-label">시작일</span>
-        <span class="modal-value" id="modalStart"></span>
-      </div>
-      <div class="modal-row">
-        <span class="modal-label">완료 예정일</span>
-        <span class="modal-value" id="modalEnd"></span>
-      </div>
-      <div class="modal-row">
-        <span class="modal-label">담당 부서</span>
-        <span class="modal-value" id="modalManager"></span>
+      <div id="modalFormArea">
+        <div class="form-group">
+          <label class="form-label">이름 *</label>
+          <input class="form-input" id="inputName" placeholder="배정받는 분의 이름">
+        </div>
+        <div class="form-group">
+          <label class="form-label">소속 *</label>
+          <input class="form-input" id="inputOrg" placeholder="팀명 또는 조직">
+        </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn" onclick="closeMaintenanceModal()">닫기</button>
+    <div class="modal-footer" id="modalFooter">
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" id="modalConfirmBtn" onclick="confirmAssign()">배정 완료</button>
     </div>
   </div>
 </div>
 
 <script>
-// Date
-const now = new Date();
-document.getElementById('dateTag').textContent =
-  now.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' +
-  now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-
-// Tab Switch
-function switchTab(name) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+// ===== PAGE NAVIGATION =====
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'room') renderRoomSummary();
+  else window.scrollTo({ top: 0 });
 }
 
-// Chart defaults
-Chart.defaults.color = '#909090';
-Chart.defaults.borderColor = '#F0F2F4';
-Chart.defaults.font.family = "'Noto Sans KR', sans-serif";
+// ===== CHART DEFAULTS =====
+Chart.defaults.font.family = "'NanumSquare', sans-serif";
+Chart.defaults.font.size = 11;
 
-const months = ['2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월'];
+const BLUE_PALETTE = ['#4e7fff','#7ba7ff','#99bbff','#b8d0ff','#d6e6ff','#eef3ff'];
+const GREEN_PALETTE = ['#03C75A','#00983A','#3dbb70','#7dd4a4','#b6e8cc','#ddf4e8'];
 
-// ========= ROOM CHARTS =========
-new Chart(document.getElementById('roomTrendChart'), {
-  type: 'line',
+// ===== DONUT HELPER =====
+function donut(id, data, labels, colors, cutout='65%') {
+  return new Chart(document.getElementById(id), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw.toLocaleString() }
+      }}
+    }
+  });
+}
+
+// ===== CHARTS: PAGE 1 =====
+window._corpChart = donut('corpChart', [1249, 1473, 209], ['NAVER','NAVER계열','LINE계열'], ['#4e7fff','#7ba7ff','#b8d0ff']);
+window._nightChart = donut('nightChart', [2294, 384, 68, 165], ['1박2일','2박3일','3박4일','4박5일'], ['#4e7fff','#7ba7ff','#99bbff','#b8d0ff']);
+donut('meetingChart', [114, 392-114], ['이용','가용'], ['#4e7fff','#dde8ff']);
+donut('roomUsageChart', [1586, 1472], ['이용','가용'], ['#4e7fff','#dde8ff']);
+
+// 년간 운영현황
+window._yearChart = new Chart(document.getElementById('yearChart'), {
   data: {
-    labels: months,
+    labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
     datasets: [
       {
-        label: '가동률',
-        data: [62, 58, 71, 76, 82, 89, 91, 85, 77, 68, 72, 78],
-        borderColor: '#03C75A',
-        backgroundColor: 'rgba(3,199,90,0.06)',
-        fill: true, tension: 0.4, borderWidth: 2,
-        pointBackgroundColor: '#03C75A', pointRadius: 3
+        type: 'bar', label: '누적인원',
+        data: [2115,974,2336,2931,0,0,0,0,0,0,0,0],
+        backgroundColor: '#1D1D1B', borderRadius: 4, yAxisID: 'y'
       },
       {
-        label: '예약률',
-        data: [70, 65, 79, 83, 87, 93, 95, 90, 84, 75, 80, 84],
-        borderColor: '#0078FF',
-        backgroundColor: 'transparent',
-        tension: 0.4, borderWidth: 2, borderDash: [5,3],
-        pointBackgroundColor: '#0078FF', pointRadius: 3
+        type: 'line', label: '운영일수',
+        data: [21,15,21,22,null,null,null,null,null,null,null,null],
+        borderColor: '#4e7fff', backgroundColor: 'transparent',
+        pointBackgroundColor: '#4e7fff', borderWidth: 2, tension: 0, yAxisID: 'y2', pointRadius: 5
+      },
+      {
+        type: 'line', label: '워크샵건수',
+        data: [74,65,83,124,53,null,null,null,null,null,null,null],
+        borderColor: '#c4c5c7', backgroundColor: 'transparent',
+        pointBackgroundColor: '#c4c5c7', borderWidth: 2, tension: 0, yAxisID: 'y2', pointRadius: 5
       }
     ]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: 'top', labels: { usePointStyle: true, pointStyleWidth: 8, boxHeight: 6 } } },
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8 } } },
     scales: {
-      y: { min: 40, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#F0F2F4' } },
-      x: { grid: { color: '#F0F2F4' } }
+      y: { position: 'left', grid: { color: '#eaebec' }, ticks: { callback: v => v.toLocaleString() } },
+      y2: { position: 'right', grid: { display: false }, min: 0, max: 150 },
+      x: { grid: { display: false } }
     }
   }
 });
 
-new Chart(document.getElementById('roomTypeChart'), {
+// ===== CHARTS: PAGE 2 =====
+const darkBg = '#1e2535';
+
+new Chart(document.getElementById('respChart'), {
   type: 'doughnut',
-  data: {
-    labels: ['입실 중', '예약 확정', '공실', '점검 중'],
-    datasets: [{
-      data: [82, 28, 23, 8],
-      backgroundColor: ['#03C75A','#FF9500','#0078FF','#FF4B4B'],
-      borderColor: '#FFFFFF', borderWidth: 3
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'right', labels: { usePointStyle: true, pointStyleWidth: 8 } },
-      tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + '실' } }
-    },
-    cutout: '65%'
-  }
+  data: { datasets: [{ data: [437, 908], backgroundColor: ['#4e7fff','#2d3548'], borderColor: darkBg, borderWidth: 2 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
 });
 
-// Maintenance reasons data
-const maintenanceReasons = [
-  { reason: '에어컨 냉매 교체',     detail: '냉방 효율 저하로 인한 냉매 전량 교체 작업',   start: '2025.01.10', end: '2025.01.15', manager: '시설팀' },
-  { reason: '욕실 배관 누수',        detail: '욕실 하부 배관 균열 발생, 배관 교체 진행 중', start: '2025.01.11', end: '2025.01.14', manager: '시설팀' },
-  { reason: '도배 및 장판 교체',     detail: '노후 벽지·바닥재 전면 교체 리모델링',         start: '2025.01.08', end: '2025.01.20', manager: '외부 업체' },
-  { reason: '창문 잠금장치 파손',    detail: '창문 레버 잠금장치 파손으로 안전상 즉시 수리', start: '2025.01.12', end: '2025.01.13', manager: '시설팀' },
-  { reason: '조명 기구 교체',        detail: '천장 조명 회로 불량, LED 조명 전체 교체',     start: '2025.01.13', end: '2025.01.13', manager: '전기팀' },
-  { reason: '벽면 균열 보수',        detail: '외벽 균열 확대 방지를 위한 충전재 보수 작업',  start: '2025.01.09', end: '2025.01.17', manager: '외부 업체' },
-  { reason: '가구 파손 교체',        detail: '침대 프레임 및 책상 파손으로 인한 교체',       start: '2025.01.14', end: '2025.01.16', manager: '시설팀' },
-  { reason: '화장실 타일 탈락',      detail: '욕실 타일 탈락 및 줄눈 손상 보수',             start: '2025.01.07', end: '2025.01.18', manager: '외부 업체' },
-  { reason: '인터넷 배선 불량',      detail: '객실 내 인터넷 단자 및 배선 전면 재시공',      start: '2025.01.15', end: '2025.01.16', manager: '전산팀' },
-  { reason: '냉·난방 환기 시스템 점검', detail: '환기구 필터 교체 및 덕트 청소',            start: '2025.01.06', end: '2025.01.19', manager: '시설팀' },
-];
 
-function openMaintenanceModal(roomNum, info) {
-  document.getElementById('modalRoomNum').textContent = roomNum + '호';
-  document.getElementById('modalReason').textContent  = info.reason;
-  document.getElementById('modalDetail').textContent  = info.detail;
-  document.getElementById('modalStart').textContent   = info.start;
-  document.getElementById('modalEnd').textContent     = info.end;
-  document.getElementById('modalManager').textContent = info.manager;
-  document.getElementById('maintenanceModal').classList.add('active');
+
+
+
+
+// ===== ROOM DATA =====
+// 객실명 형식: 층수.호실번호 (예: 5.01, 4.09, 2.13)
+function makeRooms(floor, count) {
+  return Array.from({length: count}, (_, i) => `${floor}.${String(i+1).padStart(2,'0')}`);
 }
 
-function closeMaintenanceModal() {
-  document.getElementById('maintenanceModal').classList.remove('active');
-}
-
-// Room Grid - 층별 구분
-const floorConfig = [
-  { floor: '0층',  count: 23, prefix: '0', vip: false },
-  { floor: '1층',  count: 23, prefix: '1', vip: false },
-  { floor: '2층',  count: 35, prefix: '2', vip: false },
-  { floor: '3층',  count: 35, prefix: '3', vip: false },
-  { floor: '4층',  count: 21, prefix: '4', vip: false },
-  { floor: '5층',  count: 4,  prefix: '5', vip: true  },
+const FLOORS = [
+  {
+    floor: 5, label: '5층', tag: 'VIP', isVip: true,
+    rooms: makeRooms(5, 4)
+  },
+  {
+    floor: 4, label: '4층', tag: '일반',
+    rooms: makeRooms(4, 20),
+    irregular: ['4.09']
+  },
+  {
+    floor: 3, label: '3층', tag: '일반',
+    rooms: makeRooms(3, 32)
+  },
+  {
+    floor: 2, label: '2층', tag: '일반',
+    rooms: makeRooms(2, 39),
+    irregular: ['2.13']
+  },
+  {
+    floor: 1, label: '1층', tag: '일반',
+    rooms: makeRooms(1, 24)
+  },
+  {
+    floor: 0, label: 'B1(0층)', tag: '일반',
+    rooms: makeRooms(0, 20)
+  }
 ];
 
-const roomLabels = { occupied: '입실', available: '공실', reserved: '예약', maintenance: '점검' };
-const grid = document.getElementById('roomGrid');
+// roomState: { [roomNum]: { status: 'available'|'assigned'|'unavailable'|'irregular', name:'', org:'' } }
+let roomState = {};
 
-floorConfig.forEach(fc => {
-  const section = document.createElement('div');
-  section.className = 'floor-section';
-
-  const header = document.createElement('div');
-  header.className = 'floor-header';
-  header.innerHTML = `
-    <span class="floor-label${fc.vip ? ' vip' : ''}">${fc.floor}${fc.vip ? ' · VIP' : ''}</span>
-    <span class="floor-count">${fc.count}실</span>
-    <div class="floor-divider"></div>`;
-  section.appendChild(header);
-
-  const roomsDiv = document.createElement('div');
-  roomsDiv.className = 'floor-rooms';
-
-  for (let i = 1; i <= fc.count; i++) {
-    const num = fc.prefix + '.' + String(i).padStart(2, '0');
-    const r = Math.random();
-    let type;
-    if (fc.vip) {
-      type = r < 0.75 ? 'occupied' : r < 0.92 ? 'reserved' : 'available';
-    } else {
-      if (r < 0.56) type = 'occupied';
-      else if (r < 0.76) type = 'available';
-      else if (r < 0.88) type = 'reserved';
-      else type = 'maintenance';
-    }
-    const cell = document.createElement('div');
-    cell.className = `room-cell ${type}${fc.vip ? ' vip-room' : ''}`;
-    cell.innerHTML = `<div class="room-num">${num}</div><div class="room-status-label">${roomLabels[type]}</div>`;
-    if (type === 'maintenance') {
-      const mInfo = maintenanceReasons[Math.floor(Math.random() * maintenanceReasons.length)];
-      cell.title = '클릭하여 점검 상세 보기';
-      cell.onclick = () => openMaintenanceModal(num, mInfo);
-    }
-    roomsDiv.appendChild(cell);
-  }
-
-  section.appendChild(roomsDiv);
-  grid.appendChild(section);
+// Initialize
+FLOORS.forEach(f => {
+  f.rooms.forEach(r => {
+    const isIrregular = f.irregular && f.irregular.includes(r);
+    roomState[r] = { status: isIrregular ? 'irregular' : 'available', name: '', org: '' };
+  });
 });
 
-// ========= PROGRAM CHARTS =========
-new Chart(document.getElementById('programChart'), {
-  type: 'bar',
-  data: {
-    labels: ['Q1 \'24', 'Q2 \'24', 'Q3 \'24', 'Q4 \'24', 'Q1 \'25'],
-    datasets: [
-      { label: '내부 직원',   data: [180, 210, 240, 195, 230], backgroundColor: 'rgba(3,199,90,0.8)',  borderRadius: 4 },
-      { label: '외부 참가자', data: [90, 120, 150, 105, 140],  backgroundColor: 'rgba(0,120,255,0.7)', borderRadius: 4 }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
-    scales: {
-      x: { stacked: true, grid: { color: '#F0F2F4' } },
-      y: { stacked: true, grid: { color: '#F0F2F4' }, ticks: { callback: v => v + '명' } }
-    }
-  }
-});
+let currentRoom = null;
 
-new Chart(document.getElementById('satisfactionChart'), {
-  type: 'bar',
-  data: {
-    labels: ['5점', '4점', '3점', '2점', '1점'],
-    datasets: [{
-      label: '응답 수',
-      data: [312, 198, 54, 12, 4],
-      backgroundColor: ['#03C75A','#00983A','#FF9500','#FF6B35','#FF4B4B'],
-      borderRadius: 6, borderSkipped: false
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { grid: { color: '#F0F2F4' }, ticks: { callback: v => v + '명' } },
-      y: { grid: { display: false } }
-    }
-  }
-});
+function renderFloors() {
+  const container = document.getElementById('floorContainer');
+  container.innerHTML = '';
+  FLOORS.forEach(f => {
+    const sec = document.createElement('div');
+    sec.className = 'floor-section';
 
-// Program table
-const programs = [
-  { name: '신입사원 입문교육', target: '신입직원',   period: '1/6 ~ 1/17',   applied: 42,  cap: 50,  status: 'running' },
-  { name: '리더십 과정',       target: '팀장급',     period: '1/13 ~ 1/15',  applied: 28,  cap: 30,  status: 'running' },
-  { name: '디지털 전환 교육',  target: '전직원',     period: '1/20 ~ 1/24',  applied: 35,  cap: 40,  status: 'running' },
-  { name: '안전교육 기초',     target: '현장직',     period: '2/3 ~ 2/5',    applied: 18,  cap: 30,  status: 'planned' },
-  { name: '글로벌 비즈니스',   target: '해외사업부', period: '2/10 ~ 2/14',  applied: 22,  cap: 25,  status: 'planned' },
-  { name: '프로젝트 관리',     target: '중간관리자', period: '3/3 ~ 3/7',    applied: 0,   cap: 25,  status: 'planned' },
-  { name: '소통·협업 워크숍',  target: '전직원',     period: '12/9 ~ 12/11', applied: 60,  cap: 60,  status: 'closed' },
-  { name: '연말 성과공유회',   target: '전직원',     period: '12/20',        applied: 210, cap: 210, status: 'closed' },
-];
+    const available = f.rooms.filter(r => roomState[r].status === 'available').length;
+    const assigned = f.rooms.filter(r => roomState[r].status === 'assigned').length;
+    const irregular = (f.irregular || []).length;
+    const unavail = f.rooms.filter(r => roomState[r].status === 'unavailable').length;
 
-const statusLabel = { running: '운영 중', planned: '예정', closed: '종료' };
-const tbody = document.getElementById('programTable');
-programs.forEach(p => {
-  const pct = Math.round(p.applied / p.cap * 100);
-  const color = pct >= 90 ? '#03C75A' : pct >= 60 ? '#00983A' : '#FF9500';
-  tbody.innerHTML += `
-    <tr>
-      <td style="font-weight:600">${p.name}</td>
-      <td style="color:var(--text-muted)">${p.target}</td>
-      <td style="font-size:12px;color:var(--text-muted)">${p.period}</td>
-      <td>${p.applied}/${p.cap}명</td>
-      <td style="min-width:100px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="progress-bar-wrap" style="flex:1"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div>
-          <span style="font-size:11px;color:${color};font-weight:600">${pct}%</span>
+    sec.innerHTML = `
+      <div class="floor-head">
+        <span class="floor-label">${f.label}</span>
+        <span class="floor-tag ${f.isVip ? 'vip' : ''}">${f.tag} · ${f.rooms.length}실</span>
+        <div class="floor-stats">
+          <div>배정가능 <span style="color:var(--green)">${available}</span></div>
+          <div>배정완료 <span style="color:var(--blue)">${assigned}</span></div>
+          ${irregular > 0 ? `<div>이형 <span style="color:#c47a00">${irregular}</span></div>` : ''}
+          ${unavail > 0 ? `<div>배정불가 <span>${unavail}</span></div>` : ''}
         </div>
-      </td>
-      <td><span class="badge ${p.status}">${statusLabel[p.status]}</span></td>
-    </tr>`;
+      </div>
+      <div class="room-grid" id="grid-${f.floor}"></div>`;
+    container.appendChild(sec);
+
+    const grid = document.getElementById(`grid-${f.floor}`);
+    f.rooms.forEach(r => {
+      const s = roomState[r];
+      const cell = document.createElement('div');
+      cell.className = `room-cell ${s.status}`;
+      cell.id = `room-${r}`;
+
+      let inner = '';
+      if (f.isVip) inner += `<div class="vip-badge">V</div>`;
+
+      if (s.status === 'assigned') {
+        inner += `<div class="room-num">${r}</div>
+          <div class="room-person">${s.name}</div>
+          <div class="room-org">${s.org}</div>`;
+      } else if (s.status === 'irregular') {
+        inner += `<div class="room-num">${r}</div><div class="room-status" style="font-size:9px;">이형</div>`;
+      } else if (s.status === 'unavailable') {
+        inner += `<div class="room-num">${r}</div><div class="room-status">배정불가</div>`;
+      } else {
+        inner += `<div class="room-num">${r}</div><div class="room-status">가능</div>`;
+      }
+
+      cell.innerHTML = inner;
+      if (s.status !== 'irregular') {
+        cell.onclick = () => openRoomModal(r, f);
+      }
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function renderRoomSummary() {
+  renderFloors();
+  const summaryEl = document.getElementById('floorSummary');
+  summaryEl.innerHTML = '';
+  let totalAssigned = 0, totalAvail = 0;
+  FLOORS.forEach(f => {
+    const total = f.rooms.length;
+    const assigned = f.rooms.filter(r => roomState[r].status === 'assigned').length;
+    const available = f.rooms.filter(r => roomState[r].status === 'available').length;
+    totalAssigned += assigned;
+    totalAvail += available;
+    const pct = total ? Math.round(assigned / total * 100) : 0;
+    const card = document.createElement('div');
+    card.className = 'floor-sum-card';
+    card.innerHTML = `
+      <div class="floor-sum-floor">${f.label}</div>
+      <div class="floor-sum-num">${assigned}</div>
+      <div class="floor-sum-label">/ ${total}실 배정</div>
+      <div class="floor-sum-bar"><div class="floor-sum-fill" style="width:${pct}%"></div></div>`;
+    summaryEl.appendChild(card);
+  });
+  document.getElementById('roomSummaryText').textContent =
+    `전체 141실 · 배정완료 ${totalAssigned}실 · 가용 ${totalAvail}실`;
+}
+
+// ===== MODAL =====
+function openRoomModal(roomNum, floorInfo) {
+  currentRoom = roomNum;
+  const s = roomState[roomNum];
+  document.getElementById('modalRoomNum').textContent = roomNum;
+  document.getElementById('modalRoomTag').textContent =
+    floorInfo.isVip ? 'VIP 객실' : '일반 객실';
+
+  const overlay = document.getElementById('roomModal');
+  const footer = document.getElementById('modalFooter');
+  const formArea = document.getElementById('modalFormArea');
+  const currentInfo = document.getElementById('modalCurrentInfo');
+
+  if (s.status === 'assigned') {
+    document.getElementById('modalTitle').textContent = '배정 정보';
+    currentInfo.innerHTML = `<div style="font-weight:700;color:var(--blue)">${s.name}</div><div>${s.org}</div>`;
+    formArea.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">이름</label>
+        <input class="form-input" id="inputName" value="${s.name}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">소속</label>
+        <input class="form-input" id="inputOrg" value="${s.org}">
+      </div>`;
+    footer.innerHTML = `
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-danger" onclick="cancelAssign()">배정 취소</button>
+      <button class="btn btn-primary" onclick="confirmAssign()">수정 저장</button>`;
+  } else if (s.status === 'unavailable') {
+    document.getElementById('modalTitle').textContent = '배정 불가 설정됨';
+    currentInfo.innerHTML = '';
+    formArea.innerHTML = `<div style="font-size:12px;color:var(--text2);padding:10px 0;">이 객실은 현재 배정 불가로 설정되어 있습니다.</div>`;
+    footer.innerHTML = `
+      <button class="btn btn-outline" onclick="closeModal()">닫기</button>
+      <button class="btn btn-primary" onclick="setAvailable()">배정 가능으로 변경</button>`;
+  } else {
+    document.getElementById('modalTitle').textContent = '객실 배정';
+    currentInfo.innerHTML = '';
+    formArea.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">이름 *</label>
+        <input class="form-input" id="inputName" placeholder="배정받는 분의 이름">
+      </div>
+      <div class="form-group">
+        <label class="form-label">소속 *</label>
+        <input class="form-input" id="inputOrg" placeholder="팀명 또는 조직">
+      </div>`;
+    footer.innerHTML = `
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-outline" style="color:var(--gray4);" onclick="setUnavailable()">배정 불가 처리</button>
+      <button class="btn btn-primary" onclick="confirmAssign()">배정 완료</button>`;
+  }
+  overlay.classList.add('open');
+  setTimeout(() => { const inp = document.getElementById('inputName'); if(inp) inp.focus(); }, 100);
+}
+
+function closeModal() {
+  document.getElementById('roomModal').classList.remove('open');
+  currentRoom = null;
+}
+
+function confirmAssign() {
+  const name = (document.getElementById('inputName')?.value || '').trim();
+  const org = (document.getElementById('inputOrg')?.value || '').trim();
+  if (!name || !org) { showToast('이름과 소속을 모두 입력해주세요', 'warn'); return; }
+  roomState[currentRoom] = { status: 'assigned', name, org };
+  closeModal();
+  renderRoomSummary();
+  showToast(`${currentRoom}호 배정 완료`, 'success');
+}
+
+function cancelAssign() {
+  roomState[currentRoom] = { status: 'available', name: '', org: '' };
+  closeModal();
+  renderRoomSummary();
+  showToast(`${currentRoom}호 배정이 취소됐습니다`, 'info');
+}
+
+function setUnavailable() {
+  roomState[currentRoom] = { status: 'unavailable', name: '', org: '' };
+  closeModal();
+  renderRoomSummary();
+  showToast(`${currentRoom}호 배정 불가 처리됐습니다`, 'info');
+}
+
+function setAvailable() {
+  roomState[currentRoom] = { status: 'available', name: '', org: '' };
+  closeModal();
+  renderRoomSummary();
+  showToast(`${currentRoom}호 배정 가능으로 변경됐습니다`, 'success');
+}
+
+function resetAll() {
+  if (!confirm('모든 객실 배정을 초기화할까요?')) return;
+  FLOORS.forEach(f => {
+    f.rooms.forEach(r => {
+      const isIrregular = f.irregular && f.irregular.includes(r);
+      roomState[r] = { status: isIrregular ? 'irregular' : 'available', name: '', org: '' };
+    });
+  });
+  renderRoomSummary();
+  showToast('전체 초기화됐습니다', 'info');
+}
+
+// ===== MODAL CLOSE on overlay =====
+document.getElementById('roomModal').addEventListener('click', e => {
+  if (e.target.id === 'roomModal') closeModal();
 });
 
-// ========= FINANCE CHARTS =========
-const finMonths = ['8월', '9월', '10월', '11월', '12월', '1월'];
-new Chart(document.getElementById('financeChart'), {
-  type: 'bar',
+// ===== TOAST =====
+function showToast(msg, type = 'success') {
+  const icons = { success: '✅', info: 'ℹ️', warn: '⚠️' };
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.borderLeftColor = type === 'success' ? 'var(--green)' : type === 'warn' ? '#f59e0b' : '#4e7fff';
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }, 2500);
+}
+
+// Initial render
+renderRoomSummary();
+
+// ===== 공간별 만족도 별점 =====
+const SPACE_RATINGS = [
+  { name: '미팅룸',           icon: '🏢', score: 4.7, count: 89 },
+  { name: '숙소',             icon: '🛏️', score: 4.8, count: 261 },
+  { name: '식당',             icon: '🍽️', score: 4.5, count: 143 },
+  { name: '체육관, 풋살코트', icon: '⚽', score: 4.6, count: 54 },
+  { name: '라운지',           icon: '☕', score: 4.9, count: 78 },
+  { name: '동물농장',         icon: '🐾', score: 4.8, count: 32 },
+];
+
+function makeSpaceStar(score, size=17) {
+  return Array.from({length: 5}, (_, i) => {
+    const fill = Math.min(1, Math.max(0, score - i));
+    const pct = Math.round(fill * 100);
+    const uid = 'sr' + i + '_' + Math.random().toString(36).slice(2,7);
+    if (pct >= 100) {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#f59e0b"/></svg>`;
+    } else if (pct > 0) {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24">
+        <defs><linearGradient id="${uid}" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="${pct}%" stop-color="#f59e0b"/>
+          <stop offset="${pct}%" stop-color="#e2e8f0"/>
+        </linearGradient></defs>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="url(#${uid})"/>
+      </svg>`;
+    } else {
+      return `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" fill="#e2e8f0"/></svg>`;
+    }
+  }).join('');
+}
+
+function renderSpaceRatings() {
+  const el = document.getElementById('spaceRatingList');
+  if (!el) return;
+  el.innerHTML = SPACE_RATINGS.map((s, idx) => {
+    const pct = (s.score / 5) * 100;
+    const color = s.score >= 4.8 ? '#03C75A' : s.score >= 4.5 ? '#4e7fff' : '#f59e0b';
+    const isLast = idx === SPACE_RATINGS.length - 1;
+    return `<div style="display:flex;align-items:center;gap:16px;padding:13px 0;${isLast ? '' : 'border-bottom:1px solid var(--border);'}">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--gray1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${s.icon}</div>
+      <div style="width:110px;flex-shrink:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${s.name}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${s.count}명 응답</div>
+      </div>
+      <div style="display:flex;gap:2px;flex-shrink:0;">${makeSpaceStar(s.score)}</div>
+      <div style="flex:1;background:var(--gray2);border-radius:6px;height:8px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:6px;"></div>
+      </div>
+      <div style="font-size:22px;font-weight:900;color:${color};letter-spacing:-1px;width:40px;text-align:right;flex-shrink:0;">${s.score}</div>
+      <div style="font-size:11px;color:var(--text3);flex-shrink:0;">/ 5.0</div>
+    </div>`;
+  }).join('');
+}
+renderSpaceRatings();
+
+
+// ===== 이용자 의견 =====
+const OPINIONS = [
+  { score: 5, type: '숙소', org: 'NAVER · 서비스개발팀', date: '2025-04-18',
+    text: '객실이 전반적으로 깔끔하고 침구류가 특히 좋았습니다. 조용한 환경 덕분에 집중 워크숍 진행이 수월했어요.' },
+  { score: 5, type: '안내 및 서비스', org: 'NAVER · 플랫폼팀', date: '2025-04-15',
+    text: '프론트 스태프분들이 매우 친절했고 체크인 과정이 빠르고 효율적이었습니다. 다음에도 꼭 이용하고 싶습니다.' },
+  { score: 5, type: '미팅룸', org: 'NAVER계열 · 웹툰', date: '2025-04-10',
+    text: '대형 미팅룸 AV 장비 상태가 완벽했습니다. 화상회의 연결도 원활해서 외부 참석자와의 연결에 전혀 문제 없었어요.' },
+  { score: 4, type: '숙소', org: 'LINE계열 · 기획팀', date: '2025-04-08',
+    text: '전반적으로 만족스러웠으나 샤워실 온수 조절이 조금 불편했습니다. 나머지는 모두 훌륭했어요.' },
+  { score: 5, type: '산책로, 동물농장', org: 'NAVER · HR팀', date: '2025-04-05',
+    text: '점심 이후 산책로에서 산책한 시간이 팀 분위기를 환기시키는 데 정말 큰 도움이 됐습니다. 동물농장도 인기 만점이었어요.' },
+  { score: 4, type: '체육시설', org: 'NAVER계열 · 커머스', date: '2025-03-29',
+    text: '헬스장 기구들은 잘 관리되어 있었는데, 이용 시간대가 겹쳐 대기가 발생했습니다. 예약제 도입을 제안합니다.' },
+  { score: 5, type: '안내 및 서비스', org: 'NAVER · 검색팀', date: '2025-03-22',
+    text: '늦은 시간 요청드린 추가 비품을 신속하게 제공해 주셔서 감사했습니다. 세심한 배려가 인상적이었어요.' },
+  { score: 3, type: '숙소', org: 'NAVER계열 · 파이낸셜', date: '2025-03-18',
+    text: '2층 객실 방음이 다소 아쉬웠습니다. 복도 소음이 새벽에 들려서 수면에 지장이 있었어요. 개선되면 좋겠습니다.' },
+  { score: 5, type: '미팅룸', org: 'LINE계열 · 개발1팀', date: '2025-03-14',
+    text: '소형 미팅룸을 연속으로 3개 사용했는데 화이트보드, 마커 등 소모품이 항상 채워져 있어서 진행이 원활했습니다.' },
+  { score: 5, type: '숙소', org: 'NAVER · AI Lab', date: '2025-03-10',
+    text: '3층 객실 전망이 매우 좋았습니다. 연수 기간 내내 쾌적한 환경에서 지낼 수 있었고 식사도 맛있었어요.' },
+  { score: 4, type: '안내 및 서비스', org: 'NAVER계열 · 클라우드', date: '2025-02-27',
+    text: '전반적으로 서비스가 만족스러웠습니다. 안내 표지판이 조금 더 명확하면 처음 방문하는 분들도 쉽게 찾을 수 있을 것 같아요.' },
+  { score: 5, type: '체육시설', org: 'NAVER · 글로벌사업팀', date: '2025-02-20',
+    text: '수영장 시설이 생각보다 훨씬 잘 갖춰져 있어서 놀랐습니다. 워크숍 중간에 이용할 수 있어서 리프레시하기 좋았어요.' },
+  { score: 5, type: '식당', org: 'NAVER · 연수참가자', date: '2025-04-22',
+    text: '식당 밥이 너무 맛있었어요. 또 먹고 싶어요.' },
+  { score: 4, type: '동물농장', org: 'NAVER · 연수참가자', date: '2025-04-22',
+    text: '강아지들이 너무 귀엽습니다. 비가 와서 산책을 못한 게 아쉬웠어요.' },
+];
+
+const scoreColors = { 5: '#03C75A', 4: '#4e7fff', 3: '#f59e0b', 2: '#ff6b35', 1: '#ef4444' };
+const typeBadgeColors = {
+  '숙소':           '#eef3ff:#4e7fff',
+  '미팅룸':         '#edfff4:#03C75A',
+  '안내 및 서비스': '#fff8e6:#c47a00',
+  '체육시설':       '#fdf4ff:#9333ea',
+  '산책로, 동물농장':'#f0fdf4:#16a34a',
+  '식당':           '#fff1f0:#e03e2d',
+  '동물농장':       '#f0fdf4:#16a34a',
+};
+
+function renderOpinions() {
+  const el = document.getElementById('opinionList');
+  if (!el) return;
+  el.innerHTML = OPINIONS.map(op => {
+    const [bg, fg] = (typeBadgeColors[op.type] || '#f1f5f9:#64748b').split(':');
+    return `
+    <div style="padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--white);transition:box-shadow .15s;"
+         onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.07)'" onmouseout="this.style.boxShadow='none'">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="padding:2px 8px;background:${bg};color:${fg};border-radius:4px;font-size:10px;font-weight:700;">${op.type}</span>
+        <span style="font-size:11px;color:var(--text3);margin-left:auto;">${op.org}</span>
+        <span style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${op.date}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.65;">"${op.text}"</div>
+    </div>`;
+  }).join('');
+}
+renderOpinions();
+
+
+// ===== 업로드 / 다운로드 =====
+let parsedWorkbook = null;
+let parsedData = null;
+
+function openUpload() {
+  document.getElementById('uploadArea').classList.add('open');
+}
+function closeUpload() {
+  document.getElementById('uploadArea').classList.remove('open');
+  resetUploadUI();
+}
+function resetUploadUI() {
+  parsedWorkbook = null; parsedData = null;
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('sheetSelectWrap').style.display = 'none';
+  document.getElementById('uploadDrop').classList.remove('dragover');
+  document.getElementById('uploadConfirmBtn').disabled = true;
+  document.getElementById('uploadConfirmBtn').style.opacity = '.4';
+  document.getElementById('fileInput').value = '';
+}
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadDrop').classList.add('dragover'); }
+function handleDragLeave(e) { document.getElementById('uploadDrop').classList.remove('dragover'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadDrop').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  if (!file.name.match(/\.xlsx?$/i)) { showToast('xlsx 또는 xls 파일만 업로드 가능합니다', 'warn'); return; }
+
+  // 미리보기
+  document.getElementById('previewName').textContent = file.name;
+  document.getElementById('previewSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+  document.getElementById('uploadPreview').style.display = 'block';
+
+  // SheetJS로 파싱
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      parsedWorkbook = XLSX.read(e.target.result, { type: 'array' });
+      const sheets = parsedWorkbook.SheetNames;
+
+      // 시트 선택 셀렉트 채우기
+      const sel = document.getElementById('sheetSelect');
+      sel.innerHTML = sheets.map(s => `<option value="${s}">${s}</option>`).join('');
+      document.getElementById('sheetSelectWrap').style.display = 'block';
+
+      // 첫 시트 미리 파싱
+      parseSheet(sheets[0]);
+
+      const btn = document.getElementById('uploadConfirmBtn');
+      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+      showToast('파일 로드 완료 — 시트를 확인하고 적용해주세요', 'success');
+    } catch(err) {
+      showToast('파일 파싱 오류: ' + err.message, 'warn');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('sheetSelect')?.addEventListener('change', function() {
+  parseSheet(this.value);
+});
+
+function parseSheet(sheetName) {
+  const ws = parsedWorkbook.Sheets[sheetName];
+  parsedData = XLSX.utils.sheet_to_json(ws, { defval: '' });
+}
+
+function confirmUpload() {
+  if (!parsedData || parsedData.length === 0) { showToast('데이터가 없습니다', 'warn'); return; }
+  try {
+    applyUploadedData(parsedData);
+    closeUpload();
+    showToast('데이터가 성공적으로 적용됐습니다 ✓', 'success');
+  } catch(err) {
+    showToast('데이터 적용 오류: ' + err.message, 'warn');
+  }
+}
+
+function applyUploadedData(rows) {
+  // 월별 데이터 매핑 (헤더: 월, 워크샵건수, 누적인원, 방문인원, 운영일수)
+  const monthMap = {'1월':0,'2월':1,'3월':2,'4월':3,'5월':4,'6월':5,'7월':6,'8월':7,'9월':8,'10월':9,'11월':10,'12월':11};
+
+  const newWorkshop = new Array(12).fill(null);
+  const newPerson   = new Array(12).fill(null);
+  const newOpDays   = new Array(12).fill(null);
+
+  rows.forEach(row => {
+    const m = String(row['월'] || '').trim();
+    const idx = monthMap[m];
+    if (idx === undefined) return;
+    const ws  = Number(row['워크샵건수'] || row['워크샵'] || 0);
+    const ppl = Number(row['누적인원'] || 0);
+    const ops = Number(row['운영일수'] || 0);
+    if (ws)  newWorkshop[idx] = ws;
+    if (ppl) newPerson[idx]   = ppl;
+    if (ops) newOpDays[idx]   = ops;
+  });
+
+  // 유효한 마지막 달 기준으로 KPI 업데이트
+  const lastWs  = newWorkshop.filter(v=>v!==null);
+  const lastPpl = newPerson.filter(v=>v!==null);
+  const lastOps = newOpDays.filter(v=>v!==null);
+
+  if (lastWs.length)  document.querySelector('.kpi-val.blue, #kpiWorkshop, .kpi-card:nth-child(1) .kpi-val')?.closest('.kpi-card')?.querySelector('.kpi-val')
+    ? (document.querySelectorAll('.kpi-card')[0].querySelector('.kpi-val').textContent = lastWs.reduce((a,b)=>a+b,0).toLocaleString()) : null;
+
+  // yearChart 업데이트
+  if (window._yearChart) {
+    window._yearChart.data.datasets[0].data = newPerson;
+    window._yearChart.data.datasets[1].data = newOpDays;
+    window._yearChart.data.datasets[2].data = newWorkshop;
+    window._yearChart.update();
+  }
+
+  // KPI 숫자 직접 업데이트
+  const kpiCards = document.querySelectorAll('.kpi-card');
+  if (lastWs.length && kpiCards[0])
+    kpiCards[0].querySelector('.kpi-val').textContent = lastWs.reduce((a,b)=>a+b,0).toLocaleString();
+  if (lastPpl.length && kpiCards[1])
+    kpiCards[1].querySelector('.kpi-val').textContent = lastPpl.reduce((a,b)=>a+b,0).toLocaleString();
+  if (lastOps.length && kpiCards[2])
+    kpiCards[2].querySelector('.kpi-val').textContent = Math.max(...lastOps.filter(v=>v));
+}
+
+// ===== 서식 다운로드 =====
+function downloadTemplate() {
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const sampleData = [
+    { '월':'1월','워크샵건수':74,'누적인원':2115,'방문인원':820,'운영일수':21,'NAVER':900,'NAVER계열':1050,'LINE계열':165,'1박2일':1620,'2박3일':320,'3박4일':110,'4박5일':65 },
+    { '월':'2월','워크샵건수':65,'누적인원':974,'방문인원':380,'운영일수':15,'NAVER':400,'NAVER계열':480,'LINE계열':94,'1박2일':750,'2박3일':150,'3박4일':44,'4박5일':30 },
+    { '월':'3월','워크샵건수':83,'누적인원':2336,'방문인원':910,'운영일수':21,'NAVER':990,'NAVER계열':1160,'LINE계열':186,'1박2일':1780,'2박3일':360,'3박4일':126,'4박5일':70 },
+    { '월':'4월','워크샵건수':124,'누적인원':2931,'방문인원':1345,'운영일수':22,'NAVER':1249,'NAVER계열':1473,'LINE계열':209,'1박2일':2294,'2박3일':384,'3박4일':68,'4박5일':165 },
+  ];
+  // 나머지 달은 빈 행
+  for (let i = 4; i < 12; i++) {
+    sampleData.push({ '월': months[i], '워크샵건수':'','누적인원':'','방문인원':'','운영일수':'','NAVER':'','NAVER계열':'','LINE계열':'','1박2일':'','2박3일':'','3박4일':'','4박5일':'' });
+  }
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(sampleData, {
+    header: ['월','워크샵건수','누적인원','방문인원','운영일수','NAVER','NAVER계열','LINE계열','1박2일','2박3일','3박4일','4박5일']
+  });
+
+  // 컬럼 너비
+  ws['!cols'] = [8,12,12,12,12,10,12,10,10,10,10,10].map(w=>({wch:w}));
+
+  XLSX.utils.book_append_sheet(wb, ws, '운영현황');
+  XLSX.writeFile(wb, 'NAVER_CONNECT_ONE_운영현황_서식.xlsx');
+  showToast('서식 파일을 다운로드했습니다', 'success');
+}
+
+// 업로드 오버레이 클릭 닫기
+document.getElementById('uploadArea').addEventListener('click', e => {
+  if (e.target.id === 'uploadArea') closeUpload();
+});
+
+// yearChart 참조 저장 (업로드 시 업데이트용)
+document.addEventListener('DOMContentLoaded', () => {});
+
+
+// ===== 연간 이용만족도 추이 차트 =====
+new Chart(document.getElementById('satTrendChart'), {
+  type: 'line',
   data: {
-    labels: finMonths,
+    labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
     datasets: [
-      { label: '수입', data: [3820, 4100, 3650, 4320, 4580, 4820], backgroundColor: 'rgba(3,199,90,0.75)',  borderRadius: 4 },
-      { label: '지출', data: [2600, 2720, 2580, 2810, 2850, 2940], backgroundColor: 'rgba(255,75,75,0.55)', borderRadius: 4 }
+      {
+        label: '100점 환산',
+        data: [94.2, 95.0, 95.8, 96.4, null, null, null, null, null, null, null, null],
+        borderColor: '#03C75A',
+        backgroundColor: 'rgba(3,199,90,0.08)',
+        fill: true, tension: 0.4, borderWidth: 2.5,
+        pointBackgroundColor: '#03C75A', pointRadius: 5, pointHoverRadius: 7,
+        yAxisID: 'y'
+      },
+      {
+        label: '응답인원',
+        data: [98, 112, 130, 137, null, null, null, null, null, null, null, null],
+        borderColor: '#4e7fff',
+        backgroundColor: 'transparent',
+        tension: 0.4, borderWidth: 1.5, borderDash: [4,3],
+        pointBackgroundColor: '#4e7fff', pointRadius: 3,
+        yAxisID: 'y2'
+      }
     ]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, font: { size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.datasetIndex === 0
+            ? ` 만족도: ${ctx.raw}점`
+            : ` 응답: ${ctx.raw}명`
+        }
+      }
+    },
     scales: {
-      x: { grid: { color: '#F0F2F4' } },
-      y: { grid: { color: '#F0F2F4' }, ticks: { callback: v => (v/10000).toFixed(1) + '억' } }
+      y: {
+        position: 'left', min: 85, max: 100,
+        grid: { color: '#eaebec' },
+        ticks: { callback: v => v + '점', font: { size: 10 } }
+      },
+      y2: {
+        position: 'right', min: 0,
+        grid: { display: false },
+        ticks: { callback: v => v + '명', font: { size: 10 } }
+      },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
     }
   }
 });
 
-new Chart(document.getElementById('incomeBreakChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['객실 이용료', '교육 수강료', '식음료 수입', '기타 부대시설'],
-    datasets: [{
-      data: [2120, 1580, 760, 360],
-      backgroundColor: ['#03C75A','#0078FF','#FF9500','#E8EBED'],
-      borderColor: '#FFFFFF', borderWidth: 3
-    }]
+
+// ===== 연/월별 데이터 DB =====
+const OPS_DB = {
+  2025: {
+    1:  { workshop:74,  person:2115, visitor:820,  opDays:21, naver:900,  naverK:1050, line:165, n1:1620, n2:320, n3:110, n4:65  },
+    2:  { workshop:65,  person:974,  visitor:380,  opDays:15, naver:400,  naverK:480,  line:94,  n1:750,  n2:150, n3:44,  n4:30  },
+    3:  { workshop:83,  person:2336, visitor:910,  opDays:21, naver:990,  naverK:1160, line:186, n1:1780, n2:360, n3:126, n4:70  },
+    4:  { workshop:124, person:2931, visitor:1345, opDays:22, naver:1249, naverK:1473, line:209, n1:2294, n2:384, n3:68,  n4:165 },
+    5:  null, 6:null, 7:null, 8:null, 9:null, 10:null, 11:null, 12:null,
   },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'right', labels: { usePointStyle: true, pointStyleWidth: 8 } },
-      tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw.toLocaleString() + '만원' } }
-    },
-    cutout: '60%'
+  2024: {
+    1:  { workshop:58,  person:1820, visitor:710,  opDays:18, naver:780,  naverK:900,  line:140, n1:1380, n2:280, n3:90,  n4:70  },
+    2:  { workshop:42,  person:860,  visitor:320,  opDays:12, naver:360,  naverK:400,  line:100, n1:660,  n2:130, n3:40,  n4:30  },
+    3:  { workshop:71,  person:2050, visitor:790,  opDays:19, naver:870,  naverK:1020, line:160, n1:1560, n2:310, n3:110, n4:70  },
+    4:  { workshop:98,  person:2540, visitor:1100, opDays:20, naver:1080, naverK:1280, line:180, n1:1980, n2:340, n3:120, n4:100 },
+    5:  { workshop:112, person:2780, visitor:1200, opDays:22, naver:1180, naverK:1400, line:200, n1:2100, n2:380, n3:180, n4:120 },
+    6:  { workshop:88,  person:2200, visitor:950,  opDays:20, naver:940,  naverK:1100, line:160, n1:1680, n2:320, n3:120, n4:80  },
+    7:  { workshop:62,  person:1560, visitor:640,  opDays:17, naver:660,  naverK:780,  line:120, n1:1200, n2:230, n3:80,  n4:50  },
+    8:  { workshop:55,  person:1380, visitor:560,  opDays:15, naver:580,  naverK:690,  line:110, n1:1060, n2:200, n3:70,  n4:50  },
+    9:  { workshop:76,  person:1900, visitor:780,  opDays:18, naver:800,  naverK:960,  line:140, n1:1460, n2:280, n3:100, n4:60  },
+    10: { workshop:91,  person:2280, visitor:980,  opDays:21, naver:960,  naverK:1140, line:180, n1:1740, n2:340, n3:120, n4:80  },
+    11: { workshop:84,  person:2100, visitor:900,  opDays:19, naver:880,  naverK:1060, line:160, n1:1600, n2:310, n3:110, n4:80  },
+    12: { workshop:70,  person:1760, visitor:720,  opDays:16, naver:740,  naverK:880,  line:140, n1:1340, n2:260, n3:90,  n4:70  },
+  },
+  2023: {
+    1:{ workshop:48, person:1540, visitor:600, opDays:16, naver:650, naverK:760, line:130, n1:1180, n2:220, n3:80, n4:60 },
+    2:{ workshop:35, person:720,  visitor:280, opDays:10, naver:300, naverK:340, line:80,  n1:560,  n2:110, n3:30, n4:20 },
+    3:{ workshop:60, person:1760, visitor:680, opDays:17, naver:740, naverK:880, line:140, n1:1340, n2:270, n3:90, n4:60 },
+    4:{ workshop:82, person:2140, visitor:920, opDays:19, naver:900, naverK:1080, line:160, n1:1640, n2:300, n3:130, n4:70 },
+    5:{ workshop:95, person:2380, visitor:1020,opDays:21, naver:1000,naverK:1200,line:180, n1:1820, n2:340, n3:140, n4:80 },
+    6:{ workshop:78, person:1960, visitor:840, opDays:18, naver:820, naverK:980, line:160, n1:1500, n2:290, n3:110, n4:60 },
+    7:{ workshop:52, person:1320, visitor:540, opDays:14, naver:560, naverK:660, line:100, n1:1020, n2:190, n3:70, n4:40 },
+    8:{ workshop:45, person:1140, visitor:460, opDays:12, naver:480, naverK:560, line:100, n1:880,  n2:160, n3:60, n4:40 },
+    9:{ workshop:65, person:1640, visitor:670, opDays:16, naver:690, naverK:820, line:130, n1:1260, n2:240, n3:90, n4:50 },
+    10:{ workshop:79, person:1980, visitor:850,opDays:19, naver:840, naverK:1000,line:140, n1:1520, n2:290, n3:110, n4:60 },
+    11:{ workshop:70, person:1760, visitor:750,opDays:17, naver:740, naverK:880, line:140, n1:1340, n2:270, n3:100, n4:50 },
+    12:{ workshop:58, person:1460, visitor:600,opDays:14, naver:620, naverK:720, line:120, n1:1120, n2:210, n3:80, n4:50 },
   }
-});
+};
 
-// Income / Expense details
-const incomes = [
-  { label: '객실 이용료',   val: '2,120만원' },
-  { label: '교육 수강료',   val: '1,580만원' },
-  { label: '식음료 수입',   val: '760만원' },
-  { label: '기타 부대시설', val: '360만원' },
-];
-const expenses = [
-  { label: '인건비',          val: '1,240만원' },
-  { label: '시설 유지비',     val: '680만원' },
-  { label: '식재료비',        val: '520만원' },
-  { label: '프로그램 운영비', val: '340만원' },
-  { label: '기타 관리비',     val: '160만원' },
-];
+// 5년 평균 (기준값 고정)
+const AVG_5Y = { workshop: 17, person: 671, opDays: 14 };
 
-const incomeEl = document.getElementById('incomeDetail');
-incomes.forEach(r => {
-  incomeEl.innerHTML += `
-    <div class="finance-row">
-      <span class="finance-label">${r.label}</span>
-      <span class="finance-val income">${r.val}</span>
-    </div>`;
-});
+function getFilteredData(year, month) {
+  const yearData = OPS_DB[year] || {};
+  if (month === 'all') {
+    // 연간 합산
+    const months = Object.values(yearData).filter(Boolean);
+    if (!months.length) return null;
+    return months.reduce((acc, m) => ({
+      workshop: acc.workshop + m.workshop,
+      person:   acc.person   + m.person,
+      visitor:  acc.visitor  + m.visitor,
+      opDays:   Math.max(acc.opDays, m.opDays),
+      naver:    acc.naver    + m.naver,
+      naverK:   acc.naverK   + m.naverK,
+      line:     acc.line     + m.line,
+      n1: acc.n1+m.n1, n2:acc.n2+m.n2, n3:acc.n3+m.n3, n4:acc.n4+m.n4,
+    }), { workshop:0,person:0,visitor:0,opDays:0,naver:0,naverK:0,line:0,n1:0,n2:0,n3:0,n4:0 });
+  }
+  return yearData[parseInt(month)] || null;
+}
 
-const expenseEl = document.getElementById('expenseDetail');
-expenses.forEach(r => {
-  expenseEl.innerHTML += `
-    <div class="finance-row">
-      <span class="finance-label">${r.label}</span>
-      <span class="finance-val expense">${r.val}</span>
-    </div>`;
-});
+function onPeriodChange() {
+  const year  = parseInt(document.getElementById('filterYear').value);
+  const month = document.getElementById('filterMonth').value;
+  applyPeriodFilter(year, month);
+}
+
+function applyPeriodFilter(year, month) {
+  const data = getFilteredData(year, month);
+  const label = month === 'all' ? `${year}년 전체` : `${year}년 ${month}월`;
+
+  // 기간 라벨 업데이트
+  const pl = document.getElementById('sectionPeriodLabel');
+  if (pl) pl.textContent = label;
+
+  if (!data) {
+    showToast(`${label} 데이터가 없습니다`, 'warn');
+    return;
+  }
+
+  // ── KPI 업데이트 ──
+  document.getElementById('kpiWorkshop').textContent = data.workshop.toLocaleString();
+  document.getElementById('kpiPerson').textContent   = data.person.toLocaleString();
+  document.getElementById('kpiVisitor').textContent  = data.visitor.toLocaleString();
+  document.getElementById('kpiOpDays').textContent   = data.opDays.toLocaleString();
+
+  // ── 법인별 도넛 ──
+  if (window._corpChart) {
+    window._corpChart.data.datasets[0].data = [data.naver, data.naverK, data.line];
+    window._corpChart.options.plugins.tooltip = {
+      callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw.toLocaleString()}명` }
+    };
+    window._corpChart.update();
+    // 도넛 중앙 숫자
+    const total = data.naver + data.naverK + data.line;
+    const center = document.querySelector('#corpChart').parentElement.querySelector('.donut-center-val');
+    if (center) center.textContent = total.toLocaleString();
+  }
+
+  // ── 이용일수별 도넛 ──
+  if (window._nightChart) {
+    window._nightChart.data.datasets[0].data = [data.n1, data.n2, data.n3, data.n4];
+    window._nightChart.update();
+    const center2 = document.querySelector('#nightChart').parentElement.querySelector('.donut-center-val');
+    if (center2) center2.textContent = (data.n1+data.n2+data.n3+data.n4).toLocaleString();
+  }
+
+  // ── 년간 차트: 월 선택 시 해당 월 하이라이트 ──
+  if (window._yearChart) {
+    const yearData = OPS_DB[year] || {};
+    const months = Array.from({length:12}, (_,i) => yearData[i+1]);
+    window._yearChart.data.datasets[0].data = months.map(m => m ? m.person   : null);
+    window._yearChart.data.datasets[1].data = months.map(m => m ? m.opDays   : null);
+    window._yearChart.data.datasets[2].data = months.map(m => m ? m.workshop : null);
+
+    // 선택 월 포인트 강조
+    if (month !== 'all') {
+      const mi = parseInt(month) - 1;
+      window._yearChart.data.datasets[0].pointRadius = months.map((_,i) => i===mi ? 8 : 4);
+      window._yearChart.data.datasets[0].pointBackgroundColor = months.map((_,i) => i===mi ? '#f59e0b' : '#1D1D1B');
+    } else {
+      window._yearChart.data.datasets[0].pointRadius = 4;
+      window._yearChart.data.datasets[0].pointBackgroundColor = '#1D1D1B';
+    }
+    window._yearChart.update();
+  }
+
+  showToast(`${label} 데이터로 업데이트됐습니다`, 'success');
+}
+
+// 차트 인스턴스 저장
+
 </script>
 </body>
 </html>
