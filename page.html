@@ -374,6 +374,45 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 .upload-guide{margin:0 20px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;}
 .upload-guide-title{font-size:11px;font-weight:700;color:#92400e;margin-bottom:5px;}
 .upload-guide li{font-size:11px;color:#78350f;margin-left:14px;line-height:1.7;}
+
+/* ===== CENTER LAYOUT ===== */
+.center-wrap{
+  max-width: 1280px;
+  width: 70%;
+  margin: 0 auto;
+}
+@media (max-width: 1024px) {
+  .center-wrap{ width: 90%; }
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .center-wrap { width: 100% !important; padding: 0; }
+  .topbar { padding: 0 14px; }
+  .topbar-logo .topbar-name { font-size: 12px; }
+  .topbar-nav { display: none; }
+  .topbar-right { gap: 6px; }
+  .upload-btn { font-size: 11px; padding: 5px 8px; }
+  .period-select { font-size: 11px; padding: 4px 6px; }
+  .kpi-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .kpi-card { padding: 14px; }
+  .kpi-val { font-size: 24px; }
+  .grid.g2, .grid.g3, .grid.g4,
+  .grid.g13, .grid.g31, .charts-grid,
+  .charts-grid-3, .sat-top, .floor-summary-grid { grid-template-columns: 1fr !important; }
+  .page { padding: 12px 14px 24px; }
+  .room-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 5px; }
+  .room-cell { min-height: 60px; }
+  .room-num { font-size: 12px; }
+  .section-title { font-size: 14px; }
+  .modal { width: calc(100vw - 24px); }
+  .upload-box { width: calc(100vw - 24px); }
+  .hbar-label { width: 70px !important; font-size: 10px !important; }
+}
+@media (max-width: 480px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .topbar-right .live-dot-wrap { display: none; }
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -382,6 +421,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 
 <!-- TOPBAR -->
 <div class="topbar">
+  <div class="center-wrap" style="display:flex;align-items:center;justify-content:space-between;height:100%;width:70%;max-width:1280px;">
   <div class="topbar-logo">
     <div class="n-mark">
       <svg viewBox="0 0 24 24" fill="white"><path d="M13.6 12.4L10.2 7H7v10h3.4v-5.4L14.1 17H17V7h-3.4z"/></svg>
@@ -413,10 +453,11 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <button class="upload-btn primary" onclick="openUpload()">⬆ 데이터 업로드</button>
     <div class="live-dot-wrap"><div class="live-dot"></div>LIVE</div>
   </div>
+  </div><!-- /center-wrap topbar -->
 </div>
 
 <!-- ========== PAGE 1: 운영현황 ========== -->
-<div class="page active" id="page-ops">
+<div class="page active" id="page-ops"><div class="center-wrap">
 
   <!-- KPI -->
   <div class="kpi-row">
@@ -707,7 +748,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 </div>
 
 <!-- ========== PAGE 2: 객실 관리 ========== -->
-<div class="page" id="page-room">
+<div class="page" id="page-room"><div class="center-wrap">
 
   <div class="section-head">
     <div class="section-bar"></div>
@@ -739,7 +780,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 
   <!-- 층별 객실 -->
   <div id="floorContainer"></div>
-</div>
+</div></div><!-- /center-wrap room -->
 
 
 <!-- ===== UPLOAD MODAL ===== -->
