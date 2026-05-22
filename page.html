@@ -782,18 +782,11 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">32명</span></div>
       </div>
     </div>
-    <div class="grid g2" style="margin-bottom:12px;">
-      <div class="card">
+    <div class="card" style="margin-bottom:12px;">
         <div class="card-title">월별 이용 현황</div>
         <div class="card-sub">이용건수 및 이용인원 추이</div>
         <div style="height:200px;"><canvas id="dogMonthChart"></canvas></div>
       </div>
-      <div class="card">
-        <div class="card-title">코스별 이용 현황</div>
-        <div class="card-sub">산책 코스 선택 비율</div>
-        <div style="height:200px;"><canvas id="dogCourseChart"></canvas></div>
-      </div>
-    </div>
     <div class="card">
       <div class="card-title">시간대별 이용 분포</div>
       <div class="card-sub">하루 중 산책 이용이 집중되는 시간대</div>
@@ -2091,11 +2084,7 @@ function initFacilityCharts(name) {
       { label:'이용건수', data:[48,42,68,90,null,null,null,null,null,null,null,null], borderColor:'#03C75A', backgroundColor:'rgba(3,199,90,0.08)', fill:true, tension:0.4, pointBackgroundColor:'#03C75A', pointRadius:4 },
       { label:'이용인원', data:[145,126,198,273,null,null,null,null,null,null,null,null], borderColor:'#4e7fff', backgroundColor:'transparent', tension:0.4, pointBackgroundColor:'#4e7fff', pointRadius:4 }
     ]);
-    mkDonut('dogCourseChart',
-      ['A코스 (숲길 1km)','B코스 (연못 1.5km)','C코스 (언덕 2km)'],
-      [198, 142, 68],
-      ['#03C75A','#4e7fff','#f59e0b']
-    );
+
     mkBar('dogTimeChart', ['09시','10시','11시','12시','13시','14시','15시','16시','17시','18시'],
       [12,28,42,38,55,62,48,32,18,8],
       ['#03C75A','#03C75A','#03C75A','#03C75A','#4e7fff','#f59e0b','#f59e0b','#03C75A','#03C75A','#03C75A'],
