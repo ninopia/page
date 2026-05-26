@@ -516,8 +516,8 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="kpi-main"><div class="kpi-val" id="kpiWorkshop">124</div><div class="kpi-unit">건</div></div>
       <div class="kpi-divider"></div>
       <div class="kpi-avg-row">
-        <span class="kpi-avg-label">최근 5년 평균</span>
-        <span class="kpi-avg-val">17 건</span>
+        <span class="kpi-avg-label">최근 1년 평균</span>
+        <span class="kpi-avg-val" id="kpiWorkshopAvg">-</span>
       </div>
     </div>
     <div class="kpi-card">
@@ -526,8 +526,8 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div style="font-size:11px;color:var(--text3);margin-top:2px;"><span id="kpiVisitor">1,345</span>명 방문</div>
       <div class="kpi-divider"></div>
       <div class="kpi-avg-row">
-        <span class="kpi-avg-label">최근 5년 평균</span>
-        <span class="kpi-avg-val">671 명</span>
+        <span class="kpi-avg-label">최근 1년 평균</span>
+        <span class="kpi-avg-val" id="kpiPersonAvg">-</span>
       </div>
     </div>
     <div class="kpi-card">
@@ -535,8 +535,8 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="kpi-main"><div class="kpi-val" id="kpiOpDays">22</div><div class="kpi-unit">일</div></div>
       <div class="kpi-divider"></div>
       <div class="kpi-avg-row">
-        <span class="kpi-avg-label">최근 5년 평균</span>
-        <span class="kpi-avg-val">14 일</span>
+        <span class="kpi-avg-label">최근 1년 평균</span>
+        <span class="kpi-avg-val" id="kpiOpDaysAvg">-</span>
       </div>
     </div>
   </div>
@@ -2304,6 +2304,9 @@ function applyPeriodFilter(year, month) {
   document.getElementById('kpiVisitor').textContent  = data.visitor.toLocaleString();
   document.getElementById('kpiOpDays').textContent   = data.opDays.toLocaleString();
 
+  // ── 최근 1년 평균 자동 계산 ──
+  updateRecentYearAvg(year, month);
+
   // ── 법인별 도넛 ──
   if (window._corpChart) {
     window._corpChart.data.datasets[0].data = [data.naver, data.naverK, data.line];
@@ -2346,6 +2349,50 @@ function applyPeriodFilter(year, month) {
   }
 
   showToast(`${label} 데이터로 업데이트됐습니다`, 'success');
+}
+
+// ===== 최근 1년 평균 자동 계산 =====
+// 현재 시점 기준으로 과거 12개월의 월 평균을 계산
+// 예) 2025년 5월 → 2024년 6월 ~ 2025년 5월 (직전 12개월)
+// 예) 2025년 전체 → 2024년 1월 ~ 2024년 12월 (직전 1년)
+function updateRecentYearAvg(year, month) {
+  // 기준점 결정
+  let endYear, endMonth; // endMonth는 1~12
+  if (month === 'all') {
+    // 전체 선택 시 → 이전 연도 전체
+    endYear  = year - 1;
+    endMonth = 12;
+  } else {
+    endYear  = year;
+    endMonth = parseInt(month);
+  }
+
+  // 과거 12개월 데이터 수집
+  const past12 = []; // [{workshop, person, opDays}, ...]
+  for (let i = 0; i < 12; i++) {
+    let m = endMonth - i;
+    let y = endYear;
+    while (m <= 0) { m += 12; y -= 1; }
+    const monthData = OPS_DB[y] && OPS_DB[y][m];
+    if (monthData) past12.push(monthData);
+  }
+
+  // 평균 계산 (있는 달만)
+  const setAvg = (id, key, unit) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (past12.length === 0) {
+      el.textContent = '-';
+      return;
+    }
+    const sum = past12.reduce((acc, m) => acc + (m[key] || 0), 0);
+    const avg = Math.round(sum / past12.length);
+    el.textContent = `${avg.toLocaleString()} ${unit}`;
+  };
+
+  setAvg('kpiWorkshopAvg', 'workshop', '건');
+  setAvg('kpiPersonAvg',   'person',   '명');
+  setAvg('kpiOpDaysAvg',   'opDays',   '일');
 }
 
 // 차트 인스턴스 저장
@@ -2533,6 +2580,16 @@ function renderBoardList(filterCat) {
 
 // 시설 탭 첫 진입 시 강아지 산책 차트 초기화
 
+
+// ===== 초기 로드 시 최근 1년 평균 자동 계산 =====
+// OPS_DB와 모든 함수가 정의된 이후 시점에서 1회 실행
+try {
+  const initYear  = parseInt(document.getElementById('filterYear').value);
+  const initMonth = document.getElementById('filterMonth').value;
+  updateRecentYearAvg(initYear, initMonth);
+} catch(e) {
+  console.warn('Initial recent-year avg calc skipped:', e);
+}
 
 </script>
 </body>
