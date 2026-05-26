@@ -6,7 +6,6 @@
 <title>NAVER CONNECT ONE 운영현황</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" charset="utf-8"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/nanum-gothic@1.0.2/nanum-gothic.min.css" rel="stylesheet">
 <style>@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareR.woff') format('woff');font-weight:400;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareB.woff') format('woff');font-weight:700;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareEB.woff') format('woff');font-weight:800 900;font-style:normal;}@font-face{font-family:'NanumSquare';src:url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/NanumSquareL.woff') format('woff');font-weight:300;font-style:normal;}</style>
 <style>
@@ -71,10 +70,10 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 .year-badge{
   padding:4px 12px;background:var(--gray1);border:1px solid var(--border);
   border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);
-  font-family:'JetBrains Mono',monospace;
+  font-family:'NanumSquare',sans-serif;
 }
 .upload-btn{white-space:nowrap;}
-.live-dot-wrap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green2);font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;}
+.live-dot-wrap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green2);font-family:'NanumSquare',sans-serif;white-space:nowrap;flex-shrink:0;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 
@@ -87,7 +86,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 .section-head{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
 .section-bar{width:3px;height:18px;background:var(--green);border-radius:2px;}
 .section-title{font-size:16px;font-weight:800;letter-spacing:-0.3px;}
-.section-sub{font-size:11px;color:var(--text3);margin-left:auto;font-family:'JetBrains Mono',monospace;}
+.section-sub{font-size:11px;color:var(--text3);margin-left:auto;font-family:'NanumSquare',sans-serif;}
 
 /* ===== GRID ===== */
 .grid{display:grid;gap:12px;}
@@ -135,6 +134,51 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 }
 .donut-center-val{font-size:20px;font-weight:900;color:var(--dark);}
 .donut-center-sub{font-size:10px;color:var(--text3);}
+/* 특징 지표 표시 (A안) - 다른 도넛과 동일 스타일 */
+.donut-pct{
+  font-size:20px;font-weight:900;color:var(--dark);
+  line-height:1.1;
+}
+.donut-label{
+  font-size:10px;color:var(--text3);
+  margin-top:2px;
+}
+.donut-total{
+  font-size:10px;color:var(--text3);
+  margin-top:5px;padding-top:5px;
+  border-top:1px solid var(--border);
+}
+.donut-total span{font-weight:700;color:var(--text2);}
+
+/* ===== UTIL CARD (미팅룸/숙소 이용률 + 가로바) ===== */
+.util-grid{
+  display:grid;grid-template-columns:minmax(110px, 1fr) 2.5fr;gap:20px;align-items:flex-start;
+}
+.util-summary{
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:8px 0;min-width:0;
+}
+.util-pct{
+  font-size:42px;font-weight:900;color:var(--dark);
+  letter-spacing:-2px;line-height:1;
+}
+.util-pct-unit{
+  font-size:20px;font-weight:700;color:var(--text2);margin-left:2px;
+}
+.util-pct-label{
+  font-size:12px;color:var(--text3);margin-top:4px;letter-spacing:.2px;
+}
+.util-detail{
+  margin-top:14px;padding-top:12px;border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:6px;width:100%;
+}
+.util-row{
+  font-size:11px;color:var(--text2);
+  display:flex;align-items:center;gap:5px;
+  white-space:nowrap;
+}
+.util-row strong{font-weight:800;color:var(--dark);}
+.util-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
 /* ===== LEGEND ===== */
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;justify-content:center;}
@@ -144,11 +188,34 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 /* ===== BAR CHART HORIZONTAL ===== */
 .hbar-list{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
 .hbar-row{display:flex;align-items:center;gap:10px;}
-.hbar-label{font-size:12px;color:var(--text2);width:90px;text-align:right;flex-shrink:0;}
-.hbar-track{flex:1;background:var(--gray2);border-radius:4px;height:20px;position:relative;overflow:visible;}
-.hbar-fill{height:100%;border-radius:4px;transition:width .6s ease;display:flex;align-items:center;padding-left:8px;}
-.hbar-fill span{font-size:11px;font-weight:700;color:var(--white);}
-.hbar-total{font-size:11px;color:var(--text3);width:30px;text-align:right;flex-shrink:0;font-family:'JetBrains Mono',monospace;}
+.hbar-label{font-size:12px;color:var(--text2);width:50px;text-align:right;flex-shrink:0;}
+.hbar-track{
+  flex:1;background:var(--gray2);border-radius:4px;height:22px;
+  position:relative;overflow:hidden;
+}
+.hbar-fill{
+  position:absolute;top:0;left:0;height:100%;
+  border-radius:4px;transition:width .6s ease;
+  background:#4e7fff;
+}
+.hbar-text{
+  position:absolute;top:0;left:0;right:42px;bottom:0;
+  display:flex;align-items:center;padding:0 10px;
+  font-size:11px;font-weight:700;
+  white-space:nowrap;pointer-events:none;
+  z-index:1;
+  mix-blend-mode:difference;color:#ffffff;
+}
+.hbar-total{
+  position:absolute;top:0;right:0;bottom:0;
+  display:flex;align-items:center;justify-content:flex-end;
+  padding-right:10px;
+  font-size:11px;font-weight:600;color:var(--text2);
+  font-family:'NanumSquare',sans-serif;
+  pointer-events:none;
+  min-width:42px;
+  z-index:1;
+}
 
 /* ===== SATISFACTION PAGE ===== */
 .sat-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
@@ -194,7 +261,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 .room-cell.unavailable{background:var(--gray2);border-color:var(--gray3);color:var(--text3);cursor:not-allowed;opacity:.6;}
 .room-cell.unavailable:hover{transform:none;box-shadow:none;}
 .room-cell.irregular{background:#fff8e6;border-color:#ffd97a;color:#c47a00;cursor:not-allowed;opacity:.7;}
-.room-num{font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;}
+.room-num{font-size:14px;font-weight:800;font-family:'NanumSquare',sans-serif;letter-spacing:-.5px;}
 .room-status{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
 .room-person{font-size:10px;font-weight:600;line-height:1.3;text-align:center;color:var(--blue);}
 .room-org{font-size:9px;color:var(--blue2);}
@@ -245,7 +312,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   background:var(--gray1);border-radius:8px;padding:12px;margin-bottom:14px;
   display:flex;align-items:center;gap:10px;
 }
-.room-info-num{font-size:22px;font-weight:900;color:var(--dark);font-family:'JetBrains Mono',monospace;}
+.room-info-num{font-size:22px;font-weight:900;color:var(--dark);font-family:'NanumSquare',sans-serif;}
 .room-info-tag{font-size:11px;color:var(--text3);}
 
 .btn{
@@ -301,6 +368,13 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 }
 
 /* ===== DATA STAMP ===== */
+.sample-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;background:#fef3c7;border:1px solid #fcd34d;
+  border-radius:4px;font-size:10px;font-weight:700;color:#92400e;
+  letter-spacing:.2px;flex-shrink:0;
+}
+.sample-badge::before{content:"⚠";font-size:11px;}
 .data-stamp-bar{
   background:var(--gray1);border-bottom:1px solid var(--border);
   padding:8px 28px;position:sticky;top:52px;z-index:150;
@@ -316,7 +390,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   display:inline-flex;align-items:center;gap:6px;
   padding:4px 10px;background:#fffbeb;border:1px solid #fde68a;
   border-radius:6px;font-size:11px;font-weight:700;color:#92400e;
-  font-family:'JetBrains Mono',monospace;
+  font-family:'NanumSquare',sans-serif;
   cursor:default;transition:all .15s;
 }
 .data-stamp.fresh{background:var(--green3);border-color:var(--green4);color:var(--green2);}
@@ -371,7 +445,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   background:var(--green3);border:1px solid var(--green4);border-radius:8px;
 }
 .upload-preview-name{font-size:12px;font-weight:700;color:var(--green2);flex:1;}
-.upload-preview-size{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.upload-preview-size{font-size:11px;color:var(--text3);font-family:'NanumSquare',sans-serif;}
 .upload-sheet-select{margin:0 20px 14px;}
 .upload-sheet-select label{font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px;}
 .upload-sheet-select select{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'NanumSquare',sans-serif;outline:none;}
@@ -388,7 +462,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 .sheet-detect-item.miss{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
 .sheet-detect-icon{font-size:13px;flex-shrink:0;}
 .sheet-detect-name{font-weight:700;flex:1;}
-.sheet-detect-rows{font-family:'JetBrains Mono',monospace;font-size:10px;opacity:.8;}
+.sheet-detect-rows{font-family:'NanumSquare',sans-serif;font-size:10px;opacity:.8;}
 
 
 /* ===== SUB TAB ===== */
@@ -436,7 +510,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   .kpi-val { font-size: 24px; }
   .grid.g2, .grid.g3, .grid.g4,
   .grid.g13, .grid.g31, .charts-grid,
-  .charts-grid-3, .sat-top, .floor-summary-grid { grid-template-columns: 1fr !important; }
+  .charts-grid-3, .sat-top, .floor-summary-grid, .util-grid { grid-template-columns: 1fr !important; }
   .page { padding: 12px 14px 24px; }
   .room-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 5px; }
   .room-cell { min-height: 60px; }
@@ -473,14 +547,13 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   <div class="topbar-right">
     <div class="period-filter">
       <select id="filterYear" onchange="onPeriodChange()" class="period-select">
+        <option value="2026" selected>2026년</option>
         <option value="2025">2025년</option>
-        <option value="2024">2024년</option>
-        <option value="2023">2023년</option>
       </select>
       <select id="filterMonth" onchange="onPeriodChange()" class="period-select">
         <option value="all">전체</option>
         <option value="1">1월</option><option value="2">2월</option>
-        <option value="3">3월</option><option value="4">4월</option>
+        <option value="3">3월</option><option value="4" selected>4월</option>
         <option value="5">5월</option><option value="6">6월</option>
         <option value="7">7월</option><option value="8">8월</option>
         <option value="9">9월</option><option value="10">10월</option>
@@ -497,10 +570,10 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 <!-- DATA STAMP BAR -->
 <div class="data-stamp-bar">
   <div class="data-stamp-bar-inner">
-    <div class="data-stamp" id="dataStamp" title="가장 최근 데이터가 반영된 시각">
+    <div class="data-stamp fresh" id="dataStamp" title="가장 최근 데이터가 반영된 시각">
       <span class="data-stamp-dot"></span>
       <span class="data-stamp-label">데이터 기준</span>
-      <span class="data-stamp-time" id="dataStampTime">초기 데이터</span>
+      <span class="data-stamp-time" id="dataStampTime">2026년 4월 (엑셀 반영)</span>
     </div>
     <span class="data-stamp-hint">엑셀 업로드 시 자동 갱신됩니다</span>
   </div>
@@ -521,9 +594,9 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       </div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">누적인원 <span style="font-size:10px;color:var(--text3);font-weight:400;">(이용인원)</span></div>
+      <div class="kpi-label">누적인원</div>
       <div class="kpi-main"><div class="kpi-val" id="kpiPerson">2,931</div><div class="kpi-unit">명</div></div>
-      <div style="font-size:11px;color:var(--text3);margin-top:2px;"><span id="kpiVisitor">1,345</span>명 방문</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;">이용인원 <span id="kpiVisitor">1,345</span>명 방문</div>
       <div class="kpi-divider"></div>
       <div class="kpi-avg-row">
         <span class="kpi-avg-label">최근 1년 평균</span>
@@ -547,7 +620,11 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="card-title">법인별 이용현황</div>
       <div class="donut-wrap">
         <canvas id="corpChart"></canvas>
-        <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
+        <div class="donut-center" id="corpCenter">
+          <div class="donut-pct" id="corpPct">50%</div>
+          <div class="donut-label" id="corpLabel">NAVER계열 비중</div>
+          <div class="donut-total">총 <span id="corpTotal">2,931</span>명</div>
+        </div>
       </div>
       <div class="legend">
         <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>NAVER 1,249명</div>
@@ -559,9 +636,14 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="card-title">이용일수별 이용현황</div>
       <div class="donut-wrap">
         <canvas id="nightChart"></canvas>
-        <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
+        <div class="donut-center" id="nightCenter">
+          <div class="donut-pct" id="nightPct">78%</div>
+          <div class="donut-label" id="nightLabel">1박2일 비중</div>
+          <div class="donut-total">총 <span id="nightTotal">2,931</span>명</div>
+        </div>
       </div>
       <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#03C75A"></div>당일 20</div>
         <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>1박2일 2,294</div>
         <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>2박3일 384</div>
         <div class="legend-item"><div class="legend-dot" style="background:#99bbff"></div>3박4일 68</div>
@@ -582,39 +664,52 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <div class="card">
       <div class="card-title">미팅룸 이용현황</div>
       <div class="card-sub">미팅룸 이용률 = 누적 이용실적 / (미팅룸수 × 위킹데이)</div>
-      <div class="grid g2">
-        <div>
-          <div class="donut-wrap" style="width:120px;height:120px;">
-            <canvas id="meetingChart"></canvas>
-            <div class="donut-center"><div class="donut-center-val" style="font-size:18px;">24%</div><div class="donut-center-sub">이용률</div></div>
-          </div>
-          <div class="legend" style="justify-content:flex-start;margin-top:8px;">
-            <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>누적 114개소</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#dde8ff"></div>가능 392개소</div>
+      <div class="util-grid">
+        <div class="util-summary">
+          <div class="util-pct" id="meetingPct">23<span class="util-pct-unit">%</span></div>
+          <div class="util-pct-label">이용률</div>
+          <div class="util-detail">
+            <div class="util-row"><span class="util-dot" style="background:#4e7fff;"></span>누적 <strong id="meetingUse">114</strong>개소</div>
+            <div class="util-row"><span class="util-dot" style="background:#dde8ff;"></span>가능 <strong id="meetingCap">506</strong>개소</div>
           </div>
         </div>
         <div>
-          <div class="card-title" style="margin-bottom:10px;">규모별 이용 상세</div>
           <div class="hbar-list">
+            <div class="hbar-row" style="margin-bottom:4px;">
+              <div class="hbar-label"></div>
+              <div style="flex:1;font-size:12px;font-weight:700;color:var(--text2);">규모별 이용 상세</div>
+            </div>
             <div class="hbar-row">
               <div class="hbar-label">대형</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:13%;background:#4e7fff;"><span>6개소</span></div></div>
-              <div class="hbar-total">44</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:14%;"></div>
+                <div class="hbar-text">6개소</div>
+                <div class="hbar-total">44</div>
+              </div>
             </div>
             <div class="hbar-row">
               <div class="hbar-label">중형</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:41%;background:#4e7fff;"><span>45개소</span></div></div>
-              <div class="hbar-total">110</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:34%;"></div>
+                <div class="hbar-text">45개소</div>
+                <div class="hbar-total">132</div>
+              </div>
             </div>
             <div class="hbar-row">
               <div class="hbar-label">소형</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:100%;background:#4e7fff;"><span>63개소</span></div></div>
-              <div class="hbar-total">330</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:19%;"></div>
+                <div class="hbar-text">63개소</div>
+                <div class="hbar-total">330</div>
+              </div>
             </div>
             <div class="hbar-row">
               <div class="hbar-label">기타</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:1%;background:#c4c5c7;"></div></div>
-              <div class="hbar-total">0</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:0%;"></div>
+                <div class="hbar-text">0개소</div>
+                <div class="hbar-total">0</div>
+              </div>
             </div>
           </div>
         </div>
@@ -625,49 +720,68 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <div class="card">
       <div class="card-title">숙소 이용현황</div>
       <div class="card-sub">숙소 이용률 = 누적 이용실적 / (보유숙소수 × 위킹데이)</div>
-      <div class="grid g2">
-        <div>
-          <div class="donut-wrap" style="width:120px;height:120px;">
-            <canvas id="roomUsageChart"></canvas>
-            <div class="donut-center"><div class="donut-center-val" style="font-size:18px;">52%</div><div class="donut-center-sub">이용률</div></div>
-          </div>
-          <div class="legend" style="justify-content:flex-start;margin-top:8px;">
-            <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>누적 1,586개소</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#dde8ff"></div>가능 1,472개소</div>
+      <div class="util-grid">
+        <div class="util-summary">
+          <div class="util-pct" id="roomPct">43<span class="util-pct-unit">%</span></div>
+          <div class="util-pct-label">이용률</div>
+          <div class="util-detail">
+            <div class="util-row"><span class="util-dot" style="background:#4e7fff;"></span>누적 <strong id="roomUse">1,325</strong>개소</div>
+            <div class="util-row"><span class="util-dot" style="background:#dde8ff;"></span>가능 <strong id="roomCap">3,058</strong>개소</div>
           </div>
         </div>
         <div>
-          <div class="card-title" style="margin-bottom:10px;">층별 이용 상세</div>
           <div class="hbar-list">
+            <div class="hbar-row" style="margin-bottom:4px;">
+              <div class="hbar-label"></div>
+              <div style="flex:1;font-size:12px;font-weight:700;color:var(--text2);">층별 이용 상세</div>
+            </div>
             <div class="hbar-row">
               <div class="hbar-label">5층</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:0%;background:#4e7fff;"></div></div>
-              <div class="hbar-total" style="color:var(--text3);">0/88</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:0%;"></div>
+                <div class="hbar-text">0개소</div>
+                <div class="hbar-total">88</div>
+              </div>
             </div>
             <div class="hbar-row">
               <div class="hbar-label">4층</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:50%;background:#4e7fff;"><span>221개소</span></div></div>
-              <div class="hbar-total">440</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:50%;"></div>
+                <div class="hbar-text">221개소</div>
+                <div class="hbar-total">440</div>
+              </div>
             </div>
             <div class="hbar-row">
               <div class="hbar-label">3층</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:39%;background:#4e7fff;"><span>274개소</span></div></div>
-              <div class="hbar-total">704</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:39%;"></div>
+                <div class="hbar-text">274개소</div>
+                <div class="hbar-total">704</div>
+              </div>
             </div>
             <div class="hbar-row">
               <div class="hbar-label">2층</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:51%;background:#4e7fff;"><span>435개소</span></div></div>
-              <div class="hbar-total">858</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:51%;"></div>
+                <div class="hbar-text">435개소</div>
+                <div class="hbar-total">858</div>
+              </div>
             </div>
             <div class="hbar-row">
               <div class="hbar-label">1층</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:44%;background:#4e7fff;"><span>230개소</span></div></div>
-              <div class="hbar-total">528</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:44%;"></div>
+                <div class="hbar-text">230개소</div>
+                <div class="hbar-total">528</div>
+              </div>
             </div>
             <div class="hbar-row">
               <div class="hbar-label">0층</div>
-              <div class="hbar-track"><div class="hbar-fill" style="width:38%;background:#4e7fff;"><span>165개소</span></div></div>
-              <div class="hbar-total">440</div>
+              <div class="hbar-track">
+                <div class="hbar-fill" style="width:38%;"></div>
+                <div class="hbar-text">165개소</div>
+                <div class="hbar-total">440</div>
+              </div>
             </div>
           </div>
         </div>
@@ -676,10 +790,11 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   </div>
 
   <!-- 이용만족도 섹션 구분선 -->
-  <div style="margin:28px 0 20px;display:flex;align-items:center;gap:10px;">
+  <div style="margin:28px 0 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
     <div style="width:3px;height:18px;background:var(--green);border-radius:2px;flex-shrink:0;"></div>
     <div style="font-size:16px;font-weight:800;letter-spacing:-0.3px;">이용만족도</div>
-    <div style="flex:1;height:1px;background:var(--border);margin-left:4px;"></div>
+    <span class="sample-badge" title="실데이터가 아닌 표시 예시입니다. 데이터 수집 후 업데이트 예정">표시 예시 (데이터 수집 중)</span>
+    <div style="flex:1;height:1px;background:var(--border);margin-left:4px;min-width:40px;"></div>
   </div>
 
   <!-- 상단 3열 -->
@@ -690,53 +805,53 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="card-sub" style="color:#5a6680;font-size:10px;">18.09부터 실시</div>
       <div class="donut-wrap" style="width:130px;height:130px;">
         <canvas id="respChart"></canvas>
-        <div class="donut-center"><div class="donut-center-val">32%</div></div>
+        <div class="donut-center"><div class="donut-center-val" id="satRespPct">32%</div></div>
       </div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>응답 437명</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#2d3548"></div>미응답 908명</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>응답 <span id="satRespCount">437</span>명</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#2d3548"></div>미응답 <span id="satNoRespCount">908</span>명</div>
       </div>
     </div>
     <!-- 만족도 조사 결과 -->
     <div class="dark-card" style="display:flex;flex-direction:column;justify-content:space-between;">
       <div>
         <div class="card-title">이용만족도 조사 결과</div>
-        <div class="card-sub" style="color:#5a6680;font-size:10px;">18.09부터 실시 · 응답 437명</div>
+        <div class="card-sub" style="color:#5a6680;font-size:10px;">18.09부터 실시 · 응답 <span id="satRespCount2">437</span>명</div>
       </div>
       <!-- 100점 환산 점수 -->
       <div style="text-align:center;padding:10px 0 6px;">
         <div style="font-size:11px;color:#8892a4;margin-bottom:6px;letter-spacing:.3px;">100점 환산</div>
-        <div style="font-size:46px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1;">96.4</div>
+        <div style="font-size:46px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1;" id="satScore100">96.4</div>
         <div style="font-size:13px;color:#8892a4;margin-top:2px;">/ 100점</div>
       </div>
       <!-- 별점 (4.82 / 5.0) -->
       <div style="text-align:center;padding-bottom:4px;">
         <div style="font-size:11px;color:#8892a4;margin-bottom:6px;">평균 별점</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:3px;margin-bottom:4px;" id="starDisplay"></div>
-        <div style="font-size:18px;font-weight:800;color:#f59e0b;letter-spacing:-.5px;">4.82 <span style="font-size:12px;color:#5a6680;font-weight:400;">/ 5.0</span></div>
+        <div style="font-size:18px;font-weight:800;color:#f59e0b;letter-spacing:-.5px;"><span id="satAvgStar">4.82</span> <span style="font-size:12px;color:#5a6680;font-weight:400;">/ 5.0</span></div>
       </div>
       <!-- 점수별 분포 -->
-      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
-        <div style="display:flex;align-items:center;gap:6px;">
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;" id="satDistList">
+        <div style="display:flex;align-items:center;gap:6px;" data-score="5">
           <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">5점</span>
           <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
-            <div style="width:84%;background:#4e7fff;height:100%;border-radius:3px;"></div>
+            <div style="width:84%;background:#4e7fff;height:100%;border-radius:3px;" class="sat-dist-fill"></div>
           </div>
-          <span style="font-size:10px;color:#8892a4;width:28px;">215명</span>
+          <span style="font-size:10px;color:#8892a4;width:28px;" class="sat-dist-count">215명</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;">
+        <div style="display:flex;align-items:center;gap:6px;" data-score="4">
           <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">4점</span>
           <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
-            <div style="width:15%;background:#7ba7ff;height:100%;border-radius:3px;"></div>
+            <div style="width:15%;background:#7ba7ff;height:100%;border-radius:3px;" class="sat-dist-fill"></div>
           </div>
-          <span style="font-size:10px;color:#8892a4;width:28px;">39명</span>
+          <span style="font-size:10px;color:#8892a4;width:28px;" class="sat-dist-count">39명</span>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;">
+        <div style="display:flex;align-items:center;gap:6px;" data-score="3">
           <span style="font-size:10px;color:#8892a4;width:22px;text-align:right;">3점</span>
           <div style="flex:1;background:#2d3548;border-radius:3px;height:6px;overflow:hidden;">
-            <div style="width:1%;background:#99bbff;height:100%;border-radius:3px;"></div>
+            <div style="width:1%;background:#99bbff;height:100%;border-radius:3px;" class="sat-dist-fill"></div>
           </div>
-          <span style="font-size:10px;color:#8892a4;width:28px;">3명</span>
+          <span style="font-size:10px;color:#8892a4;width:28px;" class="sat-dist-count">3명</span>
         </div>
       </div>
     </div>
@@ -751,8 +866,8 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         <div style="font-size:11px;color:var(--text3);margin-top:2px;">100점 환산 점수 · 월별 응답 기준</div>
       </div>
       <div style="text-align:right;">
-        <div style="font-size:20px;font-weight:900;color:var(--green);letter-spacing:-1px;">96.4<span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:2px;">점</span></div>
-        <div style="font-size:10px;color:var(--text3);">2025년 평균</div>
+        <div style="font-size:20px;font-weight:900;color:var(--green);letter-spacing:-1px;"><span id="satTrendAvg">96.4</span><span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:2px;">점</span></div>
+        <div style="font-size:10px;color:var(--text3);" id="satTrendYearLabel">2025년 평균</div>
       </div>
     </div>
     <div style="height:180px;"><canvas id="satTrendChart"></canvas></div>
@@ -770,11 +885,12 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   </div>
 
   <!-- 이용자 의견 섹션 구분선 -->
-  <div style="margin:28px 0 20px;display:flex;align-items:center;gap:10px;">
+  <div style="margin:28px 0 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
     <div style="width:3px;height:18px;background:var(--green);border-radius:2px;flex-shrink:0;"></div>
     <div style="font-size:16px;font-weight:800;letter-spacing:-0.3px;">이용자 의견</div>
-    <div style="flex:1;height:1px;background:var(--border);margin-left:4px;"></div>
-    <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;">총 13건</div>
+    <span class="sample-badge" title="실데이터가 아닌 표시 예시입니다. 데이터 수집 후 업데이트 예정">표시 예시 (데이터 수집 중)</span>
+    <div style="flex:1;height:1px;background:var(--border);margin-left:4px;min-width:40px;"></div>
+    <div id="opinionCountHeader" style="font-size:11px;color:var(--text3);">총 13건</div>
   </div>
 
   <div class="card" style="margin-bottom:0;">
@@ -818,25 +934,25 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
       <div class="kpi-card">
         <div class="kpi-label">총 이용 건수</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">248</div><div class="kpi-unit">건</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="dogKpiUsage" style="color:var(--green);">248</div><div class="kpi-unit">건</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">62건</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">총 이용 인원</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">742</div><div class="kpi-unit">명</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="dogKpiPerson" style="color:var(--green);">742</div><div class="kpi-unit">명</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">185명</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">참여 강아지 수</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">5</div><div class="kpi-unit">마리</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="dogKpiDogs" style="color:var(--green);">5</div><div class="kpi-unit">마리</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">산책 코스</span><span class="kpi-avg-val">1개</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">이용 만족도</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">4.8</div><div class="kpi-unit">/ 5</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="dogKpiSat" style="color:var(--green);">4.8</div><div class="kpi-unit">/ 5</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">32명</span></div>
       </div>
@@ -863,19 +979,19 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi-card">
         <div class="kpi-label">총 이용 인원</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">1,284</div><div class="kpi-unit">명</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="gymKpiTotal" style="color:var(--green);">1,284</div><div class="kpi-unit">명</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">321명</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">체육관 이용</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">968</div><div class="kpi-unit">명</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="gymKpiUse" style="color:var(--green);">968</div><div class="kpi-unit">명</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">242명</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">이용 만족도</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">4.6</div><div class="kpi-unit">/ 5</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="gymKpiSat" style="color:var(--green);">4.6</div><div class="kpi-unit">/ 5</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">54명</span></div>
       </div>
@@ -909,19 +1025,19 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi-card">
         <div class="kpi-label">총 이용 인원</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">638</div><div class="kpi-unit">명</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="coreKpiPerson" style="color:var(--green);">638</div><div class="kpi-unit">명</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">160명</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">평균 이용 시간</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">45</div><div class="kpi-unit">분</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="coreKpiTime" style="color:var(--green);">45</div><div class="kpi-unit">분</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">최장</span><span class="kpi-avg-val">120분</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">이용 만족도</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">4.7</div><div class="kpi-unit">/ 5</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="coreKpiSat" style="color:var(--green);">4.7</div><div class="kpi-unit">/ 5</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">78명</span></div>
       </div>
@@ -948,19 +1064,19 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi-card">
         <div class="kpi-label">총 이용 건수</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">412</div><div class="kpi-unit">건</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="boardKpiUsage" style="color:var(--green);">412</div><div class="kpi-unit">건</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">103건</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">보유 게임 수</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">48</div><div class="kpi-unit">종</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="boardKpiGames" style="color:var(--green);">48</div><div class="kpi-unit">종</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">신규 입고</span><span class="kpi-avg-val">3종</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">이용 만족도</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">4.9</div><div class="kpi-unit">/ 5</div></div>
+        <div class="kpi-main"><div class="kpi-val" id="boardKpiSat" style="color:var(--green);">4.9</div><div class="kpi-unit">/ 5</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">89명</span></div>
       </div>
@@ -1069,7 +1185,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="upload-guide-title">📋 업로드 양식 안내</div>
       <ul>
         <li>서식 다운로드 후 데이터를 입력하여 업로드해주세요</li>
-        <li>5개 시트(운영현황·미팅룸·숙소·만족도·이용자의견)가 자동으로 인식됩니다</li>
+        <li>9개 시트(운영현황·미팅룸·숙소·만족도·의견·강아지·체육관·코어·보드)가 자동으로 인식됩니다</li>
         <li>시트명은 변경하지 마세요 (01_운영현황 ~ 05_이용자의견)</li>
         <li>빈 셀은 무시되며, 입력된 데이터만 반영됩니다</li>
       </ul>
@@ -1185,9 +1301,8 @@ function donut(id, data, labels, colors, cutout='65%') {
 
 // ===== CHARTS: PAGE 1 =====
 window._corpChart = donut('corpChart', [1249, 1473, 209], ['NAVER','NAVER계열','LINE계열'], ['#4e7fff','#7ba7ff','#b8d0ff']);
-window._nightChart = donut('nightChart', [2294, 384, 68, 165], ['1박2일','2박3일','3박4일','4박5일'], ['#4e7fff','#7ba7ff','#99bbff','#b8d0ff']);
-donut('meetingChart', [114, 392-114], ['이용','가용'], ['#4e7fff','#dde8ff']);
-donut('roomUsageChart', [1586, 1472], ['이용','가용'], ['#4e7fff','#dde8ff']);
+window._nightChart = donut('nightChart', [20, 2294, 384, 68, 165], ['당일','1박2일','2박3일','3박4일','4박5일'], ['#03C75A','#4e7fff','#7ba7ff','#99bbff','#b8d0ff']);
+// 미팅룸/숙소는 도넛 대신 텍스트로 표시 (도넛 캔버스 없음)
 
 // 년간 운영현황
 window._yearChart = new Chart(document.getElementById('yearChart'), {
@@ -1201,13 +1316,13 @@ window._yearChart = new Chart(document.getElementById('yearChart'), {
       },
       {
         type: 'line', label: '운영일수',
-        data: [21,15,21,22,null,null,null,null,null,null,null,null],
+        data: [22,20,22,22,null,null,null,null,null,null,null,null],
         borderColor: '#4e7fff', backgroundColor: 'transparent',
         pointBackgroundColor: '#4e7fff', borderWidth: 2, tension: 0, yAxisID: 'y2', pointRadius: 5
       },
       {
         type: 'line', label: '워크샵건수',
-        data: [74,65,83,124,53,null,null,null,null,null,null,null],
+        data: [74,65,83,124,null,null,null,null,null,null,null,null],
         borderColor: '#c4c5c7', backgroundColor: 'transparent',
         pointBackgroundColor: '#c4c5c7', borderWidth: 2, tension: 0, yAxisID: 'y2', pointRadius: 5
       }
@@ -1604,7 +1719,7 @@ function renderOpinions() {
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
         <span style="padding:2px 8px;background:${bg};color:${fg};border-radius:4px;font-size:10px;font-weight:700;">${op.type}</span>
         <span style="font-size:11px;color:var(--text3);margin-left:auto;">${op.org}</span>
-        <span style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${op.date}</span>
+        <span style="font-size:10px;color:var(--text3);font-family:'NanumSquare',sans-serif;">${op.date}</span>
       </div>
       <div style="font-size:13px;color:var(--text2);line-height:1.65;">"${op.text}"</div>
     </div>`;
@@ -1620,11 +1735,15 @@ let parsedSheets = null;  // { '01_운영현황': [...], '02_미팅룸이용현�
 // 시트명 → 핵심 키워드 매칭 (구체적 키워드 우선, 번호는 보조)
 // 우선순위: 의미 키워드 > 번호 prefix
 const SHEET_KEYS = {
-  ops:     { primary: ['운영현황'],         numberPrefix: '01' },
-  meeting: { primary: ['미팅룸'],           numberPrefix: '02' },
-  room:    { primary: ['숙소'],             numberPrefix: '03' },
-  sat:     { primary: ['만족도'],           numberPrefix: '04' },
-  opinion: { primary: ['의견','이용자의견'], numberPrefix: '05' },
+  ops:     { primary: ['운영현황'],           numberPrefix: '01' },
+  meeting: { primary: ['미팅룸'],             numberPrefix: '02' },
+  room:    { primary: ['숙소'],               numberPrefix: '03' },
+  sat:     { primary: ['만족도'],             numberPrefix: '04' },
+  opinion: { primary: ['의견','이용자의견'],   numberPrefix: '05' },
+  dog:     { primary: ['강아지','산책'],       numberPrefix: '06' },
+  gym:     { primary: ['체육관'],             numberPrefix: '07' },
+  core:    { primary: ['코어'],               numberPrefix: '08' },
+  board:   { primary: ['보드게임','보드'],     numberPrefix: '09' },
 };
 
 function openUpload() {
@@ -1680,11 +1799,11 @@ function handleFile(file) {
       parsedWorkbook = XLSX.read(e.target.result, { type: 'array' });
       parsedSheets = {};
 
-      // 5개 시트 자동 매칭
+      // 9개 시트 자동 매칭
       const detectInfo = [];
       Object.entries(SHEET_KEYS).forEach(([key, keyDef]) => {
         const sheetName = findSheet(parsedWorkbook, keyDef);
-        const labelMap = { ops:'운영현황', meeting:'미팅룸', room:'숙소', sat:'이용만족도', opinion:'이용자의견' };
+        const labelMap = { ops:'운영현황', meeting:'미팅룸', room:'숙소', sat:'이용만족도', opinion:'이용자의견', dog:'강아지 산책', gym:'체육관', core:'코어센터', board:'보드게임' };
         const label = labelMap[key];
 
         if (sheetName) {
@@ -1739,7 +1858,7 @@ function confirmUpload() {
   }
 }
 
-// ===== 메인 적용 함수: 5개 시트 모두 처리 =====
+// ===== 메인 적용 함수: 9개 시트 모두 처리 =====
 function applyAllSheets(sheets) {
   let applied = 0;
   if (sheets.ops     && sheets.ops.length)     { applyOpsSheet(sheets.ops);         applied++; }
@@ -1747,7 +1866,89 @@ function applyAllSheets(sheets) {
   if (sheets.room    && sheets.room.length)    { applyRoomSheet(sheets.room);       applied++; }
   if (sheets.sat     && sheets.sat.length)     { applySatSheet(sheets.sat);         applied++; }
   if (sheets.opinion && sheets.opinion.length) { applyOpinionSheet(sheets.opinion); applied++; }
+  if (sheets.dog     && sheets.dog.length)     { applyFacilitySheet('dog',   sheets.dog);   applied++; }
+  if (sheets.gym     && sheets.gym.length)     { applyFacilitySheet('gym',   sheets.gym);   applied++; }
+  if (sheets.core    && sheets.core.length)    { applyFacilitySheet('core',  sheets.core);  applied++; }
+  if (sheets.board   && sheets.board.length)   { applyFacilitySheet('board', sheets.board); applied++; }
   return { applied };
+}
+
+// ===== 시설 데이터 저장소 =====
+// 시설 탭은 진입 시점에 차트를 만들기 때문에 데이터만 미리 저장해두고
+// initFacilityCharts가 호출될 때 이 데이터를 사용
+window.FACILITY_DATA = window.FACILITY_DATA || {};
+
+// 통합 시설 시트 적용 함수
+function applyFacilitySheet(facilityKey, rows) {
+  const validRows = rows.filter(r => {
+    // 최소한 월 + 만족도 또는 이용수치 하나라도 있어야 함
+    const hasMonth = !!String(r['월'] || '').trim();
+    const hasNum = num(r['총이용인원']) > 0 || num(r['이용건수']) > 0 || num(r['이용인원']) > 0;
+    return hasMonth && hasNum;
+  });
+  if (!validRows.length) return;
+
+  // 월별 데이터를 facilityKey 별로 저장
+  const monthlyData = new Array(12).fill(null);
+  validRows.forEach(row => {
+    const idx = MONTH_MAP[String(row['월'] || '').trim()];
+    if (idx === undefined) return;
+    monthlyData[idx] = row;
+  });
+  window.FACILITY_DATA[facilityKey] = monthlyData;
+
+  // 가장 최근 월의 KPI를 계산
+  const latest = validRows[validRows.length - 1];
+  const sums = validRows.reduce((acc, r) => {
+    acc.usage    += num(r['이용건수'])    || num(r['총이용인원']);
+    acc.person   += num(r['이용인원'])    || num(r['총이용인원']);
+    acc.satCount += num(r['만족도']) > 0 ? 1 : 0;
+    acc.satSum   += num(r['만족도']);
+    return acc;
+  }, {usage:0, person:0, satCount:0, satSum:0});
+  const avgSat = sums.satCount ? (sums.satSum / sums.satCount).toFixed(1) : '-';
+
+  // 현재 시설 탭이 활성 상태면 즉시 KPI/차트 갱신
+  // (탭이 비활성 상태라면 다음에 탭 진입할 때 자동 적용됨)
+  if (typeof updateFacilityKPI === 'function') {
+    updateFacilityKPI(facilityKey, validRows, sums, avgSat);
+  }
+}
+
+// 시설별 KPI 텍스트 갱신 (탭 활성 여부와 무관하게 동작)
+function updateFacilityKPI(key, rows, sums, avgSat) {
+  const latest = rows[rows.length - 1];
+  switch(key) {
+    case 'dog': {
+      setText('dogKpiUsage', sums.usage.toLocaleString());
+      setText('dogKpiPerson', sums.person.toLocaleString());
+      setText('dogKpiSat', avgSat);
+      const dogs = num(latest['참여강아지수']);
+      if (dogs > 0) setText('dogKpiDogs', dogs);
+      break;
+    }
+    case 'gym': {
+      setText('gymKpiTotal', sums.usage.toLocaleString());
+      setText('gymKpiSat', avgSat);
+      const gymUse = num(latest['체육관이용']);
+      if (gymUse > 0) setText('gymKpiUse', gymUse.toLocaleString());
+      break;
+    }
+    case 'core': {
+      setText('coreKpiPerson', sums.usage.toLocaleString());
+      setText('coreKpiSat', avgSat);
+      const avgTime = num(latest['평균이용시간_분']);
+      if (avgTime > 0) setText('coreKpiTime', avgTime);
+      break;
+    }
+    case 'board': {
+      setText('boardKpiUsage', sums.usage.toLocaleString());
+      setText('boardKpiSat', avgSat);
+      const games = num(latest['보유게임수']);
+      if (games > 0) setText('boardKpiGames', games);
+      break;
+    }
+  }
 }
 
 // 헬퍼: 월 텍스트 → 인덱스
@@ -1771,6 +1972,7 @@ function applyOpsSheet(rows) {
       naver:    num(row['NAVER인원']),
       naverK:   num(row['NAVER계열인원']),
       line:     num(row['LINE계열인원']),
+      n0: num(row['당일']),
       n1: num(row['1박2일']), n2: num(row['2박3일']),
       n3: num(row['3박4일']), n4: num(row['4박5일']),
     };
@@ -1779,10 +1981,26 @@ function applyOpsSheet(rows) {
     OPS_DB[year][idx+1] = sum > 0 ? monthData : null;
   });
 
-  // 현재 선택된 연/월로 갱신
-  const year  = parseInt(document.getElementById('filterYear').value);
-  const month = document.getElementById('filterMonth').value;
-  applyPeriodFilter(year, month);
+  // 업로드 후 가장 최신 월로 자동 점프
+  const latest = findLatestPeriod();
+  if (latest) {
+    const yearSel  = document.getElementById('filterYear');
+    const monthSel = document.getElementById('filterMonth');
+    // 셀렉터에 새 연도가 없으면 추가
+    if (yearSel && !Array.from(yearSel.options).some(o => o.value == latest.year)) {
+      const opt = document.createElement('option');
+      opt.value = latest.year; opt.textContent = latest.year + '년';
+      yearSel.insertBefore(opt, yearSel.firstChild);
+    }
+    if (yearSel)  yearSel.value  = String(latest.year);
+    if (monthSel) monthSel.value = String(latest.month);
+    applyPeriodFilter(latest.year, String(latest.month), true);
+  } else {
+    // fallback: 현재 선택 유지
+    const year  = parseInt(document.getElementById('filterYear').value);
+    const month = document.getElementById('filterMonth').value;
+    applyPeriodFilter(year, month, true);
+  }
 }
 
 // ── 시트 2: 미팅룸 이용현황 ──
@@ -1796,43 +2014,35 @@ function applyMeetingSheet(rows) {
   const cap   = num(latest['사용가능미팅룸']);
   const pct   = cap ? Math.round(total / cap * 100) : 0;
 
-  // 도넛 차트 업데이트
-  const meetingChart = Chart.getChart('meetingChart');
-  if (meetingChart) {
-    meetingChart.data.datasets[0].data = [total, Math.max(0, cap - total)];
-    meetingChart.update();
-  }
+  // 이용률/누적/가능 텍스트 갱신
+  const pctEl = document.getElementById('meetingPct');
+  if (pctEl) pctEl.innerHTML = `${pct}<span class="util-pct-unit">%</span>`;
+  const useEl = document.getElementById('meetingUse');
+  if (useEl) useEl.textContent = total.toLocaleString();
+  const capEl = document.getElementById('meetingCap');
+  if (capEl) capEl.textContent = cap.toLocaleString();
 
-  // 도넛 중앙/범례 텍스트
-  const meetingCard = document.getElementById('meetingChart')?.closest('.card');
+  // 규모별 가로 바차트 갱신
+  const meetingCard = pctEl?.closest('.card');
   if (meetingCard) {
-    const center = meetingCard.querySelector('.donut-center-val');
-    if (center) center.textContent = pct + '%';
-    const legendItems = meetingCard.querySelectorAll('.legend-item');
-    if (legendItems[0]) legendItems[0].innerHTML = `<div class="legend-dot" style="background:#4e7fff"></div>누적 ${total.toLocaleString()}개소`;
-    if (legendItems[1]) legendItems[1].innerHTML = `<div class="legend-dot" style="background:#dde8ff"></div>가능 ${cap.toLocaleString()}개소`;
-
-    // 규모별 가로 바차트 갱신
     const sizes = [
       { label:'대형', use: num(latest['대형_이용']), cap: num(latest['대형_가능']) },
       { label:'중형', use: num(latest['중형_이용']), cap: num(latest['중형_가능']) },
       { label:'소형', use: num(latest['소형_이용']), cap: num(latest['소형_가능']) },
       { label:'기타', use: num(latest['기타_이용']), cap: num(latest['기타_가능']) },
     ];
-    const maxUse = Math.max(...sizes.map(s=>s.use), 1);
     const hbarRows = meetingCard.querySelectorAll('.hbar-row');
     sizes.forEach((s, i) => {
       const row = hbarRows[i];
       if (!row) return;
-      const widthPct = Math.round(s.use / maxUse * 100);
+      // 사용/가능 비율 (이용률)
+      const widthPct = s.cap > 0 ? Math.round(s.use / s.cap * 100) : 0;
       const fill = row.querySelector('.hbar-fill');
-      const total = row.querySelector('.hbar-total');
-      if (fill) {
-        fill.style.width = widthPct + '%';
-        fill.style.background = s.use > 0 ? '#4e7fff' : '#c4c5c7';
-        fill.innerHTML = s.use > 0 ? `<span>${s.use}개소</span>` : '';
-      }
-      if (total) total.textContent = s.cap;
+      const text = row.querySelector('.hbar-text');
+      const totalEl = row.querySelector('.hbar-total');
+      if (fill) fill.style.width = widthPct + '%';
+      if (text) text.textContent = `${s.use}개소`;
+      if (totalEl) totalEl.textContent = s.cap;
     });
   }
 }
@@ -1847,21 +2057,17 @@ function applyRoomSheet(rows) {
   const cap   = num(latest['배정가능숙소']);
   const pct   = cap ? Math.round(total / cap * 100) : 0;
 
-  const roomChart = Chart.getChart('roomUsageChart');
-  if (roomChart) {
-    roomChart.data.datasets[0].data = [total, cap];
-    roomChart.update();
-  }
+  // 이용률/누적/가능 텍스트 갱신
+  const pctEl = document.getElementById('roomPct');
+  if (pctEl) pctEl.innerHTML = `${pct}<span class="util-pct-unit">%</span>`;
+  const useEl = document.getElementById('roomUse');
+  if (useEl) useEl.textContent = total.toLocaleString();
+  const capEl = document.getElementById('roomCap');
+  if (capEl) capEl.textContent = cap.toLocaleString();
 
-  const roomCard = document.getElementById('roomUsageChart')?.closest('.card');
+  // 층별 가로 바차트 갱신
+  const roomCard = pctEl?.closest('.card');
   if (roomCard) {
-    const center = roomCard.querySelector('.donut-center-val');
-    if (center) center.textContent = pct + '%';
-    const legendItems = roomCard.querySelectorAll('.legend-item');
-    if (legendItems[0]) legendItems[0].innerHTML = `<div class="legend-dot" style="background:#4e7fff"></div>누적 ${total.toLocaleString()}개소`;
-    if (legendItems[1]) legendItems[1].innerHTML = `<div class="legend-dot" style="background:#dde8ff"></div>가능 ${cap.toLocaleString()}개소`;
-
-    // 층별 가로 바차트 갱신
     const floors = [
       { label:'5층', use: num(latest['5층_이용']), cap: num(latest['5층_가능']) },
       { label:'4층', use: num(latest['4층_이용']), cap: num(latest['4층_가능']) },
@@ -1870,22 +2076,18 @@ function applyRoomSheet(rows) {
       { label:'1층', use: num(latest['1층_이용']), cap: num(latest['1층_가능']) },
       { label:'0층', use: num(latest['0층_이용']), cap: num(latest['0층_가능']) },
     ];
-    const maxUse = Math.max(...floors.map(f=>f.use), 1);
     const hbarRows = roomCard.querySelectorAll('.hbar-row');
     floors.forEach((f, i) => {
       const row = hbarRows[i];
       if (!row) return;
-      const widthPct = Math.round(f.use / maxUse * 100);
+      // 사용/가능 비율 (이용률)
+      const widthPct = f.cap > 0 ? Math.round(f.use / f.cap * 100) : 0;
       const fill = row.querySelector('.hbar-fill');
-      const total = row.querySelector('.hbar-total');
-      if (fill) {
-        fill.style.width = widthPct + '%';
-        fill.innerHTML = f.use > 0 ? `<span>${f.use}개소</span>` : '';
-      }
-      if (total) {
-        total.textContent = f.use > 0 ? `${f.cap}` : `0/${f.cap}`;
-        total.style.color = f.use > 0 ? '' : 'var(--text3)';
-      }
+      const text = row.querySelector('.hbar-text');
+      const totalEl = row.querySelector('.hbar-total');
+      if (fill) fill.style.width = widthPct + '%';
+      if (text) text.textContent = `${f.use}개소`;
+      if (totalEl) totalEl.textContent = f.cap;
     });
   }
 }
@@ -1895,16 +2097,15 @@ function applySatSheet(rows) {
   const filledRows = rows.filter(r => num(r['응답인원']) > 0);
   if (!filledRows.length) return;
 
-  // 연간 추이 차트 데이터
-  const trend100   = new Array(12).fill(null);
-  const trendResp  = new Array(12).fill(null);
+  // ── 1) 연간 추이 차트 갱신 ──
+  const trend100  = new Array(12).fill(null);
+  const trendResp = new Array(12).fill(null);
   filledRows.forEach(row => {
     const idx = MONTH_MAP[String(row['월'] || '').trim()];
     if (idx === undefined) return;
     trend100[idx]  = Number(row['100점환산']) || null;
     trendResp[idx] = num(row['응답인원']);
   });
-
   const satTrend = Chart.getChart('satTrendChart');
   if (satTrend) {
     satTrend.data.datasets[0].data = trend100;
@@ -1912,55 +2113,63 @@ function applySatSheet(rows) {
     satTrend.update();
   }
 
-  // 가장 최근 월 기준 KPI 갱신
+  // ── 2) 연도별 평균 점수 (우상단 큰 숫자) ──
+  const validScores = trend100.filter(v => v != null);
+  if (validScores.length) {
+    const yearAvg = validScores.reduce((a,b)=>a+b,0) / validScores.length;
+    setText('satTrendAvg', yearAvg.toFixed(1));
+  }
+  // 연도 라벨 (가장 최근 행의 연도)
+  const latestYear = filledRows[filledRows.length-1]['연도'];
+  if (latestYear) setText('satTrendYearLabel', `${latestYear}년 평균`);
+
+  // ── 3) 가장 최근 월 기준 KPI 갱신 ──
   const latest = filledRows[filledRows.length - 1];
   const score100 = Number(latest['100점환산']) || 0;
   const respond  = num(latest['응답인원']);
   const noResp   = num(latest['미응답인원']);
-  const s5 = num(latest['만족도_5점']), s4 = num(latest['만족도_4점']), s3 = num(latest['만족도_3점']);
+  const s5 = num(latest['만족도_5점']);
+  const s4 = num(latest['만족도_4점']);
+  const s3 = num(latest['만족도_3점']);
 
   // 응답률 도넛
   const respChart = Chart.getChart('respChart');
   if (respChart) {
     respChart.data.datasets[0].data = [respond, noResp];
     respChart.update();
-    const total = respond + noResp;
-    const pct = total ? Math.round(respond / total * 100) : 0;
-    const respCenter = document.getElementById('respChart')?.closest('.dark-card')?.querySelector('.donut-center-val');
-    if (respCenter) respCenter.textContent = pct + '%';
-    const respLegend = document.getElementById('respChart')?.closest('.dark-card')?.querySelectorAll('.legend-item');
-    if (respLegend && respLegend[0]) respLegend[0].innerHTML = `<div class="legend-dot" style="background:#4e7fff"></div>응답 ${respond.toLocaleString()}명`;
-    if (respLegend && respLegend[1]) respLegend[1].innerHTML = `<div class="legend-dot" style="background:#2d3548"></div>미응답 ${noResp.toLocaleString()}명`;
   }
+  const total = respond + noResp;
+  const pct = total ? Math.round(respond / total * 100) : 0;
+  setText('satRespPct', pct + '%');
+  setText('satRespCount',  respond.toLocaleString());
+  setText('satRespCount2', respond.toLocaleString());
+  setText('satNoRespCount', noResp.toLocaleString());
 
-  // 100점/별점 카드 갱신
-  const satTrendVal = document.querySelector('#satTrendChart')?.closest('.card')?.querySelector('div[style*="color:var(--green)"]');
-  if (satTrendVal) satTrendVal.innerHTML = `${score100.toFixed(1)}<span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:2px;">점</span>`;
+  // 100점/별점/평균
+  setText('satScore100', score100.toFixed(1));
+  const totalCount = s5 + s4 + s3;
+  const avgStar = totalCount ? (s5*5 + s4*4 + s3*3) / totalCount : 0;
+  setText('satAvgStar', avgStar.toFixed(2));
 
-  // 100점 환산 표시 (dark-card 내부)
-  const darkCards = document.querySelectorAll('.dark-card');
-  if (darkCards[1]) {
-    const big = darkCards[1].querySelector('div[style*="font-size:46px"]');
-    if (big) big.textContent = score100.toFixed(1);
+  // 별점 SVG 재렌더
+  if (typeof renderStars === 'function') renderStars(avgStar);
 
-    // 별점 (5점 만점 평균)
-    const totalCount = s5 + s4 + s3;
-    const avgStar = totalCount ? (s5*5 + s4*4 + s3*3) / totalCount : 0;
-    const starText = darkCards[1].querySelector('div[style*="color:#f59e0b"]');
-    if (starText) starText.innerHTML = `${avgStar.toFixed(2)} <span style="font-size:12px;color:#5a6680;font-weight:400;">/ 5.0</span>`;
-
-    // 점수별 분포 바 (5점/4점/3점)
-    const distBars = darkCards[1].querySelectorAll('div[style*="background:#2d3548"]');
-    const distLabels = darkCards[1].querySelectorAll('span[style*="width:28px"]');
+  // 점수별 분포 바
+  const distList = document.getElementById('satDistList');
+  if (distList) {
     const max = Math.max(s5, s4, s3, 1);
+    const distRows = distList.children;
     [s5, s4, s3].forEach((v, i) => {
-      const innerFill = distBars[i]?.querySelector('div');
-      if (innerFill) innerFill.style.width = Math.round(v / max * 100) + '%';
-      if (distLabels[i]) distLabels[i].textContent = v + '명';
+      const row = distRows[i];
+      if (!row) return;
+      const fill = row.querySelector('.sat-dist-fill');
+      const count = row.querySelector('.sat-dist-count');
+      if (fill) fill.style.width = Math.round(v / max * 100) + '%';
+      if (count) count.textContent = v + '명';
     });
   }
 
-  // 공간별 만족도 갱신
+  // ── 4) 공간별 만족도 갱신 ──
   const spaceUpdates = {
     '미팅룸':   Number(latest['미팅룸_별점']),
     '숙소':     Number(latest['숙소_별점']),
@@ -1969,18 +2178,36 @@ function applySatSheet(rows) {
     '라운지':   Number(latest['라운지_별점']),
     '동물농장': Number(latest['동물농장_별점']),
   };
+  let updatedAny = false;
   SPACE_RATINGS.forEach(s => {
-    if (spaceUpdates[s.name] && !isNaN(spaceUpdates[s.name])) {
-      s.score = spaceUpdates[s.name];
-    }
+    const v = spaceUpdates[s.name];
+    if (v && !isNaN(v)) { s.score = v; updatedAny = true; }
   });
-  renderSpaceRatings();
+  if (updatedAny && typeof renderSpaceRatings === 'function') renderSpaceRatings();
+
+  // ── 5) "표시 예시" 배지 제거 (실데이터 들어왔으니) ──
+  document.querySelectorAll('.sample-badge').forEach(b => b.remove());
+}
+
+// 헬퍼: ID로 텍스트 설정 (null safe)
+function setText(id, txt) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = txt;
 }
 
 // ── 시트 5: 이용자 의견 ──
 function applyOpinionSheet(rows) {
-  const validRows = rows.filter(r => String(r['의견내용'] || '').trim().length > 0 && !String(r['의견내용']).includes('직접 입력'));
-  if (!validRows.length) return;
+  // 유효한 의견만 필터 (의견내용이 비어있거나 안내 문구이면 제외)
+  const validRows = rows.filter(r => {
+    const text = String(r['의견내용'] || '').trim();
+    return text.length > 0 && !text.includes('직접 입력');
+  });
+
+  // 엑셀에 유효한 의견 데이터가 없으면 → 기존 샘플 13건 유지하고 종료
+  if (!validRows.length) {
+    console.log('[applyOpinionSheet] 엑셀에 의견 데이터 없음 → 샘플 데이터 유지');
+    return;
+  }
 
   // OPINIONS 배열 통째로 교체
   OPINIONS.length = 0;
@@ -1996,12 +2223,8 @@ function applyOpinionSheet(rows) {
   renderOpinions();
 
   // 의견 카운트 헤더 갱신
-  const opinionHeaders = document.querySelectorAll('div[style*="font-family:\'JetBrains Mono\'"]');
-  opinionHeaders.forEach(el => {
-    if (el.textContent.includes('총') && el.textContent.includes('건')) {
-      el.textContent = `총 ${OPINIONS.length}건`;
-    }
-  });
+  const opinionHeader = document.getElementById('opinionCountHeader');
+  if (opinionHeader) opinionHeader.textContent = `총 ${OPINIONS.length}건`;
 }
 
 // ===== 데이터 기준 시각 갱신 =====
@@ -2020,7 +2243,7 @@ function updateDataStamp() {
   // 대신 메모리에만 보관 — 새로고침 시 "초기 데이터"로 리셋
 }
 
-// ===== 서식 다운로드 (전체 5개 시트) =====
+// ===== 서식 다운로드 (전체 9개 시트) =====
 function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const M = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
@@ -2035,36 +2258,46 @@ function downloadTemplate() {
   // ══════════════════════════════════════════════
   // 시트 1: 운영현황 (KPI + 법인별 + 이용일수별)
   // ══════════════════════════════════════════════
-  const opsData = [
-    { '연도':2025,'월':'1월','워크샵건수':74,'누적인원':2115,'방문인원':820,'운영일수':21,
-      'NAVER인원':900,'NAVER계열인원':1050,'LINE계열인원':165,
-      '1박2일':1620,'2박3일':320,'3박4일':110,'4박5일':65,
-      '최근5년평균_워크샵':17,'최근5년평균_인원':671,'최근5년평균_운영일수':14 },
-    { '연도':2025,'월':'2월','워크샵건수':65,'누적인원':974,'방문인원':380,'운영일수':15,
-      'NAVER인원':400,'NAVER계열인원':480,'LINE계열인원':94,
-      '1박2일':750,'2박3일':150,'3박4일':44,'4박5일':30,
-      '최근5년평균_워크샵':'','최근5년평균_인원':'','최근5년평균_운영일수':'' },
-    { '연도':2025,'월':'3월','워크샵건수':83,'누적인원':2336,'방문인원':910,'운영일수':21,
-      'NAVER인원':990,'NAVER계열인원':1160,'LINE계열인원':186,
-      '1박2일':1780,'2박3일':360,'3박4일':126,'4박5일':70,
-      '최근5년평균_워크샵':'','최근5년평균_인원':'','최근5년평균_운영일수':'' },
-    { '연도':2025,'월':'4월','워크샵건수':124,'누적인원':2931,'방문인원':1345,'운영일수':22,
-      'NAVER인원':1249,'NAVER계열인원':1473,'LINE계열인원':209,
-      '1박2일':2294,'2박3일':384,'3박4일':68,'4박5일':165,
-      '최근5년평균_워크샵':'','최근5년평균_인원':'','최근5년평균_운영일수':'' },
+  // 2025년 1~12월 + 2026년 1~4월 실데이터 포함
+  const OPS_SAMPLE = [
+    // 2025
+    [2025,'1월',  66, 1423, 683, 23, 719,  425,  279, 12, 1286, 18,  12,  95],
+    [2025,'2월',  69, 1650, 754, 20, 561,  790,  299, 26, 1294, 111, 4,   215],
+    [2025,'3월',  107,1814, 879, 21, 564,  647,  603, 68, 1504, 54,  68,  120],
+    [2025,'4월',  118,2620, 1254,22, 1262, 1110, 248, 13, 2302, 210, 20,  75],
+    [2025,'5월',  98, 2234, 1062,22, 1239, 889,  106, 14, 1952, 135, 8,   125],
+    [2025,'6월',  113,2331, 1133,21, 680,  1583, 68,  21, 2148, 24,  48,  90],
+    [2025,'7월',  84, 2161, 974, 23, 1042, 1037, 82,  32, 1492, 510, 12,  115],
+    [2025,'8월',  86, 1839, 843, 21, 952,  588,  299, 34, 1412, 135, 128, 130],
+    [2025,'9월',  142,3094, 1524,22, 1613, 1059, 422, 56, 2826, 84,  28,  100],
+    [2025,'10월', 106,2005, 956, 23, 1046, 791,  168, 24, 1728, 102, 76,  75],
+    [2025,'11월', 142,2862, 1384,20, 1367, 1294, 201, 48, 2490, 189, 20,  115],
+    [2025,'12월', 75, 2270, 1095,23, 908,  1232, 130, 34, 1918, 285, 8,   25],
+    // 2026
+    [2026,'1월',  74, 2115, 1011,22, 735,  767,  613, 34, 1778, 186, 52,  65],
+    [2026,'2월',  65, 974,  435, 20, 320,  486,  168, 26, 688,  90,  20,  150],
+    [2026,'3월',  83, 2336, 1125,22, 882,  1001, 453, 18, 2112, 42,  84,  80],
+    [2026,'4월',  124,2931, 1345,22, 1249, 1473, 209, 20, 2294, 384, 68,  165],
   ];
+  const opsData = OPS_SAMPLE.map(r => ({
+    '연도':r[0],'월':r[1],'워크샵건수':r[2],'누적인원':r[3],'방문인원':r[4],'운영일수':r[5],
+    'NAVER인원':r[6],'NAVER계열인원':r[7],'LINE계열인원':r[8],
+    '당일':r[9],'1박2일':r[10],'2박3일':r[11],'3박4일':r[12],'4박5일':r[13],
+    '최근1년평균_워크샵':'','최근1년평균_인원':'','최근1년평균_운영일수':''
+  }));
+  // 2026년 5~12월 빈 행
   for (let i = 4; i < 12; i++) {
-    opsData.push({ '연도':2025,'월':M[i],'워크샵건수':'','누적인원':'','방문인원':'','운영일수':'',
+    opsData.push({ '연도':2026,'월':M[i],'워크샵건수':'','누적인원':'','방문인원':'','운영일수':'',
       'NAVER인원':'','NAVER계열인원':'','LINE계열인원':'',
-      '1박2일':'','2박3일':'','3박4일':'','4박5일':'',
-      '최근5년평균_워크샵':'','최근5년평균_인원':'','최근5년평균_운영일수':'' });
+      '당일':'','1박2일':'','2박3일':'','3박4일':'','4박5일':'',
+      '최근1년평균_워크샵':'','최근1년평균_인원':'','최근1년평균_운영일수':'' });
   }
   const opsHeader = ['연도','월','워크샵건수','누적인원','방문인원','운영일수',
     'NAVER인원','NAVER계열인원','LINE계열인원',
-    '1박2일','2박3일','3박4일','4박5일',
-    '최근5년평균_워크샵','최근5년평균_인원','최근5년평균_운영일수'];
+    '당일','1박2일','2박3일','3박4일','4박5일',
+    '최근1년평균_워크샵','최근1년평균_인원','최근1년평균_운영일수'];
   const ws1 = makeSheet(opsData, opsHeader,
-    [7,7,12,12,12,12,13,15,13,10,10,10,10,18,18,20]);
+    [7,7,12,12,12,12,13,15,13,8,10,10,10,10,18,18,20]);
   XLSX.utils.book_append_sheet(wb, ws1, '01_운영현황');
 
   // ══════════════════════════════════════════════
@@ -2148,8 +2381,68 @@ function downloadTemplate() {
     [7,7,13,16,22,60]);
   XLSX.utils.book_append_sheet(wb, ws5, '05_이용자의견');
 
+  // ══════════════════════════════════════════════
+  // 시트 6: 강아지 산책 이용현황
+  // ══════════════════════════════════════════════
+  const dogData = M.map((m, i) => ({
+    '연도': 2026, '월': m,
+    '이용건수': i < 4 ? [18,15,24,32][i] : '',
+    '이용인원': i < 4 ? [42,36,58,72][i] : '',
+    '참여강아지수': i < 4 ? [5,5,5,5][i] : '',
+    '만족도': i < 4 ? [4.8,4.7,4.9,4.9][i] : '',
+  }));
+  const ws6 = makeSheet(dogData,
+    ['연도','월','이용건수','이용인원','참여강아지수','만족도'],
+    [7,7,10,10,13,10]);
+  XLSX.utils.book_append_sheet(wb, ws6, '06_강아지산책');
+
+  // ══════════════════════════════════════════════
+  // 시트 7: 체육관 이용현황
+  // ══════════════════════════════════════════════
+  const gymData = M.map((m, i) => ({
+    '연도': 2026, '월': m,
+    '총이용인원': i < 4 ? [228,204,288,334][i] : '',
+    '체육관이용': i < 4 ? [180,162,228,266][i] : '',
+    '팀플레이': i < 4 ? [82,76,108,124][i] : '',
+    '자유운동': i < 4 ? [126,108,154,176][i] : '',
+    '자유운동_팀예약': i < 4 ? [20,20,26,34][i] : '',
+    '만족도': i < 4 ? [4.5,4.5,4.6,4.7][i] : '',
+  }));
+  const ws7 = makeSheet(gymData,
+    ['연도','월','총이용인원','체육관이용','팀플레이','자유운동','자유운동_팀예약','만족도'],
+    [7,7,12,12,10,10,16,10]);
+  XLSX.utils.book_append_sheet(wb, ws7, '07_체육관');
+
+  // ══════════════════════════════════════════════
+  // 시트 8: 코어센터 이용현황
+  // ══════════════════════════════════════════════
+  const coreData = M.map((m, i) => ({
+    '연도': 2026, '월': m,
+    '총이용인원': i < 4 ? [134,114,172,218][i] : '',
+    '평균이용시간_분': i < 4 ? [42,40,46,52][i] : '',
+    '만족도': i < 4 ? [4.6,4.6,4.7,4.8][i] : '',
+  }));
+  const ws8 = makeSheet(coreData,
+    ['연도','월','총이용인원','평균이용시간_분','만족도'],
+    [7,7,12,18,10]);
+  XLSX.utils.book_append_sheet(wb, ws8, '08_코어센터');
+
+  // ══════════════════════════════════════════════
+  // 시트 9: 보드게임 이용현황 (월별 집계)
+  // ══════════════════════════════════════════════
+  const boardData = M.map((m, i) => ({
+    '연도': 2026, '월': m,
+    '이용건수': i < 4 ? [102,86,114,110][i] : '',
+    '보유게임수': i < 4 ? [48,48,48,48][i] : '',
+    '만족도': i < 4 ? [4.8,4.9,4.9,4.9][i] : '',
+  }));
+  const ws9 = makeSheet(boardData,
+    ['연도','월','이용건수','보유게임수','만족도'],
+    [7,7,10,12,10]);
+  XLSX.utils.book_append_sheet(wb, ws9, '09_보드게임');
+
   XLSX.writeFile(wb, 'NAVER_CONNECT_ONE_운영현황_서식.xlsx');
-  showToast('전체 서식 파일을 다운로드했습니다 (5개 시트)', 'success');
+  showToast('전체 서식 파일을 다운로드했습니다 (9개 시트)', 'success');
 }
 
 // 업로드 오버레이 클릭 닫기
@@ -2219,40 +2512,26 @@ new Chart(document.getElementById('satTrendChart'), {
 
 // ===== 연/월별 데이터 DB =====
 const OPS_DB = {
+  2026: {
+    1: { workshop:74,  person:2115, visitor:1011, opDays:22, naver:735,  naverK:767,  line:613, n0:34, n1:1778, n2:186, n3:52, n4:65  },
+    2: { workshop:65,  person:974,  visitor:435,  opDays:20, naver:320,  naverK:486,  line:168, n0:26, n1:688,  n2:90,  n3:20, n4:150 },
+    3: { workshop:83,  person:2336, visitor:1125, opDays:22, naver:882,  naverK:1001, line:453, n0:18, n1:2112, n2:42,  n3:84, n4:80  },
+    4: { workshop:124, person:2931, visitor:1345, opDays:22, naver:1249, naverK:1473, line:209, n0:20, n1:2294, n2:384, n3:68, n4:165 },
+    5: null, 6:null, 7:null, 8:null, 9:null, 10:null, 11:null, 12:null,
+  },
   2025: {
-    1:  { workshop:74,  person:2115, visitor:820,  opDays:21, naver:900,  naverK:1050, line:165, n1:1620, n2:320, n3:110, n4:65  },
-    2:  { workshop:65,  person:974,  visitor:380,  opDays:15, naver:400,  naverK:480,  line:94,  n1:750,  n2:150, n3:44,  n4:30  },
-    3:  { workshop:83,  person:2336, visitor:910,  opDays:21, naver:990,  naverK:1160, line:186, n1:1780, n2:360, n3:126, n4:70  },
-    4:  { workshop:124, person:2931, visitor:1345, opDays:22, naver:1249, naverK:1473, line:209, n1:2294, n2:384, n3:68,  n4:165 },
-    5:  null, 6:null, 7:null, 8:null, 9:null, 10:null, 11:null, 12:null,
-  },
-  2024: {
-    1:  { workshop:58,  person:1820, visitor:710,  opDays:18, naver:780,  naverK:900,  line:140, n1:1380, n2:280, n3:90,  n4:70  },
-    2:  { workshop:42,  person:860,  visitor:320,  opDays:12, naver:360,  naverK:400,  line:100, n1:660,  n2:130, n3:40,  n4:30  },
-    3:  { workshop:71,  person:2050, visitor:790,  opDays:19, naver:870,  naverK:1020, line:160, n1:1560, n2:310, n3:110, n4:70  },
-    4:  { workshop:98,  person:2540, visitor:1100, opDays:20, naver:1080, naverK:1280, line:180, n1:1980, n2:340, n3:120, n4:100 },
-    5:  { workshop:112, person:2780, visitor:1200, opDays:22, naver:1180, naverK:1400, line:200, n1:2100, n2:380, n3:180, n4:120 },
-    6:  { workshop:88,  person:2200, visitor:950,  opDays:20, naver:940,  naverK:1100, line:160, n1:1680, n2:320, n3:120, n4:80  },
-    7:  { workshop:62,  person:1560, visitor:640,  opDays:17, naver:660,  naverK:780,  line:120, n1:1200, n2:230, n3:80,  n4:50  },
-    8:  { workshop:55,  person:1380, visitor:560,  opDays:15, naver:580,  naverK:690,  line:110, n1:1060, n2:200, n3:70,  n4:50  },
-    9:  { workshop:76,  person:1900, visitor:780,  opDays:18, naver:800,  naverK:960,  line:140, n1:1460, n2:280, n3:100, n4:60  },
-    10: { workshop:91,  person:2280, visitor:980,  opDays:21, naver:960,  naverK:1140, line:180, n1:1740, n2:340, n3:120, n4:80  },
-    11: { workshop:84,  person:2100, visitor:900,  opDays:19, naver:880,  naverK:1060, line:160, n1:1600, n2:310, n3:110, n4:80  },
-    12: { workshop:70,  person:1760, visitor:720,  opDays:16, naver:740,  naverK:880,  line:140, n1:1340, n2:260, n3:90,  n4:70  },
-  },
-  2023: {
-    1:{ workshop:48, person:1540, visitor:600, opDays:16, naver:650, naverK:760, line:130, n1:1180, n2:220, n3:80, n4:60 },
-    2:{ workshop:35, person:720,  visitor:280, opDays:10, naver:300, naverK:340, line:80,  n1:560,  n2:110, n3:30, n4:20 },
-    3:{ workshop:60, person:1760, visitor:680, opDays:17, naver:740, naverK:880, line:140, n1:1340, n2:270, n3:90, n4:60 },
-    4:{ workshop:82, person:2140, visitor:920, opDays:19, naver:900, naverK:1080, line:160, n1:1640, n2:300, n3:130, n4:70 },
-    5:{ workshop:95, person:2380, visitor:1020,opDays:21, naver:1000,naverK:1200,line:180, n1:1820, n2:340, n3:140, n4:80 },
-    6:{ workshop:78, person:1960, visitor:840, opDays:18, naver:820, naverK:980, line:160, n1:1500, n2:290, n3:110, n4:60 },
-    7:{ workshop:52, person:1320, visitor:540, opDays:14, naver:560, naverK:660, line:100, n1:1020, n2:190, n3:70, n4:40 },
-    8:{ workshop:45, person:1140, visitor:460, opDays:12, naver:480, naverK:560, line:100, n1:880,  n2:160, n3:60, n4:40 },
-    9:{ workshop:65, person:1640, visitor:670, opDays:16, naver:690, naverK:820, line:130, n1:1260, n2:240, n3:90, n4:50 },
-    10:{ workshop:79, person:1980, visitor:850,opDays:19, naver:840, naverK:1000,line:140, n1:1520, n2:290, n3:110, n4:60 },
-    11:{ workshop:70, person:1760, visitor:750,opDays:17, naver:740, naverK:880, line:140, n1:1340, n2:270, n3:100, n4:50 },
-    12:{ workshop:58, person:1460, visitor:600,opDays:14, naver:620, naverK:720, line:120, n1:1120, n2:210, n3:80, n4:50 },
+    1:  { workshop:66,  person:1423, visitor:683,  opDays:23, naver:719,  naverK:425,  line:279, n0:12, n1:1286, n2:18,  n3:12,  n4:95  },
+    2:  { workshop:69,  person:1650, visitor:754,  opDays:20, naver:561,  naverK:790,  line:299, n0:26, n1:1294, n2:111, n3:4,   n4:215 },
+    3:  { workshop:107, person:1814, visitor:879,  opDays:21, naver:564,  naverK:647,  line:603, n0:68, n1:1504, n2:54,  n3:68,  n4:120 },
+    4:  { workshop:118, person:2620, visitor:1254, opDays:22, naver:1262, naverK:1110, line:248, n0:13, n1:2302, n2:210, n3:20,  n4:75  },
+    5:  { workshop:98,  person:2234, visitor:1062, opDays:22, naver:1239, naverK:889,  line:106, n0:14, n1:1952, n2:135, n3:8,   n4:125 },
+    6:  { workshop:113, person:2331, visitor:1133, opDays:21, naver:680,  naverK:1583, line:68,  n0:21, n1:2148, n2:24,  n3:48,  n4:90  },
+    7:  { workshop:84,  person:2161, visitor:974,  opDays:23, naver:1042, naverK:1037, line:82,  n0:32, n1:1492, n2:510, n3:12,  n4:115 },
+    8:  { workshop:86,  person:1839, visitor:843,  opDays:21, naver:952,  naverK:588,  line:299, n0:34, n1:1412, n2:135, n3:128, n4:130 },
+    9:  { workshop:142, person:3094, visitor:1524, opDays:22, naver:1613, naverK:1059, line:422, n0:56, n1:2826, n2:84,  n3:28,  n4:100 },
+    10: { workshop:106, person:2005, visitor:956,  opDays:23, naver:1046, naverK:791,  line:168, n0:24, n1:1728, n2:102, n3:76,  n4:75  },
+    11: { workshop:142, person:2862, visitor:1384, opDays:20, naver:1367, naverK:1294, line:201, n0:48, n1:2490, n2:189, n3:20,  n4:115 },
+    12: { workshop:75,  person:2270, visitor:1095, opDays:23, naver:908,  naverK:1232, line:130, n0:34, n1:1918, n2:285, n3:8,   n4:25  },
   }
 };
 
@@ -2273,8 +2552,8 @@ function getFilteredData(year, month) {
       naver:    acc.naver    + m.naver,
       naverK:   acc.naverK   + m.naverK,
       line:     acc.line     + m.line,
-      n1: acc.n1+m.n1, n2:acc.n2+m.n2, n3:acc.n3+m.n3, n4:acc.n4+m.n4,
-    }), { workshop:0,person:0,visitor:0,opDays:0,naver:0,naverK:0,line:0,n1:0,n2:0,n3:0,n4:0 });
+      n0: acc.n0+(m.n0||0), n1: acc.n1+m.n1, n2:acc.n2+m.n2, n3:acc.n3+m.n3, n4:acc.n4+m.n4,
+    }), { workshop:0,person:0,visitor:0,opDays:0,naver:0,naverK:0,line:0,n0:0,n1:0,n2:0,n3:0,n4:0 });
   }
   return yearData[parseInt(month)] || null;
 }
@@ -2285,7 +2564,7 @@ function onPeriodChange() {
   applyPeriodFilter(year, month);
 }
 
-function applyPeriodFilter(year, month) {
+function applyPeriodFilter(year, month, silent) {
   const data = getFilteredData(year, month);
   const label = month === 'all' ? `${year}년 전체` : `${year}년 ${month}월`;
 
@@ -2294,7 +2573,7 @@ function applyPeriodFilter(year, month) {
   if (pl) pl.textContent = label;
 
   if (!data) {
-    showToast(`${label} 데이터가 없습니다`, 'warn');
+    if (!silent) showToast(`${label} 데이터가 없습니다`, 'warn');
     return;
   }
 
@@ -2314,18 +2593,27 @@ function applyPeriodFilter(year, month) {
       callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw.toLocaleString()}명` }
     };
     window._corpChart.update();
-    // 도넛 중앙 숫자
-    const total = data.naver + data.naverK + data.line;
-    const center = document.querySelector('#corpChart').parentElement.querySelector('.donut-center-val');
-    if (center) center.textContent = total.toLocaleString();
+    // 도넛 중앙: 최대 비중 항목 자동 계산
+    const corpItems = [
+      { name:'NAVER',     val:data.naver  },
+      { name:'NAVER계열', val:data.naverK },
+      { name:'LINE계열',  val:data.line   },
+    ];
+    updateDonutCenter('corp', corpItems);
   }
 
   // ── 이용일수별 도넛 ──
   if (window._nightChart) {
-    window._nightChart.data.datasets[0].data = [data.n1, data.n2, data.n3, data.n4];
+    window._nightChart.data.datasets[0].data = [data.n0||0, data.n1, data.n2, data.n3, data.n4];
     window._nightChart.update();
-    const center2 = document.querySelector('#nightChart').parentElement.querySelector('.donut-center-val');
-    if (center2) center2.textContent = (data.n1+data.n2+data.n3+data.n4).toLocaleString();
+    const nightItems = [
+      { name:'당일',   val:data.n0||0 },
+      { name:'1박2일', val:data.n1   },
+      { name:'2박3일', val:data.n2   },
+      { name:'3박4일', val:data.n3   },
+      { name:'4박5일', val:data.n4   },
+    ];
+    updateDonutCenter('night', nightItems);
   }
 
   // ── 년간 차트: 월 선택 시 해당 월 하이라이트 ──
@@ -2348,7 +2636,29 @@ function applyPeriodFilter(year, month) {
     window._yearChart.update();
   }
 
-  showToast(`${label} 데이터로 업데이트됐습니다`, 'success');
+  if (!silent) showToast(`${label} 데이터로 업데이트됐습니다`, 'success');
+}
+
+// ===== 도넛 중앙: 최대 비중 항목 + 총인원 표시 =====
+function updateDonutCenter(prefix, items) {
+  // items: [{name, val}, ...]
+  const total = items.reduce((a,b) => a + b.val, 0);
+  const pctEl   = document.getElementById(prefix + 'Pct');
+  const labelEl = document.getElementById(prefix + 'Label');
+  const totalEl = document.getElementById(prefix + 'Total');
+
+  if (total === 0) {
+    if (pctEl)   pctEl.textContent = '0%';
+    if (labelEl) labelEl.textContent = '데이터 없음';
+    if (totalEl) totalEl.textContent = '0';
+    return;
+  }
+  // 최대 비중 항목 찾기
+  const top = items.reduce((a, b) => b.val > a.val ? b : a);
+  const pct = Math.round(top.val / total * 100);
+  if (pctEl)   pctEl.textContent = pct + '%';
+  if (labelEl) labelEl.textContent = top.name + ' 비중';
+  if (totalEl) totalEl.textContent = total.toLocaleString();
 }
 
 // ===== 최근 1년 평균 자동 계산 =====
@@ -2565,7 +2875,7 @@ function renderBoardList(filterCat) {
     const [bg,fg] = (CAT_COLORS[g.cat]||'#f1f5f9:#64748b').split(':');
     const pct = Math.round(g.count/maxCount*100);
     return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);${i===filtered.length-1?'border-bottom:none':''}">
-      <div style="width:22px;text-align:center;font-size:12px;font-weight:800;color:var(--text3);font-family:'JetBrains Mono',monospace;">${i+1}</div>
+      <div style="width:22px;text-align:center;font-size:12px;font-weight:800;color:var(--text3);font-family:'NanumSquare',sans-serif;">${i+1}</div>
       <div style="width:130px;flex-shrink:0;">
         <div style="font-size:13px;font-weight:700;">${g.name}</div>
         <div style="margin-top:3px;"><span style="padding:2px 7px;background:${bg};color:${fg};border-radius:4px;font-size:10px;font-weight:700;">${g.cat}</span></div>
@@ -2573,7 +2883,7 @@ function renderBoardList(filterCat) {
       <div style="flex:1;background:var(--gray2);border-radius:4px;height:8px;overflow:hidden;">
         <div style="width:${pct}%;height:100%;background:${fg};border-radius:4px;transition:width .5s ease;"></div>
       </div>
-      <div style="width:50px;text-align:right;font-size:13px;font-weight:700;color:${fg};font-family:'JetBrains Mono',monospace;">${g.count}건</div>
+      <div style="width:50px;text-align:right;font-size:13px;font-weight:700;color:${fg};font-family:'NanumSquare',sans-serif;">${g.count}건</div>
     </div>`;
   }).join('');
 }
@@ -2581,14 +2891,52 @@ function renderBoardList(filterCat) {
 // 시설 탭 첫 진입 시 강아지 산책 차트 초기화
 
 
-// ===== 초기 로드 시 최근 1년 평균 자동 계산 =====
+// ===== OPS_DB에서 가장 최신 월 자동 탐지 =====
+// 데이터가 존재하는 가장 최신 (year, month)를 반환
+function findLatestPeriod() {
+  const years = Object.keys(OPS_DB).map(Number).sort((a,b) => b - a); // 내림차순
+  for (const y of years) {
+    const yearData = OPS_DB[y];
+    // 12월부터 거꾸로 탐색
+    for (let m = 12; m >= 1; m--) {
+      if (yearData[m]) return { year: y, month: m };
+    }
+  }
+  return null; // 데이터 전혀 없음
+}
+
+// ===== 초기 로드 시 OPS_DB 기반으로 전체 sync =====
 // OPS_DB와 모든 함수가 정의된 이후 시점에서 1회 실행
 try {
-  const initYear  = parseInt(document.getElementById('filterYear').value);
-  const initMonth = document.getElementById('filterMonth').value;
+  // 1) 가장 최신 월 자동 탐지
+  const latest = findLatestPeriod();
+  const initYear  = latest ? latest.year  : parseInt(document.getElementById('filterYear').value);
+  const initMonth = latest ? String(latest.month) : document.getElementById('filterMonth').value;
+
+  // 2) 셀렉터 값을 최신 월로 자동 설정
+  if (latest) {
+    const yearSel  = document.getElementById('filterYear');
+    const monthSel = document.getElementById('filterMonth');
+    // 연도 옵션에 없으면 추가
+    if (yearSel && !Array.from(yearSel.options).some(o => o.value == initYear)) {
+      const opt = document.createElement('option');
+      opt.value = initYear; opt.textContent = initYear + '년';
+      yearSel.insertBefore(opt, yearSel.firstChild);
+    }
+    if (yearSel)  yearSel.value  = String(initYear);
+    if (monthSel) monthSel.value = initMonth;
+
+    // 데이터 스탬프도 최신 월로 갱신
+    const stamp = document.getElementById('dataStampTime');
+    if (stamp) stamp.textContent = `${initYear}년 ${initMonth}월 (엑셀 반영)`;
+  }
+
+  // 3) 선택 기간으로 KPI/차트 sync (silent)
+  applyPeriodFilter(initYear, initMonth, true);
+  // 4) 최근 1년 평균 계산 (applyPeriodFilter 내부에서도 호출되지만 안전망)
   updateRecentYearAvg(initYear, initMonth);
 } catch(e) {
-  console.warn('Initial recent-year avg calc skipped:', e);
+  console.warn('Initial sync skipped:', e);
 }
 
 </script>
