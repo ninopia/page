@@ -50,29 +50,31 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   position:sticky;top:0;z-index:200;
   box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
-.topbar-logo{display:flex;align-items:center;gap:10px;}
+.topbar-logo{display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .n-mark{
   width:28px;height:28px;background:var(--green);border-radius:6px;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .n-mark svg{width:16px;height:16px;}
-.topbar-name{font-size:15px;font-weight:800;letter-spacing:-0.5px;color:var(--dark);}
+.topbar-name{font-size:15px;font-weight:800;letter-spacing:-0.5px;color:var(--dark);white-space:nowrap;}
 .topbar-name span{color:var(--green);}
-.topbar-nav{display:flex;gap:2px;}
+.topbar-nav{display:flex;gap:2px;flex-shrink:0;}
 .nav-tab{
   padding:6px 18px;border:none;background:none;cursor:pointer;
   font-family:'NanumSquare',sans-serif;font-size:13px;font-weight:600;
   color:var(--text3);border-radius:6px;transition:all .15s;
+  white-space:nowrap;
 }
 .nav-tab.active{background:var(--green3);color:var(--green2);}
 .nav-tab:hover:not(.active){background:var(--gray1);color:var(--text);}
-.topbar-right{display:flex;align-items:center;gap:12px;}
+.topbar-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
 .year-badge{
   padding:4px 12px;background:var(--gray1);border:1px solid var(--border);
   border-radius:20px;font-size:12px;font-weight:600;color:var(--text2);
   font-family:'JetBrains Mono',monospace;
 }
-.live-dot-wrap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green2);font-family:'JetBrains Mono',monospace;}
+.upload-btn{white-space:nowrap;}
+.live-dot-wrap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green2);font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 
@@ -96,6 +98,8 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 .g31{grid-template-columns:3fr 1fr;}
 .span2{grid-column:span 2;}
 .span3{grid-column:span 3;}
+/* Grid 자식의 min-width: auto 기본값이 콘텐츠 폭으로 동작해 grid가 넘치는 문제 방지 */
+.grid > *{min-width:0;}
 
 /* ===== CARD ===== */
 .card{
@@ -296,6 +300,37 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   border-radius:6px;font-size:11px;font-weight:700;color:var(--green2);
 }
 
+/* ===== DATA STAMP ===== */
+.data-stamp-bar{
+  background:var(--gray1);border-bottom:1px solid var(--border);
+  padding:8px 28px;position:sticky;top:52px;z-index:150;
+}
+.data-stamp-bar-inner{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;
+}
+.data-stamp-hint{
+  font-size:11px;color:var(--text3);
+}
+.data-stamp{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;background:#fffbeb;border:1px solid #fde68a;
+  border-radius:6px;font-size:11px;font-weight:700;color:#92400e;
+  font-family:'JetBrains Mono',monospace;
+  cursor:default;transition:all .15s;
+}
+.data-stamp.fresh{background:var(--green3);border-color:var(--green4);color:var(--green2);}
+.data-stamp-dot{width:6px;height:6px;border-radius:50%;background:#f59e0b;flex-shrink:0;}
+.data-stamp.fresh .data-stamp-dot{background:var(--green);}
+.data-stamp-label{font-weight:600;letter-spacing:.2px;font-family:'NanumSquare',sans-serif;}
+.data-stamp-time{font-weight:800;font-family:'NanumSquare',sans-serif;}
+@keyframes stampPulse{
+  0%{transform:scale(1);}
+  40%{transform:scale(1.05);box-shadow:0 0 0 4px rgba(3,199,90,0.18);}
+  100%{transform:scale(1);}
+}
+.data-stamp.just-updated{animation:stampPulse .6s ease;}
+
 /* ===== UPLOAD / DOWNLOAD ===== */
 .upload-btn {
   display:inline-flex;align-items:center;gap:6px;
@@ -345,6 +380,15 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 .upload-guide{margin:0 20px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;}
 .upload-guide-title{font-size:11px;font-weight:700;color:#92400e;margin-bottom:5px;}
 .upload-guide li{font-size:11px;color:#78350f;margin-left:14px;line-height:1.7;}
+.sheet-detect-item{
+  display:flex;align-items:center;gap:8px;padding:7px 10px;
+  border-radius:6px;font-size:11px;
+}
+.sheet-detect-item.ok{background:var(--green3);border:1px solid var(--green4);color:var(--green2);}
+.sheet-detect-item.miss{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
+.sheet-detect-icon{font-size:13px;flex-shrink:0;}
+.sheet-detect-name{font-weight:700;flex:1;}
+.sheet-detect-rows{font-family:'JetBrains Mono',monospace;font-size:10px;opacity:.8;}
 
 
 /* ===== SUB TAB ===== */
@@ -382,6 +426,11 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   .topbar-right { gap: 6px; }
   .upload-btn { font-size: 11px; padding: 5px 8px; }
   .period-select { font-size: 11px; padding: 4px 6px; }
+  .data-stamp { font-size: 10px; padding: 3px 8px; }
+  .data-stamp .data-stamp-label { display: none; }
+  .data-stamp-bar { padding: 6px 14px; top: 52px; }
+  .data-stamp-bar-inner { width: 100% !important; }
+  .data-stamp-hint { display: none; }
   .kpi-row { grid-template-columns: 1fr 1fr; gap: 8px; }
   .kpi-card { padding: 14px; }
   .kpi-val { font-size: 24px; }
@@ -409,7 +458,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="center-wrap" style="display:flex;align-items:center;justify-content:space-between;height:100%;width:70%;max-width:1280px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;height:100%;width:100%;gap:24px;">
   <div class="topbar-logo">
     <div class="n-mark">
       <svg viewBox="0 0 24 24" fill="white"><path d="M13.6 12.4L10.2 7H7v10h3.4v-5.4L14.1 17H17V7h-3.4z"/></svg>
@@ -442,7 +491,19 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <button class="upload-btn primary" onclick="openUpload()">⬆ 데이터 업로드</button>
     <div class="live-dot-wrap"><div class="live-dot"></div>LIVE</div>
   </div>
-  </div><!-- /center-wrap topbar -->
+  </div><!-- /topbar inner -->
+</div>
+
+<!-- DATA STAMP BAR -->
+<div class="data-stamp-bar">
+  <div class="data-stamp-bar-inner">
+    <div class="data-stamp" id="dataStamp" title="가장 최근 데이터가 반영된 시각">
+      <span class="data-stamp-dot"></span>
+      <span class="data-stamp-label">데이터 기준</span>
+      <span class="data-stamp-time" id="dataStampTime">초기 데이터</span>
+    </div>
+    <span class="data-stamp-hint">엑셀 업로드 시 자동 갱신됩니다</span>
+  </div>
 </div>
 
 <!-- ========== PAGE 1: 운영현황 ========== -->
@@ -480,41 +541,39 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     </div>
   </div>
 
-  <!-- 차트 행 -->
-  <div class="grid g13" style="margin-bottom:12px;">
-    <!-- 법인별 + 이용일수별 -->
-    <div class="grid g2">
-      <div class="card">
-        <div class="card-title">법인별 이용현황</div>
-        <div class="donut-wrap">
-          <canvas id="corpChart"></canvas>
-          <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
-        </div>
-        <div class="legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>NAVER 1,249명</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>NAVER계열 1,473명</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>LINE계열 209명</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">이용일수별 이용현황</div>
-        <div class="donut-wrap">
-          <canvas id="nightChart"></canvas>
-          <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
-        </div>
-        <div class="legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>1박2일 2,294</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>2박3일 384</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#99bbff"></div>3박4일 68</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>4박5일 165</div>
-        </div>
-      </div>
-    </div>
-    <!-- 년간 운영현황 -->
+  <!-- 차트 행 1: 도넛 2개 -->
+  <div class="grid g2" style="margin-bottom:12px;">
     <div class="card">
-      <div class="card-title">년간 운영현황</div>
-      <div style="height:200px;"><canvas id="yearChart"></canvas></div>
+      <div class="card-title">법인별 이용현황</div>
+      <div class="donut-wrap">
+        <canvas id="corpChart"></canvas>
+        <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>NAVER 1,249명</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>NAVER계열 1,473명</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>LINE계열 209명</div>
+      </div>
     </div>
+    <div class="card">
+      <div class="card-title">이용일수별 이용현황</div>
+      <div class="donut-wrap">
+        <canvas id="nightChart"></canvas>
+        <div class="donut-center"><div class="donut-center-val">2,931</div><div class="donut-center-sub">총 인원</div></div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>1박2일 2,294</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>2박3일 384</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#99bbff"></div>3박4일 68</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>4박5일 165</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차트 행 2: 년간 운영현황 (풀폭) -->
+  <div class="card" style="margin-bottom:12px;min-width:0;overflow:hidden;">
+    <div class="card-title">년간 운영현황</div>
+    <div style="height:240px;width:100%;position:relative;"><canvas id="yearChart"></canvas></div>
   </div>
 
   <!-- 미팅룸 + 숙소 -->
@@ -771,9 +830,9 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       </div>
       <div class="kpi-card">
         <div class="kpi-label">참여 강아지 수</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">6</div><div class="kpi-unit">마리</div></div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">5</div><div class="kpi-unit">마리</div></div>
         <div class="kpi-divider"></div>
-        <div class="kpi-avg-row"><span class="kpi-avg-label">산책 코스</span><span class="kpi-avg-val">3개</span></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">산책 코스</span><span class="kpi-avg-val">1개</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">이용 만족도</div>
@@ -801,7 +860,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="section-title">체육관 이용현황</div>
       <div class="section-sub">2025년 기준</div>
     </div>
-    <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+    <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi-card">
         <div class="kpi-label">총 이용 인원</div>
         <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">1,284</div><div class="kpi-unit">명</div></div>
@@ -809,13 +868,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">321명</span></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">풋살코트 예약</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">86</div><div class="kpi-unit">건</div></div>
-        <div class="kpi-divider"></div>
-        <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">21건</span></div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">헬스장 이용</div>
+        <div class="kpi-label">체육관 이용</div>
         <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">968</div><div class="kpi-unit">명</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">242명</span></div>
@@ -830,12 +883,12 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <div class="grid g2" style="margin-bottom:12px;">
       <div class="card">
         <div class="card-title">월별 이용 인원</div>
-        <div class="card-sub">헬스장 · 풋살코트 구분</div>
+        <div class="card-sub">월별 총 이용 인원</div>
         <div style="height:200px;"><canvas id="gymMonthChart"></canvas></div>
       </div>
       <div class="card">
-        <div class="card-title">시설별 이용 비율</div>
-        <div class="card-sub">전체 이용 중 시설별 비중</div>
+        <div class="card-title">목적별 이용 비율</div>
+        <div class="card-sub">팀플레이 · 자유운동 · 자유운동(팀예약) 비중</div>
         <div style="height:200px;"><canvas id="gymFacilChart"></canvas></div>
       </div>
     </div>
@@ -853,7 +906,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="section-title">코어센터 이용현황</div>
       <div class="section-sub">2025년 기준</div>
     </div>
-    <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+    <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi-card">
         <div class="kpi-label">총 이용 인원</div>
         <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">638</div><div class="kpi-unit">명</div></div>
@@ -861,16 +914,10 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         <div class="kpi-avg-row"><span class="kpi-avg-label">월 평균</span><span class="kpi-avg-val">160명</span></div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">클래스 운영 수</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">12</div><div class="kpi-unit">개</div></div>
+        <div class="kpi-label">평균 이용 시간</div>
+        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">45</div><div class="kpi-unit">분</div></div>
         <div class="kpi-divider"></div>
-        <div class="kpi-avg-row"><span class="kpi-avg-label">월별 신규</span><span class="kpi-avg-val">2개</span></div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">예약 완료율</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">88</div><div class="kpi-unit">%</div></div>
-        <div class="kpi-divider"></div>
-        <div class="kpi-avg-row"><span class="kpi-avg-label">취소율</span><span class="kpi-avg-val">12%</span></div>
+        <div class="kpi-avg-row"><span class="kpi-avg-label">최장</span><span class="kpi-avg-val">120분</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">이용 만족도</div>
@@ -879,22 +926,15 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         <div class="kpi-avg-row"><span class="kpi-avg-label">응답 인원</span><span class="kpi-avg-val">78명</span></div>
       </div>
     </div>
-    <div class="grid g2" style="margin-bottom:12px;">
-      <div class="card">
-        <div class="card-title">월별 이용 인원</div>
-        <div class="card-sub">클래스별 구분</div>
-        <div style="height:200px;"><canvas id="coreMonthChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">클래스별 이용 비율</div>
-        <div class="card-sub">전체 중 클래스 유형별 비중</div>
-        <div style="height:200px;"><canvas id="coreClassChart"></canvas></div>
-      </div>
+    <div class="card" style="margin-bottom:12px;min-width:0;overflow:hidden;">
+      <div class="card-title">월별 이용 추이</div>
+      <div class="card-sub">월별 총 이용 인원</div>
+      <div style="height:220px;width:100%;position:relative;"><canvas id="coreMonthChart"></canvas></div>
     </div>
-    <div class="card">
+    <div class="card" style="min-width:0;overflow:hidden;">
       <div class="card-title">요일별 이용 분포</div>
       <div class="card-sub">요일별 코어센터 이용 집중도</div>
-      <div style="height:160px;"><canvas id="coreDayChart"></canvas></div>
+      <div style="height:180px;width:100%;position:relative;"><canvas id="coreDayChart"></canvas></div>
     </div>
   </div>
 
@@ -905,7 +945,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="section-title">보드게임 이용현황</div>
       <div class="section-sub">2025년 기준</div>
     </div>
-    <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+    <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);">
       <div class="kpi-card">
         <div class="kpi-label">총 이용 건수</div>
         <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">412</div><div class="kpi-unit">건</div></div>
@@ -917,12 +957,6 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">48</div><div class="kpi-unit">종</div></div>
         <div class="kpi-divider"></div>
         <div class="kpi-avg-row"><span class="kpi-avg-label">신규 입고</span><span class="kpi-avg-val">3종</span></div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">평균 이용 시간</div>
-        <div class="kpi-main"><div class="kpi-val" style="color:var(--green);">82</div><div class="kpi-unit">분</div></div>
-        <div class="kpi-divider"></div>
-        <div class="kpi-avg-row"><span class="kpi-avg-label">최장</span><span class="kpi-avg-val">180분</span></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">이용 만족도</div>
@@ -1024,10 +1058,10 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       </div>
     </div>
 
-    <!-- 시트 선택 -->
-    <div class="upload-sheet-select" id="sheetSelectWrap" style="display:none;">
-      <label>시트 선택</label>
-      <select id="sheetSelect"></select>
+    <!-- 인식된 시트 표시 -->
+    <div class="upload-sheet-detected" id="sheetDetectWrap" style="display:none;">
+      <label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin:0 20px 6px;text-transform:uppercase;letter-spacing:.3px;">📄 인식된 시트</label>
+      <div id="sheetDetectList" style="margin:0 20px 14px;display:flex;flex-direction:column;gap:5px;"></div>
     </div>
 
     <!-- 업로드 가이드 -->
@@ -1035,9 +1069,9 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="upload-guide-title">📋 업로드 양식 안내</div>
       <ul>
         <li>서식 다운로드 후 데이터를 입력하여 업로드해주세요</li>
-        <li>필수 컬럼: 월, 워크샵건수, 누적인원, 방문인원, 운영일수</li>
-        <li>법인별: NAVER, NAVER계열, LINE계열 인원 포함</li>
-        <li>이용일수별: 1박2일, 2박3일, 3박4일, 4박5일 인원 포함</li>
+        <li>5개 시트(운영현황·미팅룸·숙소·만족도·이용자의견)가 자동으로 인식됩니다</li>
+        <li>시트명은 변경하지 마세요 (01_운영현황 ~ 05_이용자의견)</li>
+        <li>빈 셀은 무시되며, 입력된 데이터만 반영됩니다</li>
       </ul>
     </div>
 
@@ -1581,7 +1615,17 @@ renderOpinions();
 
 // ===== 업로드 / 다운로드 =====
 let parsedWorkbook = null;
-let parsedData = null;
+let parsedSheets = null;  // { '01_운영현황': [...], '02_미팅룸이용현황': [...], ... }
+
+// 시트명 → 핵심 키워드 매칭 (구체적 키워드 우선, 번호는 보조)
+// 우선순위: 의미 키워드 > 번호 prefix
+const SHEET_KEYS = {
+  ops:     { primary: ['운영현황'],         numberPrefix: '01' },
+  meeting: { primary: ['미팅룸'],           numberPrefix: '02' },
+  room:    { primary: ['숙소'],             numberPrefix: '03' },
+  sat:     { primary: ['만족도'],           numberPrefix: '04' },
+  opinion: { primary: ['의견','이용자의견'], numberPrefix: '05' },
+};
 
 function openUpload() {
   document.getElementById('uploadArea').classList.add('open');
@@ -1591,9 +1635,9 @@ function closeUpload() {
   resetUploadUI();
 }
 function resetUploadUI() {
-  parsedWorkbook = null; parsedData = null;
+  parsedWorkbook = null; parsedSheets = null;
   document.getElementById('uploadPreview').style.display = 'none';
-  document.getElementById('sheetSelectWrap').style.display = 'none';
+  document.getElementById('sheetDetectWrap').style.display = 'none';
   document.getElementById('uploadDrop').classList.remove('dragover');
   document.getElementById('uploadConfirmBtn').disabled = true;
   document.getElementById('uploadConfirmBtn').style.opacity = '.4';
@@ -1607,6 +1651,17 @@ function handleDrop(e) {
   document.getElementById('uploadDrop').classList.remove('dragover');
   const file = e.dataTransfer.files[0];
   if (file) handleFile(file);
+}
+
+function findSheet(workbook, keyDef) {
+  const names = workbook.SheetNames;
+  // 1순위: 의미 키워드 매칭
+  let found = names.find(name =>
+    keyDef.primary.some(k => name.includes(k))
+  );
+  if (found) return found;
+  // 2순위: 번호 prefix 매칭 (예: "01_*")
+  return names.find(name => name.startsWith(keyDef.numberPrefix));
 }
 
 function handleFile(file) {
@@ -1623,19 +1678,45 @@ function handleFile(file) {
   reader.onload = e => {
     try {
       parsedWorkbook = XLSX.read(e.target.result, { type: 'array' });
-      const sheets = parsedWorkbook.SheetNames;
+      parsedSheets = {};
 
-      // 시트 선택 셀렉트 채우기
-      const sel = document.getElementById('sheetSelect');
-      sel.innerHTML = sheets.map(s => `<option value="${s}">${s}</option>`).join('');
-      document.getElementById('sheetSelectWrap').style.display = 'block';
+      // 5개 시트 자동 매칭
+      const detectInfo = [];
+      Object.entries(SHEET_KEYS).forEach(([key, keyDef]) => {
+        const sheetName = findSheet(parsedWorkbook, keyDef);
+        const labelMap = { ops:'운영현황', meeting:'미팅룸', room:'숙소', sat:'이용만족도', opinion:'이용자의견' };
+        const label = labelMap[key];
 
-      // 첫 시트 미리 파싱
-      parseSheet(sheets[0]);
+        if (sheetName) {
+          const rows = XLSX.utils.sheet_to_json(parsedWorkbook.Sheets[sheetName], { defval: '' });
+          const validRows = rows.filter(r => Object.values(r).some(v => v !== '' && v !== null && v !== undefined));
+          parsedSheets[key] = validRows;
+          detectInfo.push({ key, label, sheetName, count: validRows.length, ok: true });
+        } else {
+          detectInfo.push({ key, label, sheetName: null, count: 0, ok: false });
+        }
+      });
+
+      // 인식 결과 UI 렌더
+      const listEl = document.getElementById('sheetDetectList');
+      listEl.innerHTML = detectInfo.map(d => `
+        <div class="sheet-detect-item ${d.ok ? 'ok' : 'miss'}">
+          <span class="sheet-detect-icon">${d.ok ? '✓' : '✗'}</span>
+          <span class="sheet-detect-name">${d.label}</span>
+          <span class="sheet-detect-rows">${d.ok ? `${d.count}행 인식` : '시트 없음'}</span>
+        </div>
+      `).join('');
+      document.getElementById('sheetDetectWrap').style.display = 'block';
+
+      const matchedCount = detectInfo.filter(d => d.ok).length;
+      if (matchedCount === 0) {
+        showToast('인식된 시트가 없습니다. 서식을 확인해주세요', 'warn');
+        return;
+      }
 
       const btn = document.getElementById('uploadConfirmBtn');
       btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
-      showToast('파일 로드 완료 — 시트를 확인하고 적용해주세요', 'success');
+      showToast(`${matchedCount}개 시트 인식 완료 — 적용 버튼을 눌러주세요`, 'success');
     } catch(err) {
       showToast('파일 파싱 오류: ' + err.message, 'warn');
     }
@@ -1643,70 +1724,300 @@ function handleFile(file) {
   reader.readAsArrayBuffer(file);
 }
 
-document.getElementById('sheetSelect')?.addEventListener('change', function() {
-  parseSheet(this.value);
-});
-
-function parseSheet(sheetName) {
-  const ws = parsedWorkbook.Sheets[sheetName];
-  parsedData = XLSX.utils.sheet_to_json(ws, { defval: '' });
-}
-
 function confirmUpload() {
-  if (!parsedData || parsedData.length === 0) { showToast('데이터가 없습니다', 'warn'); return; }
+  if (!parsedSheets || Object.keys(parsedSheets).length === 0) {
+    showToast('데이터가 없습니다', 'warn'); return;
+  }
   try {
-    applyUploadedData(parsedData);
+    const result = applyAllSheets(parsedSheets);
     closeUpload();
-    showToast('데이터가 성공적으로 적용됐습니다 ✓', 'success');
+    updateDataStamp();
+    showToast(`데이터 적용 완료 ✓ (${result.applied}개 영역 갱신)`, 'success');
   } catch(err) {
     showToast('데이터 적용 오류: ' + err.message, 'warn');
+    console.error(err);
   }
 }
 
-function applyUploadedData(rows) {
-  // 월별 데이터 매핑 (헤더: 월, 워크샵건수, 누적인원, 방문인원, 운영일수)
-  const monthMap = {'1월':0,'2월':1,'3월':2,'4월':3,'5월':4,'6월':5,'7월':6,'8월':7,'9월':8,'10월':9,'11월':10,'12월':11};
+// ===== 메인 적용 함수: 5개 시트 모두 처리 =====
+function applyAllSheets(sheets) {
+  let applied = 0;
+  if (sheets.ops     && sheets.ops.length)     { applyOpsSheet(sheets.ops);         applied++; }
+  if (sheets.meeting && sheets.meeting.length) { applyMeetingSheet(sheets.meeting); applied++; }
+  if (sheets.room    && sheets.room.length)    { applyRoomSheet(sheets.room);       applied++; }
+  if (sheets.sat     && sheets.sat.length)     { applySatSheet(sheets.sat);         applied++; }
+  if (sheets.opinion && sheets.opinion.length) { applyOpinionSheet(sheets.opinion); applied++; }
+  return { applied };
+}
 
-  const newWorkshop = new Array(12).fill(null);
-  const newPerson   = new Array(12).fill(null);
-  const newOpDays   = new Array(12).fill(null);
+// 헬퍼: 월 텍스트 → 인덱스
+const MONTH_MAP = {'1월':0,'2월':1,'3월':2,'4월':3,'5월':4,'6월':5,'7월':6,'8월':7,'9월':8,'10월':9,'11월':10,'12월':11};
+function num(v) { return v === '' || v === null || v === undefined ? 0 : Number(v) || 0; }
 
+// ── 시트 1: 운영현황 ──
+function applyOpsSheet(rows) {
+  // OPS_DB 갱신
   rows.forEach(row => {
+    const year = parseInt(row['연도']) || 2025;
     const m = String(row['월'] || '').trim();
-    const idx = monthMap[m];
+    const idx = MONTH_MAP[m];
     if (idx === undefined) return;
-    const ws  = Number(row['워크샵건수'] || row['워크샵'] || 0);
-    const ppl = Number(row['누적인원'] || 0);
-    const ops = Number(row['운영일수'] || 0);
-    if (ws)  newWorkshop[idx] = ws;
-    if (ppl) newPerson[idx]   = ppl;
-    if (ops) newOpDays[idx]   = ops;
+    if (!OPS_DB[year]) OPS_DB[year] = {};
+    const monthData = {
+      workshop: num(row['워크샵건수']),
+      person:   num(row['누적인원']),
+      visitor:  num(row['방문인원']),
+      opDays:   num(row['운영일수']),
+      naver:    num(row['NAVER인원']),
+      naverK:   num(row['NAVER계열인원']),
+      line:     num(row['LINE계열인원']),
+      n1: num(row['1박2일']), n2: num(row['2박3일']),
+      n3: num(row['3박4일']), n4: num(row['4박5일']),
+    };
+    // 모든 값이 0이면 빈 행으로 간주
+    const sum = Object.values(monthData).reduce((a,b)=>a+b, 0);
+    OPS_DB[year][idx+1] = sum > 0 ? monthData : null;
   });
 
-  // 유효한 마지막 달 기준으로 KPI 업데이트
-  const lastWs  = newWorkshop.filter(v=>v!==null);
-  const lastPpl = newPerson.filter(v=>v!==null);
-  const lastOps = newOpDays.filter(v=>v!==null);
+  // 현재 선택된 연/월로 갱신
+  const year  = parseInt(document.getElementById('filterYear').value);
+  const month = document.getElementById('filterMonth').value;
+  applyPeriodFilter(year, month);
+}
 
-  if (lastWs.length)  document.querySelector('.kpi-val.blue, #kpiWorkshop, .kpi-card:nth-child(1) .kpi-val')?.closest('.kpi-card')?.querySelector('.kpi-val')
-    ? (document.querySelectorAll('.kpi-card')[0].querySelector('.kpi-val').textContent = lastWs.reduce((a,b)=>a+b,0).toLocaleString()) : null;
+// ── 시트 2: 미팅룸 이용현황 ──
+function applyMeetingSheet(rows) {
+  // 가장 최근 월 데이터 사용 (값이 있는 마지막 행)
+  const filledRows = rows.filter(r => num(r['누적이용실적']) > 0 || num(r['사용가능미팅룸']) > 0);
+  const latest = filledRows[filledRows.length - 1];
+  if (!latest) return;
 
-  // yearChart 업데이트
-  if (window._yearChart) {
-    window._yearChart.data.datasets[0].data = newPerson;
-    window._yearChart.data.datasets[1].data = newOpDays;
-    window._yearChart.data.datasets[2].data = newWorkshop;
-    window._yearChart.update();
+  const total = num(latest['누적이용실적']);
+  const cap   = num(latest['사용가능미팅룸']);
+  const pct   = cap ? Math.round(total / cap * 100) : 0;
+
+  // 도넛 차트 업데이트
+  const meetingChart = Chart.getChart('meetingChart');
+  if (meetingChart) {
+    meetingChart.data.datasets[0].data = [total, Math.max(0, cap - total)];
+    meetingChart.update();
   }
 
-  // KPI 숫자 직접 업데이트
-  const kpiCards = document.querySelectorAll('.kpi-card');
-  if (lastWs.length && kpiCards[0])
-    kpiCards[0].querySelector('.kpi-val').textContent = lastWs.reduce((a,b)=>a+b,0).toLocaleString();
-  if (lastPpl.length && kpiCards[1])
-    kpiCards[1].querySelector('.kpi-val').textContent = lastPpl.reduce((a,b)=>a+b,0).toLocaleString();
-  if (lastOps.length && kpiCards[2])
-    kpiCards[2].querySelector('.kpi-val').textContent = Math.max(...lastOps.filter(v=>v));
+  // 도넛 중앙/범례 텍스트
+  const meetingCard = document.getElementById('meetingChart')?.closest('.card');
+  if (meetingCard) {
+    const center = meetingCard.querySelector('.donut-center-val');
+    if (center) center.textContent = pct + '%';
+    const legendItems = meetingCard.querySelectorAll('.legend-item');
+    if (legendItems[0]) legendItems[0].innerHTML = `<div class="legend-dot" style="background:#4e7fff"></div>누적 ${total.toLocaleString()}개소`;
+    if (legendItems[1]) legendItems[1].innerHTML = `<div class="legend-dot" style="background:#dde8ff"></div>가능 ${cap.toLocaleString()}개소`;
+
+    // 규모별 가로 바차트 갱신
+    const sizes = [
+      { label:'대형', use: num(latest['대형_이용']), cap: num(latest['대형_가능']) },
+      { label:'중형', use: num(latest['중형_이용']), cap: num(latest['중형_가능']) },
+      { label:'소형', use: num(latest['소형_이용']), cap: num(latest['소형_가능']) },
+      { label:'기타', use: num(latest['기타_이용']), cap: num(latest['기타_가능']) },
+    ];
+    const maxUse = Math.max(...sizes.map(s=>s.use), 1);
+    const hbarRows = meetingCard.querySelectorAll('.hbar-row');
+    sizes.forEach((s, i) => {
+      const row = hbarRows[i];
+      if (!row) return;
+      const widthPct = Math.round(s.use / maxUse * 100);
+      const fill = row.querySelector('.hbar-fill');
+      const total = row.querySelector('.hbar-total');
+      if (fill) {
+        fill.style.width = widthPct + '%';
+        fill.style.background = s.use > 0 ? '#4e7fff' : '#c4c5c7';
+        fill.innerHTML = s.use > 0 ? `<span>${s.use}개소</span>` : '';
+      }
+      if (total) total.textContent = s.cap;
+    });
+  }
+}
+
+// ── 시트 3: 숙소 이용현황 ──
+function applyRoomSheet(rows) {
+  const filledRows = rows.filter(r => num(r['누적이용실적']) > 0 || num(r['배정가능숙소']) > 0);
+  const latest = filledRows[filledRows.length - 1];
+  if (!latest) return;
+
+  const total = num(latest['누적이용실적']);
+  const cap   = num(latest['배정가능숙소']);
+  const pct   = cap ? Math.round(total / cap * 100) : 0;
+
+  const roomChart = Chart.getChart('roomUsageChart');
+  if (roomChart) {
+    roomChart.data.datasets[0].data = [total, cap];
+    roomChart.update();
+  }
+
+  const roomCard = document.getElementById('roomUsageChart')?.closest('.card');
+  if (roomCard) {
+    const center = roomCard.querySelector('.donut-center-val');
+    if (center) center.textContent = pct + '%';
+    const legendItems = roomCard.querySelectorAll('.legend-item');
+    if (legendItems[0]) legendItems[0].innerHTML = `<div class="legend-dot" style="background:#4e7fff"></div>누적 ${total.toLocaleString()}개소`;
+    if (legendItems[1]) legendItems[1].innerHTML = `<div class="legend-dot" style="background:#dde8ff"></div>가능 ${cap.toLocaleString()}개소`;
+
+    // 층별 가로 바차트 갱신
+    const floors = [
+      { label:'5층', use: num(latest['5층_이용']), cap: num(latest['5층_가능']) },
+      { label:'4층', use: num(latest['4층_이용']), cap: num(latest['4층_가능']) },
+      { label:'3층', use: num(latest['3층_이용']), cap: num(latest['3층_가능']) },
+      { label:'2층', use: num(latest['2층_이용']), cap: num(latest['2층_가능']) },
+      { label:'1층', use: num(latest['1층_이용']), cap: num(latest['1층_가능']) },
+      { label:'0층', use: num(latest['0층_이용']), cap: num(latest['0층_가능']) },
+    ];
+    const maxUse = Math.max(...floors.map(f=>f.use), 1);
+    const hbarRows = roomCard.querySelectorAll('.hbar-row');
+    floors.forEach((f, i) => {
+      const row = hbarRows[i];
+      if (!row) return;
+      const widthPct = Math.round(f.use / maxUse * 100);
+      const fill = row.querySelector('.hbar-fill');
+      const total = row.querySelector('.hbar-total');
+      if (fill) {
+        fill.style.width = widthPct + '%';
+        fill.innerHTML = f.use > 0 ? `<span>${f.use}개소</span>` : '';
+      }
+      if (total) {
+        total.textContent = f.use > 0 ? `${f.cap}` : `0/${f.cap}`;
+        total.style.color = f.use > 0 ? '' : 'var(--text3)';
+      }
+    });
+  }
+}
+
+// ── 시트 4: 이용만족도 ──
+function applySatSheet(rows) {
+  const filledRows = rows.filter(r => num(r['응답인원']) > 0);
+  if (!filledRows.length) return;
+
+  // 연간 추이 차트 데이터
+  const trend100   = new Array(12).fill(null);
+  const trendResp  = new Array(12).fill(null);
+  filledRows.forEach(row => {
+    const idx = MONTH_MAP[String(row['월'] || '').trim()];
+    if (idx === undefined) return;
+    trend100[idx]  = Number(row['100점환산']) || null;
+    trendResp[idx] = num(row['응답인원']);
+  });
+
+  const satTrend = Chart.getChart('satTrendChart');
+  if (satTrend) {
+    satTrend.data.datasets[0].data = trend100;
+    satTrend.data.datasets[1].data = trendResp;
+    satTrend.update();
+  }
+
+  // 가장 최근 월 기준 KPI 갱신
+  const latest = filledRows[filledRows.length - 1];
+  const score100 = Number(latest['100점환산']) || 0;
+  const respond  = num(latest['응답인원']);
+  const noResp   = num(latest['미응답인원']);
+  const s5 = num(latest['만족도_5점']), s4 = num(latest['만족도_4점']), s3 = num(latest['만족도_3점']);
+
+  // 응답률 도넛
+  const respChart = Chart.getChart('respChart');
+  if (respChart) {
+    respChart.data.datasets[0].data = [respond, noResp];
+    respChart.update();
+    const total = respond + noResp;
+    const pct = total ? Math.round(respond / total * 100) : 0;
+    const respCenter = document.getElementById('respChart')?.closest('.dark-card')?.querySelector('.donut-center-val');
+    if (respCenter) respCenter.textContent = pct + '%';
+    const respLegend = document.getElementById('respChart')?.closest('.dark-card')?.querySelectorAll('.legend-item');
+    if (respLegend && respLegend[0]) respLegend[0].innerHTML = `<div class="legend-dot" style="background:#4e7fff"></div>응답 ${respond.toLocaleString()}명`;
+    if (respLegend && respLegend[1]) respLegend[1].innerHTML = `<div class="legend-dot" style="background:#2d3548"></div>미응답 ${noResp.toLocaleString()}명`;
+  }
+
+  // 100점/별점 카드 갱신
+  const satTrendVal = document.querySelector('#satTrendChart')?.closest('.card')?.querySelector('div[style*="color:var(--green)"]');
+  if (satTrendVal) satTrendVal.innerHTML = `${score100.toFixed(1)}<span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:2px;">점</span>`;
+
+  // 100점 환산 표시 (dark-card 내부)
+  const darkCards = document.querySelectorAll('.dark-card');
+  if (darkCards[1]) {
+    const big = darkCards[1].querySelector('div[style*="font-size:46px"]');
+    if (big) big.textContent = score100.toFixed(1);
+
+    // 별점 (5점 만점 평균)
+    const totalCount = s5 + s4 + s3;
+    const avgStar = totalCount ? (s5*5 + s4*4 + s3*3) / totalCount : 0;
+    const starText = darkCards[1].querySelector('div[style*="color:#f59e0b"]');
+    if (starText) starText.innerHTML = `${avgStar.toFixed(2)} <span style="font-size:12px;color:#5a6680;font-weight:400;">/ 5.0</span>`;
+
+    // 점수별 분포 바 (5점/4점/3점)
+    const distBars = darkCards[1].querySelectorAll('div[style*="background:#2d3548"]');
+    const distLabels = darkCards[1].querySelectorAll('span[style*="width:28px"]');
+    const max = Math.max(s5, s4, s3, 1);
+    [s5, s4, s3].forEach((v, i) => {
+      const innerFill = distBars[i]?.querySelector('div');
+      if (innerFill) innerFill.style.width = Math.round(v / max * 100) + '%';
+      if (distLabels[i]) distLabels[i].textContent = v + '명';
+    });
+  }
+
+  // 공간별 만족도 갱신
+  const spaceUpdates = {
+    '미팅룸':   Number(latest['미팅룸_별점']),
+    '숙소':     Number(latest['숙소_별점']),
+    '식당':     Number(latest['식당_별점']),
+    '체육관, 풋살코트': Number(latest['체육관_별점']),
+    '라운지':   Number(latest['라운지_별점']),
+    '동물농장': Number(latest['동물농장_별점']),
+  };
+  SPACE_RATINGS.forEach(s => {
+    if (spaceUpdates[s.name] && !isNaN(spaceUpdates[s.name])) {
+      s.score = spaceUpdates[s.name];
+    }
+  });
+  renderSpaceRatings();
+}
+
+// ── 시트 5: 이용자 의견 ──
+function applyOpinionSheet(rows) {
+  const validRows = rows.filter(r => String(r['의견내용'] || '').trim().length > 0 && !String(r['의견내용']).includes('직접 입력'));
+  if (!validRows.length) return;
+
+  // OPINIONS 배열 통째로 교체
+  OPINIONS.length = 0;
+  validRows.forEach(row => {
+    OPINIONS.push({
+      score: Number(row['평점']) || 5,
+      type:  String(row['공간유형'] || '기타'),
+      org:   String(row['소속'] || ''),
+      date:  String(row['날짜'] || ''),
+      text:  String(row['의견내용'] || ''),
+    });
+  });
+  renderOpinions();
+
+  // 의견 카운트 헤더 갱신
+  const opinionHeaders = document.querySelectorAll('div[style*="font-family:\'JetBrains Mono\'"]');
+  opinionHeaders.forEach(el => {
+    if (el.textContent.includes('총') && el.textContent.includes('건')) {
+      el.textContent = `총 ${OPINIONS.length}건`;
+    }
+  });
+}
+
+// ===== 데이터 기준 시각 갱신 =====
+function updateDataStamp() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const txt = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const stamp = document.getElementById('dataStamp');
+  const time  = document.getElementById('dataStampTime');
+  if (time) time.textContent = txt;
+  if (stamp) {
+    stamp.classList.add('fresh','just-updated');
+    setTimeout(() => stamp.classList.remove('just-updated'), 700);
+  }
+  // 브라우저 새로고침해도 유지되도록 sessionStorage 활용은 사내정책상 X
+  // 대신 메모리에만 보관 — 새로고침 시 "초기 데이터"로 리셋
 }
 
 // ===== 서식 다운로드 (전체 5개 시트) =====
@@ -2093,14 +2404,17 @@ function initFacilityCharts(name) {
   }
 
   if (name === 'gym') {
+    // 월별 총 이용 인원 (단일 라인)
     mkLine('gymMonthChart', [
-      { label:'헬스장', data:[210,188,264,306,null,null,null,null,null,null,null,null], borderColor:'#03C75A', backgroundColor:'rgba(3,199,90,0.08)', fill:true, tension:0.4, pointBackgroundColor:'#03C75A', pointRadius:4 },
-      { label:'풋살코트', data:[18,16,24,28,null,null,null,null,null,null,null,null], borderColor:'#4e7fff', backgroundColor:'transparent', tension:0.4, pointBackgroundColor:'#4e7fff', pointRadius:4 }
+      { label:'이용 인원', data:[228,204,288,334,null,null,null,null,null,null,null,null],
+        borderColor:'#03C75A', backgroundColor:'rgba(3,199,90,0.10)',
+        fill:true, tension:0.4, pointBackgroundColor:'#03C75A', pointRadius:5, borderWidth:2.5 }
     ]);
+    // 목적별 이용 비율: 팀플레이 / 자유운동 / 자유운동(팀예약)
     mkDonut('gymFacilChart',
-      ['헬스장','풋살코트','탁구장','배드민턴'],
-      [968,172,96,48],
-      ['#03C75A','#4e7fff','#f59e0b','#8b5cf6']
+      ['팀플레이','자유운동','자유운동(팀예약)'],
+      [486,624,174],
+      ['#03C75A','#4e7fff','#f59e0b']
     );
     mkBar('gymTimeChart', ['06시','07시','08시','09시','10시','11시','12시','13시','14시','15시','16시','17시','18시','19시','20시','21시','22시'],
       [8,22,45,62,58,72,88,64,52,68,76,94,82,46,28,14,6],
@@ -2109,16 +2423,12 @@ function initFacilityCharts(name) {
   }
 
   if (name === 'core') {
+    // 자유운동 시설 - 월별 총 이용 인원 단일 라인
     mkLine('coreMonthChart', [
-      { label:'요가/필라테스', data:[62,54,80,96,null,null,null,null,null,null,null,null], borderColor:'#03C75A', backgroundColor:'rgba(3,199,90,0.08)', fill:true, tension:0.4, pointBackgroundColor:'#03C75A', pointRadius:4 },
-      { label:'스트레칭', data:[48,40,62,76,null,null,null,null,null,null,null,null], borderColor:'#4e7fff', backgroundColor:'transparent', tension:0.4, pointBackgroundColor:'#4e7fff', pointRadius:4 },
-      { label:'명상', data:[24,20,30,46,null,null,null,null,null,null,null,null], borderColor:'#f59e0b', backgroundColor:'transparent', tension:0.4, pointBackgroundColor:'#f59e0b', pointRadius:4 }
+      { label:'이용 인원', data:[134,114,172,218,null,null,null,null,null,null,null,null],
+        borderColor:'#03C75A', backgroundColor:'rgba(3,199,90,0.10)',
+        fill:true, tension:0.4, pointBackgroundColor:'#03C75A', pointRadius:5, borderWidth:2.5 }
     ]);
-    mkDonut('coreClassChart',
-      ['요가/필라테스','스트레칭','명상','호흡운동'],
-      [292,226,120,48],
-      ['#03C75A','#4e7fff','#f59e0b','#8b5cf6']
-    );
     mkBar('coreDayChart', ['월','화','수','목','금','토','일'],
       [82,96,88,110,124,68,48],
       '#03C75A', false, '명'
@@ -2217,7 +2527,6 @@ function renderBoardList(filterCat) {
         <div style="width:${pct}%;height:100%;background:${fg};border-radius:4px;transition:width .5s ease;"></div>
       </div>
       <div style="width:50px;text-align:right;font-size:13px;font-weight:700;color:${fg};font-family:'JetBrains Mono',monospace;">${g.count}건</div>
-      <div style="width:50px;text-align:right;font-size:11px;color:var(--text3);">~${g.time}분</div>
     </div>`;
   }).join('');
 }
