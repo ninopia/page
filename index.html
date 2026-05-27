@@ -1185,7 +1185,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <div class="upload-guide-title">📋 업로드 양식 안내</div>
       <ul>
         <li>서식 다운로드 후 데이터를 입력하여 업로드해주세요</li>
-        <li>9개 시트(운영현황·미팅룸·숙소·만족도·의견·강아지·체육관·코어·보드)가 자동으로 인식됩니다</li>
+        <li>10개 시트(운영현황·미팅룸·숙소·만족도·의견·강아지·체육관·코어·보드·게임목록)가 자동으로 인식됩니다</li>
         <li>시트명은 변경하지 마세요 (01_운영현황 ~ 05_이용자의견)</li>
         <li>빈 셀은 무시되며, 입력된 데이터만 반영됩니다</li>
       </ul>
@@ -1753,6 +1753,7 @@ const SHEET_KEYS = {
   gym:     { primary: ['체육관'],             numberPrefix: '07' },
   core:    { primary: ['코어'],               numberPrefix: '08' },
   board:   { primary: ['보드게임','보드'],     numberPrefix: '09' },
+  boardList: { primary: ['보드게임목록','게임목록'], numberPrefix: '10' },
 };
 
 function openUpload() {
@@ -1808,11 +1809,11 @@ function handleFile(file) {
       parsedWorkbook = XLSX.read(e.target.result, { type: 'array' });
       parsedSheets = {};
 
-      // 9개 시트 자동 매칭
+      // 10개 시트 자동 매칭
       const detectInfo = [];
       Object.entries(SHEET_KEYS).forEach(([key, keyDef]) => {
         const sheetName = findSheet(parsedWorkbook, keyDef);
-        const labelMap = { ops:'운영현황', meeting:'미팅룸', room:'숙소', sat:'이용만족도', opinion:'이용자의견', dog:'강아지 산책', gym:'체육관', core:'코어센터', board:'보드게임' };
+        const labelMap = { ops:'운영현황', meeting:'미팅룸', room:'숙소', sat:'이용만족도', opinion:'이용자의견', dog:'강아지 산책', gym:'체육관', core:'코어센터', board:'보드게임', boardList:'보드게임 목록' };
         const label = labelMap[key];
 
         if (sheetName) {
@@ -1867,7 +1868,7 @@ function confirmUpload() {
   }
 }
 
-// ===== 메인 적용 함수: 9개 시트 모두 처리 =====
+// ===== 메인 적용 함수: 10개 시트 모두 처리 =====
 function applyAllSheets(sheets) {
   let applied = 0;
   if (sheets.ops     && sheets.ops.length)     { applyOpsSheet(sheets.ops);         applied++; }
@@ -1879,6 +1880,7 @@ function applyAllSheets(sheets) {
   if (sheets.gym     && sheets.gym.length)     { applyFacilitySheet('gym',   sheets.gym);   applied++; }
   if (sheets.core    && sheets.core.length)    { applyFacilitySheet('core',  sheets.core);  applied++; }
   if (sheets.board   && sheets.board.length)   { applyFacilitySheet('board', sheets.board); applied++; }
+  if (sheets.boardList && sheets.boardList.length) { applyBoardListSheet(sheets.boardList); applied++; }
   return { applied };
 }
 
@@ -1890,14 +1892,13 @@ window.FACILITY_DATA = window.FACILITY_DATA || {};
 // 통합 시설 시트 적용 함수
 function applyFacilitySheet(facilityKey, rows) {
   const validRows = rows.filter(r => {
-    // 최소한 월 + 만족도 또는 이용수치 하나라도 있어야 함
     const hasMonth = !!String(r['월'] || '').trim();
     const hasNum = num(r['총이용인원']) > 0 || num(r['이용건수']) > 0 || num(r['이용인원']) > 0;
     return hasMonth && hasNum;
   });
   if (!validRows.length) return;
 
-  // 월별 데이터를 facilityKey 별로 저장
+  // 월별 데이터를 facilityKey 별로 저장 (12개월 배열)
   const monthlyData = new Array(12).fill(null);
   validRows.forEach(row => {
     const idx = MONTH_MAP[String(row['월'] || '').trim()];
@@ -1917,10 +1918,119 @@ function applyFacilitySheet(facilityKey, rows) {
   }, {usage:0, person:0, satCount:0, satSum:0});
   const avgSat = sums.satCount ? (sums.satSum / sums.satCount).toFixed(1) : '-';
 
-  // 현재 시설 탭이 활성 상태면 즉시 KPI/차트 갱신
-  // (탭이 비활성 상태라면 다음에 탭 진입할 때 자동 적용됨)
+  // 1) KPI 텍스트 갱신
   if (typeof updateFacilityKPI === 'function') {
     updateFacilityKPI(facilityKey, validRows, sums, avgSat);
+  }
+
+  // 2) 이미 그려진 차트가 있으면 즉시 갱신
+  updateFacilityCharts(facilityKey, monthlyData, latest);
+}
+
+// 시설 차트가 이미 만들어져 있다면 데이터 갱신 (아니면 다음에 탭 진입시 적용됨)
+function updateFacilityCharts(key, monthlyData, latest) {
+  // 월별 데이터 추출 헬퍼
+  const extractMonthly = (col) => monthlyData.map(m => m ? num(m[col]) || null : null);
+
+  if (key === 'dog') {
+    const ch1 = Chart.getChart('dogMonthChart');
+    if (ch1) {
+      ch1.data.datasets[0].data = extractMonthly('이용건수');
+      ch1.data.datasets[1].data = extractMonthly('이용인원');
+      ch1.update();
+    }
+    const ch2 = Chart.getChart('dogTimeChart');
+    if (ch2 && latest) {
+      const timeCols = ['09시','10시','11시','12시','13시','14시','15시','16시','17시','18시'];
+      ch2.data.datasets[0].data = timeCols.map(t => num(latest[t]));
+      ch2.update();
+    }
+  }
+  else if (key === 'gym') {
+    const ch1 = Chart.getChart('gymMonthChart');
+    if (ch1) {
+      ch1.data.datasets[0].data = extractMonthly('총이용인원');
+      ch1.update();
+    }
+    const ch2 = Chart.getChart('gymFacilChart');
+    if (ch2) {
+      // 목적별: 연간 합계
+      const team = monthlyData.reduce((a,m) => a + (m ? num(m['팀플레이']) : 0), 0);
+      const free = monthlyData.reduce((a,m) => a + (m ? num(m['자유운동']) : 0), 0);
+      const teamFree = monthlyData.reduce((a,m) => a + (m ? num(m['자유운동_팀예약']) : 0), 0);
+      ch2.data.datasets[0].data = [team, free, teamFree];
+      ch2.update();
+    }
+    const ch3 = Chart.getChart('gymTimeChart');
+    if (ch3 && latest) {
+      const timeCols = ['06시','07시','08시','09시','10시','11시','12시','13시','14시','15시','16시','17시','18시','19시','20시','21시','22시'];
+      ch3.data.datasets[0].data = timeCols.map(t => num(latest[t]));
+      ch3.update();
+    }
+  }
+  else if (key === 'core') {
+    const ch1 = Chart.getChart('coreMonthChart');
+    if (ch1) {
+      ch1.data.datasets[0].data = extractMonthly('총이용인원');
+      ch1.update();
+    }
+    const ch2 = Chart.getChart('coreDayChart');
+    if (ch2 && latest) {
+      const dayCols = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
+      ch2.data.datasets[0].data = dayCols.map(d => num(latest[d]));
+      ch2.update();
+    }
+  }
+  else if (key === 'board') {
+    const ch1 = Chart.getChart('boardMonthChart');
+    if (ch1) {
+      ch1.data.datasets[0].data = extractMonthly('이용건수');
+      ch1.update();
+    }
+    const ch2 = Chart.getChart('boardCatChart');
+    if (ch2) {
+      const cats = ['전략_건수','파티_건수','추리_건수','협력_건수','가족_건수'];
+      ch2.data.datasets[0].data = cats.map(c => 
+        monthlyData.reduce((a,m) => a + (m ? num(m[c]) : 0), 0)
+      );
+      ch2.update();
+    }
+  }
+}
+
+// ── 시트 10: 보드게임 목록 ──
+function applyBoardListSheet(rows) {
+  const validRows = rows.filter(r => String(r['게임명'] || '').trim().length > 0);
+  if (!validRows.length) return;
+
+  // BOARD_GAMES 전역 배열 갱신
+  if (typeof BOARD_GAMES !== 'undefined') {
+    BOARD_GAMES.length = 0;
+    validRows.forEach(row => {
+      BOARD_GAMES.push({
+        name: String(row['게임명']),
+        cat:  String(row['카테고리'] || '기타'),
+        count: num(row['이용건수']),
+        time: 60,  // 평균이용시간은 더 이상 표시 안 함
+      });
+    });
+  }
+  window.FACILITY_DATA.boardList = validRows;
+
+  // 보드게임 TOP10 차트가 이미 그려져 있다면 갱신
+  const topChart = Chart.getChart('boardGameChart');
+  if (topChart) {
+    const sorted = [...validRows].sort((a,b) => num(b['이용건수']) - num(a['이용건수'])).slice(0, 10);
+    const catColor = { '전략':'#4e7fff','파티':'#f59e0b','추리':'#8b5cf6','협력':'#03C75A','가족':'#ff6b35' };
+    topChart.data.labels = sorted.map(g => String(g['게임명']));
+    topChart.data.datasets[0].data = sorted.map(g => num(g['이용건수']));
+    topChart.data.datasets[0].backgroundColor = sorted.map(g => catColor[String(g['카테고리'])] || '#4e7fff');
+    topChart.update();
+  }
+
+  // 전체 목록 렌더 갱신
+  if (typeof renderBoardList === 'function') {
+    renderBoardList('');
   }
 }
 
@@ -2252,7 +2362,7 @@ function updateDataStamp() {
   // 대신 메모리에만 보관 — 새로고침 시 "초기 데이터"로 리셋
 }
 
-// ===== 서식 다운로드 (전체 9개 시트) =====
+// ===== 서식 다운로드 (전체 10개 시트) =====
 function downloadTemplate() {
   const wb = XLSX.utils.book_new();
   const M = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
@@ -2436,65 +2546,158 @@ function downloadTemplate() {
   // ══════════════════════════════════════════════
   // 시트 6: 강아지 산책 이용현황
   // ══════════════════════════════════════════════
-  const dogData = M.map((m, i) => ({
-    '연도': 2026, '월': m,
-    '이용건수': i < 4 ? [18,15,24,32][i] : '',
-    '이용인원': i < 4 ? [42,36,58,72][i] : '',
-    '참여강아지수': i < 4 ? [5,5,5,5][i] : '',
-    '만족도': i < 4 ? [4.8,4.7,4.9,4.9][i] : '',
-  }));
-  const ws6 = makeSheet(dogData,
-    ['연도','월','이용건수','이용인원','참여강아지수','만족도'],
-    [7,7,10,10,13,10]);
+  const dogTimeCols = ['09시','10시','11시','12시','13시','14시','15시','16시','17시','18시'];
+  const dogSamples = [
+    // 월별 (이용건수, 이용인원, 참여강아지수, 만족도) + 시간대 10개
+    [18, 42, 5, 4.8,  4,8,10,12,14,18,16,12,8,6],
+    [15, 36, 5, 4.7,  3,7,8,10,12,15,13,10,7,5],
+    [24, 58, 5, 4.9,  5,9,13,16,18,22,20,15,10,7],
+    [32, 72, 5, 4.9,  7,12,18,22,25,30,28,20,13,9],
+  ];
+  const dogData = M.map((m, i) => {
+    const base = { '연도': 2026, '월': m };
+    if (i < dogSamples.length) {
+      const s = dogSamples[i];
+      base['이용건수']     = s[0];
+      base['이용인원']     = s[1];
+      base['참여강아지수'] = s[2];
+      base['만족도']       = s[3];
+      dogTimeCols.forEach((t, j) => base[t] = s[4+j]);
+    } else {
+      base['이용건수'] = ''; base['이용인원'] = ''; base['참여강아지수'] = ''; base['만족도'] = '';
+      dogTimeCols.forEach(t => base[t] = '');
+    }
+    return base;
+  });
+  const dogHeader = ['연도','월','이용건수','이용인원','참여강아지수','만족도', ...dogTimeCols];
+  const ws6 = makeSheet(dogData, dogHeader,
+    [7,7,10,10,13,10, ...dogTimeCols.map(()=>7)]);
   XLSX.utils.book_append_sheet(wb, ws6, '06_강아지산책');
 
   // ══════════════════════════════════════════════
   // 시트 7: 체육관 이용현황
   // ══════════════════════════════════════════════
-  const gymData = M.map((m, i) => ({
-    '연도': 2026, '월': m,
-    '총이용인원': i < 4 ? [228,204,288,334][i] : '',
-    '체육관이용': i < 4 ? [180,162,228,266][i] : '',
-    '팀플레이': i < 4 ? [82,76,108,124][i] : '',
-    '자유운동': i < 4 ? [126,108,154,176][i] : '',
-    '자유운동_팀예약': i < 4 ? [20,20,26,34][i] : '',
-    '만족도': i < 4 ? [4.5,4.5,4.6,4.7][i] : '',
-  }));
-  const ws7 = makeSheet(gymData,
-    ['연도','월','총이용인원','체육관이용','팀플레이','자유운동','자유운동_팀예약','만족도'],
-    [7,7,12,12,10,10,16,10]);
+  const gymTimeCols = ['06시','07시','08시','09시','10시','11시','12시','13시','14시','15시','16시','17시','18시','19시','20시','21시','22시'];
+  const gymSamples = [
+    // 월별 (총이용인원, 체육관이용, 팀플레이, 자유운동, 자유운동_팀예약, 만족도) + 시간대 17개
+    [228, 180, 82, 126, 20, 4.5,   2,5,12,15,14,18,22,16,13,17,19,24,21,12,7,4,2],
+    [204, 162, 76, 108, 20, 4.5,   2,4,10,13,12,15,20,14,11,15,17,21,18,10,6,3,2],
+    [288, 228,108, 154, 26, 4.6,   3,6,14,18,17,22,26,19,15,20,23,28,24,14,8,4,2],
+    [334, 266,124, 176, 34, 4.7,   3,7,16,21,19,25,30,22,18,23,27,32,28,16,9,5,2],
+  ];
+  const gymData = M.map((m, i) => {
+    const base = { '연도': 2026, '월': m };
+    if (i < gymSamples.length) {
+      const s = gymSamples[i];
+      base['총이용인원']      = s[0];
+      base['체육관이용']      = s[1];
+      base['팀플레이']        = s[2];
+      base['자유운동']        = s[3];
+      base['자유운동_팀예약'] = s[4];
+      base['만족도']          = s[5];
+      gymTimeCols.forEach((t, j) => base[t] = s[6+j]);
+    } else {
+      base['총이용인원'] = ''; base['체육관이용'] = ''; base['팀플레이'] = '';
+      base['자유운동'] = ''; base['자유운동_팀예약'] = ''; base['만족도'] = '';
+      gymTimeCols.forEach(t => base[t] = '');
+    }
+    return base;
+  });
+  const gymHeader = ['연도','월','총이용인원','체육관이용','팀플레이','자유운동','자유운동_팀예약','만족도', ...gymTimeCols];
+  const ws7 = makeSheet(gymData, gymHeader,
+    [7,7,12,12,10,10,16,10, ...gymTimeCols.map(()=>7)]);
   XLSX.utils.book_append_sheet(wb, ws7, '07_체육관');
 
   // ══════════════════════════════════════════════
   // 시트 8: 코어센터 이용현황
   // ══════════════════════════════════════════════
-  const coreData = M.map((m, i) => ({
-    '연도': 2026, '월': m,
-    '총이용인원': i < 4 ? [134,114,172,218][i] : '',
-    '평균이용시간_분': i < 4 ? [42,40,46,52][i] : '',
-    '만족도': i < 4 ? [4.6,4.6,4.7,4.8][i] : '',
-  }));
-  const ws8 = makeSheet(coreData,
-    ['연도','월','총이용인원','평균이용시간_분','만족도'],
-    [7,7,12,18,10]);
+  const coreDayCols = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
+  const coreSamples = [
+    // 월별 (총이용인원, 평균이용시간_분, 만족도) + 요일별 7개
+    [134, 42, 4.6,  18,22,20,24,26,14,10],
+    [114, 40, 4.6,  16,18,16,20,22,12,10],
+    [172, 46, 4.7,  22,26,24,30,34,18,18],
+    [218, 52, 4.8,  26,30,28,36,42,28,28],
+  ];
+  const coreData = M.map((m, i) => {
+    const base = { '연도': 2026, '월': m };
+    if (i < coreSamples.length) {
+      const s = coreSamples[i];
+      base['총이용인원']        = s[0];
+      base['평균이용시간_분']   = s[1];
+      base['만족도']            = s[2];
+      coreDayCols.forEach((d, j) => base[d] = s[3+j]);
+    } else {
+      base['총이용인원'] = ''; base['평균이용시간_분'] = ''; base['만족도'] = '';
+      coreDayCols.forEach(d => base[d] = '');
+    }
+    return base;
+  });
+  const coreHeader = ['연도','월','총이용인원','평균이용시간_분','만족도', ...coreDayCols];
+  const ws8 = makeSheet(coreData, coreHeader,
+    [7,7,12,18,10, ...coreDayCols.map(()=>9)]);
   XLSX.utils.book_append_sheet(wb, ws8, '08_코어센터');
 
   // ══════════════════════════════════════════════
   // 시트 9: 보드게임 이용현황 (월별 집계)
   // ══════════════════════════════════════════════
-  const boardData = M.map((m, i) => ({
-    '연도': 2026, '월': m,
-    '이용건수': i < 4 ? [102,86,114,110][i] : '',
-    '보유게임수': i < 4 ? [48,48,48,48][i] : '',
-    '만족도': i < 4 ? [4.8,4.9,4.9,4.9][i] : '',
-  }));
+  const boardSamples = [
+    // 월별 (이용건수, 보유게임수, 만족도) + 카테고리별 (전략, 파티, 추리, 협력, 가족)
+    [102, 48, 4.8,  42,38,18,16,8],
+    [86,  48, 4.9,  34,32,14,12,6],
+    [114, 48, 4.9,  48,42,20,18,10],
+    [110, 48, 4.9,  46,42,20,18,10],
+  ];
+  const boardData = M.map((m, i) => {
+    const base = { '연도': 2026, '월': m };
+    if (i < boardSamples.length) {
+      const s = boardSamples[i];
+      base['이용건수']    = s[0];
+      base['보유게임수']  = s[1];
+      base['만족도']      = s[2];
+      base['전략_건수']   = s[3];
+      base['파티_건수']   = s[4];
+      base['추리_건수']   = s[5];
+      base['협력_건수']   = s[6];
+      base['가족_건수']   = s[7];
+    } else {
+      ['이용건수','보유게임수','만족도','전략_건수','파티_건수','추리_건수','협력_건수','가족_건수']
+        .forEach(c => base[c] = '');
+    }
+    return base;
+  });
   const ws9 = makeSheet(boardData,
-    ['연도','월','이용건수','보유게임수','만족도'],
-    [7,7,10,12,10]);
+    ['연도','월','이용건수','보유게임수','만족도','전략_건수','파티_건수','추리_건수','협력_건수','가족_건수'],
+    [7,7,10,12,10,10,10,10,10,10]);
   XLSX.utils.book_append_sheet(wb, ws9, '09_보드게임');
 
+  // ══════════════════════════════════════════════
+  // 시트 10: 보드게임 목록 (게임명 단위)
+  // ══════════════════════════════════════════════
+  const boardGameList = [
+    { name:'스플렌더',         cat:'전략', count:68 },
+    { name:'뱅!',             cat:'파티', count:54 },
+    { name:'카르카손',         cat:'전략', count:48 },
+    { name:'딕싯',            cat:'파티', count:45 },
+    { name:'한밤의 살인마',     cat:'추리', count:42 },
+    { name:'러브레터',         cat:'파티', count:38 },
+    { name:'윙스팬',          cat:'전략', count:35 },
+    { name:'팬데믹',          cat:'협력', count:32 },
+    { name:'코드네임',         cat:'파티', count:28 },
+    { name:'아줄',            cat:'전략', count:24 },
+    { name:'할리갈리',         cat:'가족', count:22 },
+    { name:'우봉고',          cat:'가족', count:18 },
+  ];
+  const boardListData = boardGameList.map(g => ({
+    '게임명': g.name, '카테고리': g.cat, '이용건수': g.count
+  }));
+  const ws10 = makeSheet(boardListData,
+    ['게임명','카테고리','이용건수'],
+    [20,10,10]);
+  XLSX.utils.book_append_sheet(wb, ws10, '10_보드게임목록');
+
   XLSX.writeFile(wb, 'NAVER_CONNECT_ONE_운영현황_서식.xlsx');
-  showToast('전체 서식 파일을 다운로드했습니다 (9개 시트)', 'success');
+  showToast('전체 서식 파일을 다운로드했습니다 (10개 시트)', 'success');
 }
 
 // 업로드 오버레이 클릭 닫기
@@ -2889,6 +3092,17 @@ function initFacilityCharts(name) {
     );
 
     renderBoardList('');
+  }
+
+  // 차트 생성 직후, 저장된 업로드 데이터가 있으면 sync
+  if (window.FACILITY_DATA && window.FACILITY_DATA[name]) {
+    const monthlyData = window.FACILITY_DATA[name];
+    const latest = [...monthlyData].reverse().find(m => m);
+    if (latest) updateFacilityCharts(name, monthlyData, latest);
+  }
+  // 보드게임은 목록 시트도 sync
+  if (name === 'board' && window.FACILITY_DATA && window.FACILITY_DATA.boardList) {
+    applyBoardListSheet(window.FACILITY_DATA.boardList);
   }
 }
 
