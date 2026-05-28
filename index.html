@@ -150,7 +150,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
 }
 .donut-total span{font-weight:700;color:var(--text2);}
 
-/* ===== UTIL CARD (미팅룸/숙소 이용률 + 가로바) ===== */
+/* ===== UTIL CARD (미팅룸/숙소 가동률 + 가로바) ===== */
 .util-grid{
   display:grid;grid-template-columns:minmax(110px, 1fr) 2.5fr;gap:20px;align-items:flex-start;
 }
@@ -663,11 +663,11 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <!-- 미팅룸 -->
     <div class="card">
       <div class="card-title">미팅룸 이용현황</div>
-      <div class="card-sub">미팅룸 이용률 = 누적 이용실적 / (미팅룸수 × 위킹데이)</div>
+      <div class="card-sub">미팅룸 가동률 = 누적 이용실적 / (미팅룸수 × 워킹데이)</div>
       <div class="util-grid">
         <div class="util-summary">
           <div class="util-pct" id="meetingPct">23<span class="util-pct-unit">%</span></div>
-          <div class="util-pct-label">이용률</div>
+          <div class="util-pct-label">가동률</div>
           <div class="util-detail">
             <div class="util-row"><span class="util-dot" style="background:#4e7fff;"></span>누적 <strong id="meetingUse">114</strong>개소</div>
             <div class="util-row"><span class="util-dot" style="background:#dde8ff;"></span>가능 <strong id="meetingCap">506</strong>개소</div>
@@ -719,11 +719,11 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     <!-- 숙소 -->
     <div class="card">
       <div class="card-title">숙소 이용현황</div>
-      <div class="card-sub">숙소 이용률 = 누적 이용실적 / (보유숙소수 × 위킹데이)</div>
+      <div class="card-sub">숙소 가동률 = 누적 이용실적 / (보유숙소수 × 워킹데이)</div>
       <div class="util-grid">
         <div class="util-summary">
           <div class="util-pct" id="roomPct">43<span class="util-pct-unit">%</span></div>
-          <div class="util-pct-label">이용률</div>
+          <div class="util-pct-label">가동률</div>
           <div class="util-detail">
             <div class="util-row"><span class="util-dot" style="background:#4e7fff;"></span>누적 <strong id="roomUse">1,325</strong>개소</div>
             <div class="util-row"><span class="util-dot" style="background:#dde8ff;"></span>가능 <strong id="roomCap">3,058</strong>개소</div>
@@ -2134,7 +2134,7 @@ function applyMeetingSheet(rows) {
   const cap   = num(latest['사용가능미팅룸']);
   const pct   = cap ? Math.round(total / cap * 100) : 0;
 
-  // 이용률/누적/가능 텍스트 갱신
+  // 가동률/누적/가능 텍스트 갱신
   const pctEl = document.getElementById('meetingPct');
   if (pctEl) pctEl.innerHTML = `${pct}<span class="util-pct-unit">%</span>`;
   const useEl = document.getElementById('meetingUse');
@@ -2155,7 +2155,7 @@ function applyMeetingSheet(rows) {
     sizes.forEach((s, i) => {
       const row = hbarRows[i];
       if (!row) return;
-      // 사용/가능 비율 (이용률)
+      // 사용/가능 비율 (가동률)
       const widthPct = s.cap > 0 ? Math.round(s.use / s.cap * 100) : 0;
       const fill = row.querySelector('.hbar-fill');
       const text = row.querySelector('.hbar-text');
@@ -2177,7 +2177,7 @@ function applyRoomSheet(rows) {
   const cap   = num(latest['배정가능숙소']);
   const pct   = cap ? Math.round(total / cap * 100) : 0;
 
-  // 이용률/누적/가능 텍스트 갱신
+  // 가동률/누적/가능 텍스트 갱신
   const pctEl = document.getElementById('roomPct');
   if (pctEl) pctEl.innerHTML = `${pct}<span class="util-pct-unit">%</span>`;
   const useEl = document.getElementById('roomUse');
@@ -2200,7 +2200,7 @@ function applyRoomSheet(rows) {
     floors.forEach((f, i) => {
       const row = hbarRows[i];
       if (!row) return;
-      // 사용/가능 비율 (이용률)
+      // 사용/가능 비율 (가동률)
       const widthPct = f.cap > 0 ? Math.round(f.use / f.cap * 100) : 0;
       const fill = row.querySelector('.hbar-fill');
       const text = row.querySelector('.hbar-text');
