@@ -1179,8 +1179,9 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
       <ul>
         <li>서식 다운로드 후 데이터를 입력하여 업로드해주세요</li>
         <li>10개 시트(운영현황·미팅룸·숙소·만족도·의견·강아지·체육관·코어·보드·게임목록)가 자동으로 인식됩니다</li>
-        <li>시트명은 변경하지 마세요 (01_운영현황 ~ 05_이용자의견)</li>
+        <li>시트명은 변경하지 마세요 (01_운영현황 ~ 10_보드게임목록)</li>
         <li>빈 셀은 무시되며, 입력된 데이터만 반영됩니다</li>
+        <li style="color:var(--green);font-weight:700;">💡 서버 자동 연동: 사내 서버에 엑셀 파일이 있으면 페이지 접속 시 자동으로 데이터가 반영됩니다</li>
       </ul>
     </div>
 
@@ -3275,6 +3276,73 @@ try {
 } catch(e) {
   console.warn('Initial sync skipped:', e);
 }
+
+// ════════════════════════════════════════════════════════════
+// 자동 엑셀 fetch (사내 웹서버 배포 시)
+// ════════════════════════════════════════════════════════════
+// ▼ 서버 경로에 맞게 이 값만 수정하면 됩니다 ▼
+// 예시: './data/NAVER_CONNECT_ONE_운영현황.xlsx'
+//      'https://intranet.example.com/dashboards/data/운영현황.xlsx'
+const AUTO_LOAD_EXCEL_URL = './data/NAVER_CONNECT_ONE_운영현황_서식.xlsx';
+// false로 설정하면 자동 로드 비활성화 (수동 업로드만 사용)
+const AUTO_LOAD_ENABLED = true;
+
+async function autoLoadExcel() {
+  if (!AUTO_LOAD_ENABLED) return;
+
+  try {
+    console.log('[autoLoad] 엑셀 자동 로드 시작:', AUTO_LOAD_EXCEL_URL);
+    const response = await fetch(AUTO_LOAD_EXCEL_URL);
+
+    if (!response.ok) {
+      // 파일 없음 또는 서버 오류 - 조용히 무시 (수동 업로드로 폴백)
+      console.info('[autoLoad] 자동 로드 파일 없음 (수동 업로드 사용 가능):', response.status);
+      return;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+
+    // 시트 키워드 매칭 (handleFile과 동일 로직)
+    const sheetNames = workbook.SheetNames;
+    const parsedSheets = {};
+    Object.entries(SHEET_KEYS).forEach(([key, keyDef]) => {
+      let found = sheetNames.find(n => keyDef.primary.some(k => n.includes(k)));
+      if (!found) found = sheetNames.find(n => n.startsWith(keyDef.numberPrefix));
+      if (found) {
+        const ws = workbook.Sheets[found];
+        parsedSheets[key] = XLSX.utils.sheet_to_json(ws);
+      }
+    });
+
+    // 자동 적용
+    const result = applyAllSheets(parsedSheets);
+    console.log(`[autoLoad] 자동 로드 완료 (${result.applied}개 시트 반영)`);
+
+    // 데이터 스탬프 갱신
+    const stamp = document.getElementById('dataStampTime');
+    if (stamp) {
+      const now = new Date();
+      const ts = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      const latest = findLatestPeriod();
+      if (latest) {
+        stamp.textContent = `${latest.year}년 ${latest.month}월 · 자동 동기화 ${ts}`;
+      }
+    }
+
+    // 사용자 토스트 (조용한 알림)
+    if (typeof showToast === 'function' && result.applied > 0) {
+      showToast(`서버에서 최신 데이터를 자동으로 불러왔습니다 (${result.applied}개 시트)`, 'success');
+    }
+  } catch (err) {
+    // 네트워크 오류, CORS 오류, file:// 프로토콜 등 - 조용히 무시
+    console.info('[autoLoad] 자동 로드 실패 (수동 업로드 사용 가능):', err.message);
+  }
+}
+
+// 페이지 로드 완료 후 약간의 딜레이를 두고 자동 로드 실행
+// (모든 차트가 그려진 후에 데이터 갱신해야 안전)
+setTimeout(autoLoadExcel, 300);
 
 </script>
 </body>
