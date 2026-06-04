@@ -585,7 +585,7 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
   <!-- KPI -->
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-label">워크샵</div>
+      <div class="kpi-label">월 이용건수</div>
       <div class="kpi-main"><div class="kpi-val" id="kpiWorkshop">104</div><div class="kpi-unit">건</div></div>
       <div class="kpi-divider"></div>
       <div class="kpi-avg-row">
@@ -614,8 +614,8 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
     </div>
   </div>
 
-  <!-- 차트 행 1: 도넛 2개 -->
-  <div class="grid g2" style="margin-bottom:12px;">
+  <!-- 차트 행 1: 도넛 3개 -->
+  <div class="grid g3" style="margin-bottom:12px;">
     <div class="card">
       <div class="card-title">법인별 이용현황</div>
       <div class="donut-wrap">
@@ -630,6 +630,22 @@ body{font-family:'NanumSquare',sans-serif;background:var(--gray1);color:var(--te
         <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>NAVER 1,119명</div>
         <div class="legend-item"><div class="legend-dot" style="background:#7ba7ff"></div>NAVER계열 1,020명</div>
         <div class="legend-item"><div class="legend-dot" style="background:#b8d0ff"></div>LINE계열 94명</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">이용 목적별 이용현황</div>
+      <div class="donut-wrap">
+        <canvas id="purposeChart"></canvas>
+        <div class="donut-center" id="purposeCenter">
+          <div class="donut-pct" id="purposePct">57%</div>
+          <div class="donut-label" id="purposeLabel">워크숍 비중</div>
+          <div class="donut-total">총 <span id="purposeTotal">2,233</span>명</div>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#03C75A"></div>워크숍 <span id="purposeLegendWorkshop">1,280</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#4e7fff"></div>팀플레이 <span id="purposeLegendTeamplay">832</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>워케이션 <span id="purposeLegendWorkation">121</span></div>
       </div>
     </div>
     <div class="card">
@@ -1295,6 +1311,7 @@ function donut(id, data, labels, colors, cutout='65%') {
 
 // ===== CHARTS: PAGE 1 =====
 window._corpChart = donut('corpChart', [1119, 1020, 94], ['NAVER','NAVER계열','LINE계열'], ['#4e7fff','#7ba7ff','#b8d0ff']);
+window._purposeChart = donut('purposeChart', [1280, 832, 121], ['워크숍','팀플레이','워케이션'], ['#03C75A','#4e7fff','#f59e0b']);
 window._nightChart = donut('nightChart', [16, 1934, 198, 40, 45], ['당일','1박2일','2박3일','3박4일','4박5일'], ['#03C75A','#4e7fff','#7ba7ff','#99bbff','#b8d0ff']);
 // 미팅룸/숙소는 도넛 대신 텍스트로 표시 (도넛 캔버스 없음)
 
@@ -2119,6 +2136,10 @@ function applyOpsSheet(rows) {
       n0: num(row['당일']),
       n1: num(row['1박2일']), n2: num(row['2박3일']),
       n3: num(row['3박4일']), n4: num(row['4박5일']),
+      // 이용 목적별 (워크숍/팀플레이/워케이션)
+      purposeWorkshop:  num(row['워크숍']),
+      purposeTeamplay:  num(row['팀플레이']),
+      purposeWorkation: num(row['워케이션']),
     };
     // 모든 값이 0이면 빈 행으로 간주
     const sum = Object.values(monthData).reduce((a,b)=>a+b, 0);
@@ -2400,9 +2421,9 @@ function downloadTemplate() {
   }
 
   // ══════════════════════════════════════════════
-  // 시트 1: 운영현황 (KPI + 법인별 + 이용일수별)
+  // 시트 1: 운영현황 (KPI + 법인별 + 이용일수별 + 이용목적별)
   // ══════════════════════════════════════════════
-  // 2025년 1~12월 + 2026년 1~4월 실데이터 포함
+  // 2025년 1~12월 + 2026년 1~5월 실데이터 포함
   const OPS_SAMPLE = [
     // 2025
     [2025,'1월',  66, 1423, 683, 23, 719,  425,  279, 12, 1286, 18,  12,  95],
@@ -2422,26 +2443,31 @@ function downloadTemplate() {
     [2026,'2월',  65, 974,  435, 20, 320,  486,  168, 26, 688,  90,  20,  150],
     [2026,'3월',  83, 2336, 1125,22, 882,  1001, 453, 18, 2112, 42,  84,  80],
     [2026,'4월',  124,2931, 1345,22, 1249, 1473, 209, 20, 2294, 384, 68,  165],
+    [2026,'5월',  104,2233, 1068,18, 1119, 1020, 94,  16, 1934, 198, 40,  45],
   ];
   const opsData = OPS_SAMPLE.map(r => ({
     '연도':r[0],'월':r[1],'워크샵건수':r[2],'누적인원':r[3],'방문인원':r[4],'운영일수':r[5],
     'NAVER인원':r[6],'NAVER계열인원':r[7],'LINE계열인원':r[8],
     '당일':r[9],'1박2일':r[10],'2박3일':r[11],'3박4일':r[12],'4박5일':r[13],
+    // 이용 목적별 (워크숍/팀플레이/워케이션) - 데이터 수집 시 입력
+    '워크숍':'','팀플레이':'','워케이션':'',
     '최근1년평균_워크샵':'','최근1년평균_인원':'','최근1년평균_운영일수':''
   }));
-  // 2026년 5~12월 빈 행
-  for (let i = 4; i < 12; i++) {
+  // 2026년 6~12월 빈 행
+  for (let i = 5; i < 12; i++) {
     opsData.push({ '연도':2026,'월':M[i],'워크샵건수':'','누적인원':'','방문인원':'','운영일수':'',
       'NAVER인원':'','NAVER계열인원':'','LINE계열인원':'',
       '당일':'','1박2일':'','2박3일':'','3박4일':'','4박5일':'',
+      '워크숍':'','팀플레이':'','워케이션':'',
       '최근1년평균_워크샵':'','최근1년평균_인원':'','최근1년평균_운영일수':'' });
   }
   const opsHeader = ['연도','월','워크샵건수','누적인원','방문인원','운영일수',
     'NAVER인원','NAVER계열인원','LINE계열인원',
     '당일','1박2일','2박3일','3박4일','4박5일',
+    '워크숍','팀플레이','워케이션',
     '최근1년평균_워크샵','최근1년평균_인원','최근1년평균_운영일수'];
   const ws1 = makeSheet(opsData, opsHeader,
-    [7,7,12,12,12,12,13,15,13,8,10,10,10,10,18,18,20]);
+    [7,7,12,12,12,12,13,15,13,8,10,10,10,10,10,10,10,18,18,20]);
   XLSX.utils.book_append_sheet(wb, ws1, '01_운영현황');
 
   // ══════════════════════════════════════════════
@@ -2816,26 +2842,26 @@ new Chart(document.getElementById('satTrendChart'), {
 // ===== 연/월별 데이터 DB =====
 const OPS_DB = {
   2026: {
-    1: { workshop:74,  person:2115, visitor:1011, opDays:22, naver:735,  naverK:767,  line:613, n0:34, n1:1778, n2:186, n3:52, n4:65  },
-    2: { workshop:65,  person:974,  visitor:435,  opDays:20, naver:320,  naverK:486,  line:168, n0:26, n1:688,  n2:90,  n3:20, n4:150 },
-    3: { workshop:83,  person:2336, visitor:1125, opDays:22, naver:882,  naverK:1001, line:453, n0:18, n1:2112, n2:42,  n3:84, n4:80  },
-    4: { workshop:124, person:2931, visitor:1345, opDays:22, naver:1249, naverK:1473, line:209, n0:20, n1:2294, n2:384, n3:68, n4:165 },
-    5: { workshop:104, person:2233, visitor:1068, opDays:18, naver:1119, naverK:1020, line:94,  n0:16, n1:1934, n2:198, n3:40, n4:45  },
+    1: { workshop:74,  person:2115, visitor:1011, opDays:22, naver:735,  naverK:767,  line:613, n0:34, n1:1778, n2:186, n3:52, n4:65,  purposeWorkshop:1687, purposeTeamplay:323,  purposeWorkation:105 },
+    2: { workshop:65,  person:974,  visitor:435,  opDays:20, naver:320,  naverK:486,  line:168, n0:26, n1:688,  n2:90,  n3:20, n4:150, purposeWorkshop:657,  purposeTeamplay:210,  purposeWorkation:107 },
+    3: { workshop:83,  person:2336, visitor:1125, opDays:22, naver:882,  naverK:1001, line:453, n0:18, n1:2112, n2:42,  n3:84, n4:80,  purposeWorkshop:1517, purposeTeamplay:695,  purposeWorkation:124 },
+    4: { workshop:124, person:2931, visitor:1345, opDays:22, naver:1249, naverK:1473, line:209, n0:20, n1:2294, n2:384, n3:68, n4:165, purposeWorkshop:1306, purposeTeamplay:1471, purposeWorkation:154 },
+    5: { workshop:104, person:2233, visitor:1068, opDays:18, naver:1119, naverK:1020, line:94,  n0:16, n1:1934, n2:198, n3:40, n4:45,  purposeWorkshop:1280, purposeTeamplay:832,  purposeWorkation:121 },
     6: null, 7:null, 8:null, 9:null, 10:null, 11:null, 12:null,
   },
   2025: {
-    1:  { workshop:66,  person:1423, visitor:683,  opDays:23, naver:719,  naverK:425,  line:279, n0:12, n1:1286, n2:18,  n3:12,  n4:95  },
-    2:  { workshop:69,  person:1650, visitor:754,  opDays:20, naver:561,  naverK:790,  line:299, n0:26, n1:1294, n2:111, n3:4,   n4:215 },
-    3:  { workshop:107, person:1814, visitor:879,  opDays:21, naver:564,  naverK:647,  line:603, n0:68, n1:1504, n2:54,  n3:68,  n4:120 },
-    4:  { workshop:118, person:2620, visitor:1254, opDays:22, naver:1262, naverK:1110, line:248, n0:13, n1:2302, n2:210, n3:20,  n4:75  },
-    5:  { workshop:98,  person:2234, visitor:1062, opDays:22, naver:1239, naverK:889,  line:106, n0:14, n1:1952, n2:135, n3:8,   n4:125 },
-    6:  { workshop:113, person:2331, visitor:1133, opDays:21, naver:680,  naverK:1583, line:68,  n0:21, n1:2148, n2:24,  n3:48,  n4:90  },
-    7:  { workshop:84,  person:2161, visitor:974,  opDays:23, naver:1042, naverK:1037, line:82,  n0:32, n1:1492, n2:510, n3:12,  n4:115 },
-    8:  { workshop:86,  person:1839, visitor:843,  opDays:21, naver:952,  naverK:588,  line:299, n0:34, n1:1412, n2:135, n3:128, n4:130 },
-    9:  { workshop:142, person:3094, visitor:1524, opDays:22, naver:1613, naverK:1059, line:422, n0:56, n1:2826, n2:84,  n3:28,  n4:100 },
-    10: { workshop:106, person:2005, visitor:956,  opDays:23, naver:1046, naverK:791,  line:168, n0:24, n1:1728, n2:102, n3:76,  n4:75  },
-    11: { workshop:142, person:2862, visitor:1384, opDays:20, naver:1367, naverK:1294, line:201, n0:48, n1:2490, n2:189, n3:20,  n4:115 },
-    12: { workshop:75,  person:2270, visitor:1095, opDays:23, naver:908,  naverK:1232, line:130, n0:34, n1:1918, n2:285, n3:8,   n4:25  },
+    1:  { workshop:66,  person:1423, visitor:683,  opDays:23, naver:719,  naverK:425,  line:279, n0:12, n1:1286, n2:18,  n3:12,  n4:95,  purposeWorkshop:882,  purposeTeamplay:429,  purposeWorkation:112 },
+    2:  { workshop:69,  person:1650, visitor:754,  opDays:20, naver:561,  naverK:790,  line:299, n0:26, n1:1294, n2:111, n3:4,   n4:215, purposeWorkshop:1256, purposeTeamplay:289,  purposeWorkation:105 },
+    3:  { workshop:107, person:1814, visitor:879,  opDays:21, naver:564,  naverK:647,  line:603, n0:68, n1:1504, n2:54,  n3:68,  n4:120, purposeWorkshop:1072, purposeTeamplay:563,  purposeWorkation:179 },
+    4:  { workshop:118, person:2620, visitor:1254, opDays:22, naver:1262, naverK:1110, line:248, n0:13, n1:2302, n2:210, n3:20,  n4:75,  purposeWorkshop:1243, purposeTeamplay:1267, purposeWorkation:110 },
+    5:  { workshop:98,  person:2234, visitor:1062, opDays:22, naver:1239, naverK:889,  line:106, n0:14, n1:1952, n2:135, n3:8,   n4:125, purposeWorkshop:892,  purposeTeamplay:1230, purposeWorkation:112 },
+    6:  { workshop:113, person:2331, visitor:1133, opDays:21, naver:680,  naverK:1583, line:68,  n0:21, n1:2148, n2:24,  n3:48,  n4:90,  purposeWorkshop:1200, purposeTeamplay:987,  purposeWorkation:144 },
+    7:  { workshop:84,  person:2161, visitor:974,  opDays:23, naver:1042, naverK:1037, line:82,  n0:32, n1:1492, n2:510, n3:12,  n4:115, purposeWorkshop:1159, purposeTeamplay:882,  purposeWorkation:120 },
+    8:  { workshop:86,  person:1839, visitor:843,  opDays:21, naver:952,  naverK:588,  line:299, n0:34, n1:1412, n2:135, n3:128, n4:130, purposeWorkshop:1244, purposeTeamplay:423,  purposeWorkation:172 },
+    9:  { workshop:142, person:3094, visitor:1524, opDays:22, naver:1613, naverK:1059, line:422, n0:56, n1:2826, n2:84,  n3:28,  n4:100, purposeWorkshop:1657, purposeTeamplay:1308, purposeWorkation:129 },
+    10: { workshop:106, person:2005, visitor:956,  opDays:23, naver:1046, naverK:791,  line:168, n0:24, n1:1728, n2:102, n3:76,  n4:75,  purposeWorkshop:826,  purposeTeamplay:1075, purposeWorkation:104 },
+    11: { workshop:142, person:2862, visitor:1384, opDays:20, naver:1367, naverK:1294, line:201, n0:48, n1:2490, n2:189, n3:20,  n4:115, purposeWorkshop:1338, purposeTeamplay:1374, purposeWorkation:150 },
+    12: { workshop:75,  person:2270, visitor:1095, opDays:23, naver:908,  naverK:1232, line:130, n0:34, n1:1918, n2:285, n3:8,   n4:25,  purposeWorkshop:1677, purposeTeamplay:539,  purposeWorkation:54  },
   }
 };
 
@@ -2857,7 +2883,12 @@ function getFilteredData(year, month) {
       naverK:   acc.naverK   + m.naverK,
       line:     acc.line     + m.line,
       n0: acc.n0+(m.n0||0), n1: acc.n1+m.n1, n2:acc.n2+m.n2, n3:acc.n3+m.n3, n4:acc.n4+m.n4,
-    }), { workshop:0,person:0,visitor:0,opDays:0,naver:0,naverK:0,line:0,n0:0,n1:0,n2:0,n3:0,n4:0 });
+      // 이용 목적별 (없으면 0으로 처리)
+      purposeWorkshop:  acc.purposeWorkshop  + (m.purposeWorkshop  || 0),
+      purposeTeamplay:  acc.purposeTeamplay  + (m.purposeTeamplay  || 0),
+      purposeWorkation: acc.purposeWorkation + (m.purposeWorkation || 0),
+    }), { workshop:0,person:0,visitor:0,opDays:0,naver:0,naverK:0,line:0,n0:0,n1:0,n2:0,n3:0,n4:0,
+          purposeWorkshop:0,purposeTeamplay:0,purposeWorkation:0 });
   }
   return yearData[parseInt(month)] || null;
 }
@@ -2904,6 +2935,31 @@ function applyPeriodFilter(year, month, silent) {
       { name:'LINE계열',  val:data.line   },
     ];
     updateDonutCenter('corp', corpItems);
+  }
+
+  // ── 이용 목적별 도넛 ──
+  if (window._purposeChart) {
+    const pW = data.purposeWorkshop  || 0;
+    const pT = data.purposeTeamplay  || 0;
+    const pK = data.purposeWorkation || 0;
+    window._purposeChart.data.datasets[0].data = [pW, pT, pK];
+    window._purposeChart.update();
+    const purposeItems = [
+      { name:'워크숍',   val:pW },
+      { name:'팀플레이', val:pT },
+      { name:'워케이션', val:pK },
+    ];
+    updateDonutCenter('purpose', purposeItems);
+    // 범례 숫자 갱신
+    setText('purposeLegendWorkshop', pW.toLocaleString());
+    setText('purposeLegendTeamplay', pT.toLocaleString());
+    setText('purposeLegendWorkation', pK.toLocaleString());
+    // 데이터 없을 때는 중앙에 "데이터 수집 중" 표시
+    if (pW + pT + pK === 0) {
+      setText('purposePct', '-');
+      setText('purposeLabel', '데이터 수집 중');
+      setText('purposeTotal', '-');
+    }
   }
 
   // ── 이용일수별 도넛 ──
