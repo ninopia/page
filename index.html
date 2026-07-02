@@ -2136,11 +2136,12 @@ function applyMeetingSheet(rows) {
       { label:'소형', use: num(latest['소형_이용']), cap: num(latest['소형_가능']) },
       { label:'기타', use: num(latest['기타_이용']), cap: num(latest['기타_가능']) },
     ];
-    const hbarRows = meetingCard.querySelectorAll('.hbar-row');
-    sizes.forEach((s, i) => {
-      const row = hbarRows[i];
+    sizes.forEach(s => {
+      // 헤더 행 제외하고 label 텍스트로 매칭
+      const rows = meetingCard.querySelectorAll('.hbar-row');
+      let row = null;
+      rows.forEach(r => { if (r.querySelector('.hbar-label')?.textContent.trim() === s.label) row = r; });
       if (!row) return;
-      // 사용/가능 비율 (가동률)
       const widthPct = s.cap > 0 ? Math.round(s.use / s.cap * 100) : 0;
       const fill = row.querySelector('.hbar-fill');
       const text = row.querySelector('.hbar-text');
@@ -2181,11 +2182,11 @@ function applyRoomSheet(rows) {
       { label:'1층', use: num(latest['1층_이용']), cap: num(latest['1층_가능']) },
       { label:'0층', use: num(latest['0층_이용']), cap: num(latest['0층_가능']) },
     ];
-    const hbarRows = roomCard.querySelectorAll('.hbar-row');
-    floors.forEach((f, i) => {
-      const row = hbarRows[i];
+    floors.forEach(f => {
+      const rows = roomCard.querySelectorAll('.hbar-row');
+      let row = null;
+      rows.forEach(r => { if (r.querySelector('.hbar-label')?.textContent.trim() === f.label) row = r; });
       if (!row) return;
-      // 사용/가능 비율 (가동률)
       const widthPct = f.cap > 0 ? Math.round(f.use / f.cap * 100) : 0;
       const fill = row.querySelector('.hbar-fill');
       const text = row.querySelector('.hbar-text');
