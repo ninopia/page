@@ -1830,6 +1830,27 @@ function applyAllSheets(sheets) {
   if (sheets.core    && sheets.core.length)    { applyFacilitySheet('core',  sheets.core);  applied++; }
   if (sheets.board   && sheets.board.length)   { applyFacilitySheet('board', sheets.board); applied++; }
   if (sheets.boardList && sheets.boardList.length) { applyBoardListSheet(sheets.boardList); applied++; }
+
+  // 모든 시트 적용 후 최신 월 기준으로 차트/KPI 일괄 갱신
+  const latest = findLatestPeriod();
+  const year  = latest ? latest.year  : parseInt(document.getElementById('filterYear').value);
+  const month = latest ? String(latest.month) : document.getElementById('filterMonth').value;
+
+  // 셀렉터에 새 연도가 없으면 추가
+  const yearSel  = document.getElementById('filterYear');
+  const monthSel = document.getElementById('filterMonth');
+  if (latest && yearSel && !Array.from(yearSel.options).some(o => o.value == year)) {
+    const opt = document.createElement('option');
+    opt.value = year; opt.textContent = year + '년';
+    yearSel.insertBefore(opt, yearSel.firstChild);
+  }
+  if (yearSel)  yearSel.value  = String(year);
+  if (monthSel) monthSel.value = month;
+
+  initMainCharts(year, month);
+  applyPeriodFilter(year, month, true);
+  updateRecentYearAvg(year, month);
+
   return { applied };
 }
 
@@ -2083,29 +2104,7 @@ function applyOpsSheet(rows) {
     const sum = Object.values(monthData).reduce((a,b)=>a+b, 0);
     OPS_DB[year][idx+1] = sum > 0 ? monthData : null;
   });
-
-  // 업로드 후 가장 최신 월로 자동 점프
-  const latest = findLatestPeriod();
-  if (latest) {
-    const yearSel  = document.getElementById('filterYear');
-    const monthSel = document.getElementById('filterMonth');
-    // 셀렉터에 새 연도가 없으면 추가
-    if (yearSel && !Array.from(yearSel.options).some(o => o.value == latest.year)) {
-      const opt = document.createElement('option');
-      opt.value = latest.year; opt.textContent = latest.year + '년';
-      yearSel.insertBefore(opt, yearSel.firstChild);
-    }
-    if (yearSel)  yearSel.value  = String(latest.year);
-    if (monthSel) monthSel.value = String(latest.month);
-    initMainCharts(latest.year, String(latest.month));
-    applyPeriodFilter(latest.year, String(latest.month), true);
-  } else {
-    // fallback: 현재 선택 유지
-    const year  = parseInt(document.getElementById('filterYear').value);
-    const month = document.getElementById('filterMonth').value;
-    initMainCharts(year, month);
-    applyPeriodFilter(year, month, true);
-  }
+  // ops 시트 적용 완료 — 차트 재호출은 applyAllSheets에서 통합 처리
 }
 
 // ── 시트 2: 미팅룸 이용현황 ──
