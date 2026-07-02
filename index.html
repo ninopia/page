@@ -2109,6 +2109,8 @@ function applyOpsSheet(rows) {
 
 // ── 시트 2: 미팅룸 이용현황 ──
 function applyMeetingSheet(rows) {
+  // 엑셀 업로드 시 전체 rows 저장 (월 필터 변경 시 재사용)
+  if (rows.length > 3) window._uploadedMeetRows = rows;
   // 가장 최근 월 데이터 사용 (값이 있는 마지막 행)
   const filledRows = rows.filter(r => num(r['누적이용실적']) > 0 || num(r['사용가능미팅룸']) > 0);
   const latest = filledRows[filledRows.length - 1];
@@ -2154,6 +2156,8 @@ function applyMeetingSheet(rows) {
 
 // ── 시트 3: 숙소 이용현황 ──
 function applyRoomSheet(rows) {
+  // 엑셀 업로드 시 전체 rows 저장 (월 필터 변경 시 재사용)
+  if (rows.length > 3) window._uploadedRoomRows = rows;
   const filledRows = rows.filter(r => num(r['누적이용실적']) > 0 || num(r['배정가능숙소']) > 0);
   const latest = filledRows[filledRows.length - 1];
   if (!latest) return;
@@ -3020,6 +3024,23 @@ function applyPeriodFilter(year, month, silent) {
   }
 
   if (!silent) showToast(`${label} 데이터로 업데이트됐습니다`, 'success');
+
+  // ── 미팅룸 / 숙소: 선택 월에 맞는 행으로 갱신 ──
+  // 엑셀 업로드 데이터가 있으면 그걸 우선, 없으면 MEET_ROWS/ROOM_ROWS 사용
+  const meetSrc = (window._uploadedMeetRows || MEET_ROWS);
+  const roomSrc = (window._uploadedRoomRows || ROOM_ROWS);
+
+  if (month === 'all') {
+    // 연간 전체: 해당 연도 행 전체 전달
+    applyMeetingSheet(meetSrc.filter(r => String(r['연도']) === String(year)));
+    applyRoomSheet(roomSrc.filter(r => String(r['연도']) === String(year)));
+  } else {
+    // 특정 월: 해당 연도+월 행만 전달
+    const M = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    const mLabel = M[parseInt(month) - 1];
+    applyMeetingSheet(meetSrc.filter(r => String(r['연도']) === String(year) && r['월'] === mLabel));
+    applyRoomSheet(roomSrc.filter(r => String(r['연도']) === String(year) && r['월'] === mLabel));
+  }
 }
 
 // ===== 메인 차트 초기화 (OPS_DB + getFilteredData 정의 후 호출) =====
