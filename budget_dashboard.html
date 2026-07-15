@@ -104,6 +104,9 @@
   @media(max-width:980px){.charts-row{grid-template-columns:1fr;} .kpi-grid{grid-template-columns:repeat(2,1fr);}}
 
   canvas{max-width:100%;}
+  .chart-box{position:relative; height:280px; width:100%;}
+  .chart-box-lg{height:320px;}
+  @media(max-width:640px){.chart-box{height:220px;} .chart-box-lg{height:260px;}}
 
   table{
     width:100%; border-collapse:collapse; font-size:13px;
@@ -185,19 +188,19 @@
     <span class="grp-title">이용 현황</span>
     <span class="chip"><span class="swatch" style="background:rgba(123,79,166,0.5)"></span>누적인원(명, 꺾은선)</span>
   </div>
-  <canvas id="mainChart" height="110"></canvas>
+  <div class="chart-box chart-box-lg"><canvas id="mainChart"></canvas></div>
 </div>
 
 <div class="charts-row">
   <div class="panel">
     <h2>총예산 추이 및 투자성 경비 비중</h2>
     <p class="sub-note">막대: 총예산(억원) · 선: 투자성 경비 비중(%)</p>
-    <canvas id="trendChart" height="230"></canvas>
+    <div class="chart-box"><canvas id="trendChart"></canvas></div>
   </div>
   <div class="panel">
     <h2>2026년 항목별 구성비</h2>
     <p class="sub-note">올해 현재까지 집행 기준</p>
-    <canvas id="donutChart" height="230"></canvas>
+    <div class="chart-box"><canvas id="donutChart"></canvas></div>
   </div>
 </div>
 
@@ -327,6 +330,7 @@ function renderAll(){
     plugins:[ChartDataLabels, totalLabelPlugin],
     options:{
       responsive:true,
+      maintainAspectRatio:false,
       layout:{padding:{top:24}},
       plugins:{
         legend:{display:false},
@@ -358,6 +362,7 @@ function renderAll(){
     },
     options:{
       responsive:true,
+      maintainAspectRatio:false,
       plugins:{legend:{position:'bottom', labels:{boxWidth:12, font:{size:11}}}},
       scales:{
         y:{position:'left', title:{display:true, text:'억원'}},
@@ -379,6 +384,7 @@ function renderAll(){
     plugins:[ChartDataLabels],
     options:{
       responsive:true,
+      maintainAspectRatio:false,
       plugins:{
         legend:{position:'bottom', labels:{boxWidth:12, font:{size:11}}},
         tooltip:{callbacks:{label:(ctx)=> `${ctx.label}: ${ctx.parsed.toFixed(2)}억원`}},
