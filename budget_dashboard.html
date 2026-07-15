@@ -9,13 +9,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
-    --naver-green:#03C75A;
-    --naver-green-dark:#029C46;
-    --green-mid:#5FDB89;
-    --green-light:#B7EFC9;
-    --amber-1:#E8B84B;
-    --amber-2:#C99A2E;
-    --amber-3:#8E6F1D;
+    --naver-green:#5FD189;
+    --naver-green-dark:#3FAE68;
+    --green-mid:#4B90F5;
+    --green-light:#9C8DF5;
+    --amber-1:#262626;
+    --amber-2:#A8A8A8;
+    --amber-3:#BFBFBF;
     --ink:#16241C;
     --sub:#5B6B62;
     --bg:#F5F9F6;
@@ -105,7 +105,7 @@
 
   canvas{max-width:100%;}
   .chart-box{position:relative; height:280px; width:100%;}
-  .chart-box-lg{height:320px;}
+  .chart-box-lg{height:440px;}
   @media(max-width:640px){.chart-box{height:220px;} .chart-box-lg{height:260px;}}
 
   table{
@@ -186,7 +186,7 @@
     <span class="chip"><span class="swatch hatched" style="--sw-color:var(--amber-3)"></span>특별행사</span>
     <span class="divider"></span>
     <span class="grp-title">이용 현황</span>
-    <span class="chip"><span class="swatch" style="background:rgba(123,79,166,0.5)"></span>누적인원(명, 꺾은선)</span>
+    <span class="chip"><span class="swatch" style="background:rgba(240,100,90,0.5)"></span>누적인원(명, 꺾은선)</span>
   </div>
   <div class="chart-box chart-box-lg"><canvas id="mainChart"></canvas></div>
 </div>
@@ -267,7 +267,7 @@ const greenLight = getComputedStyle(document.documentElement).getPropertyValue('
 const amber1 = getComputedStyle(document.documentElement).getPropertyValue('--amber-1').trim();
 const amber2 = getComputedStyle(document.documentElement).getPropertyValue('--amber-2').trim();
 const amber3 = getComputedStyle(document.documentElement).getPropertyValue('--amber-3').trim();
-const userLineTransparent = 'rgba(123,79,166,0.5)';
+const userLineTransparent = 'rgba(240,100,90,0.5)';
 
 let mainChart, trendChart, donutChart;
 
@@ -434,11 +434,15 @@ function updateKPIs(years, totals, investShare){
   document.getElementById('kpi-current-progress').style.width = Math.min(pct,100)+'%';
   document.getElementById('badge').textContent = `${lastYear}년 집행률 ${pct}%`;
 
-  const recentN = Math.min(5, totals.length);
-  const recentTotals = totals.slice(-recentN);
-  const avg = (recentTotals.reduce((a,b)=>a+b,0)/recentTotals.length).toFixed(1);
+  const priorYears = years.slice(0, -1); // 올해(마지막 연도) 제외
+  const priorTotals = totals.slice(0, -1);
+  const recentN = Math.min(5, priorTotals.length);
+  const recentTotals = priorTotals.slice(-recentN);
+  const avg = recentN ? (recentTotals.reduce((a,b)=>a+b,0)/recentTotals.length).toFixed(1) : '0.0';
   document.getElementById('kpi-avg-value').innerHTML = `${avg}<span>억원</span>`;
-  document.getElementById('kpi-avg-delta').textContent = `${years[years.length-recentN]}~${years[years.length-1]} 평균`;
+  document.getElementById('kpi-avg-delta').textContent = recentN
+    ? `${priorYears[priorYears.length-recentN]}~${priorYears[priorYears.length-1]} 평균 (${lastYear}년 제외)`
+    : '데이터 부족';
 
   let maxIdx = 0;
   totals.forEach((t,i)=>{ if(t>totals[maxIdx]) maxIdx=i; });
