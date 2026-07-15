@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>시설관리 예산 대시보드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --naver-green:#03C75A;
+    --naver-green-dark:#029C46;
+    --green-mid:#5FDB89;
+    --green-light:#B7EFC9;
+    --amber-1:#E8B84B;
+    --amber-2:#C99A2E;
+    --amber-3:#8E6F1D;
+    --ink:#16241C;
+    --sub:#5B6B62;
+    --bg:#F5F9F6;
+    --card:#FFFFFF;
+    --line:#E2ECE5;
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--bg);}
+  body{
+    margin:0 auto;
+    max-width:75%;
+    font-family:'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding:28px 32px 60px;
+  }
+  header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:3px solid var(--naver-green);
+    padding-bottom:18px; margin-bottom:24px; flex-wrap:wrap; gap:12px;
+  }
+  header .titles h1{
+    font-size:26px; margin:0 0 6px; letter-spacing:-0.3px;
+  }
+  header .titles p{margin:0;color:var(--sub);font-size:13.5px;}
+  header .badge{
+    background:var(--naver-green); color:#fff; font-weight:700;
+    padding:8px 16px; border-radius:20px; font-size:13px;
+  }
+
+  .kpi-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;
+  }
+  .kpi{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:18px 20px; position:relative; overflow:hidden;
+  }
+  .kpi .label{font-size:12.5px; color:var(--sub); margin-bottom:8px;}
+  .kpi .value{font-size:24px; font-weight:800;}
+  .kpi .value span{font-size:14px; font-weight:600; color:var(--sub); margin-left:2px;}
+  .kpi .delta{font-size:12.5px; margin-top:6px; font-weight:600;}
+  .delta.up{color:#D8422A;}
+  .delta.down{color:var(--naver-green-dark);}
+  .delta.flat{color:var(--sub);}
+  .progress-track{
+    margin-top:10px; height:8px; background:#EAF3ED; border-radius:6px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; background:var(--naver-green); border-radius:6px;
+  }
+  .xlsx-btn{
+    background:var(--naver-green); color:#fff; border:none; font-weight:700;
+    padding:8px 16px; border-radius:8px; font-size:12.5px; font-family:inherit;
+    cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  }
+  .xlsx-btn:hover{background:var(--naver-green-dark);}
+
+  .panel{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:22px 24px; margin-bottom:20px;
+  }
+  .panel h2{
+    font-size:16px; margin:0 0 4px;
+  }
+  .panel .sub-note{font-size:12.5px; color:var(--sub); margin:0 0 16px;}
+
+  .legend-groups{
+    display:flex; align-items:center; gap:10px; flex-wrap:nowrap; margin-bottom:14px; font-size:12px;
+    overflow-x:auto; padding-bottom:2px;
+  }
+  .legend-groups .grp-title{font-weight:700; margin-right:6px; white-space:nowrap;}
+  .legend-groups .chip{
+    display:inline-flex; align-items:center; gap:4px; margin-right:8px; white-space:nowrap;
+  }
+  .legend-groups .swatch{width:12px;height:12px;border-radius:3px;display:inline-block;}
+  .legend-groups .swatch.hatched{
+    background-image: repeating-linear-gradient(45deg, var(--sw-color) 0 2px, transparent 2px 5px);
+    border:1px solid var(--sw-color);
+  }
+  .legend-groups .divider{
+    display:inline-block; width:1px; height:16px; background:var(--line);
+    margin:0 6px; vertical-align:middle;
+  }
+
+  .charts-row{display:grid; grid-template-columns: 1.3fr 1fr; gap:20px;}
+  @media(max-width:980px){.charts-row{grid-template-columns:1fr;} .kpi-grid{grid-template-columns:repeat(2,1fr);}}
+
+  canvas{max-width:100%;}
+
+  table{
+    width:100%; border-collapse:collapse; font-size:13px;
+  }
+  thead th{
+    background:#EFF8F2; color:var(--ink); font-weight:700; text-align:right;
+    padding:10px 8px; border-bottom:2px solid var(--naver-green);
+  }
+  thead th:first-child{text-align:left;}
+  tbody td{
+    padding:8px; text-align:right; border-bottom:1px solid var(--line);
+  }
+  tbody td:first-child{text-align:left; font-weight:700;}
+  tbody tr:last-child td{font-weight:800; background:#F5FBF7; border-top:2px solid var(--naver-green);}
+  .cat-tag{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:6px;}
+  footer{
+    text-align:center; color:var(--sub); font-size:11.5px; margin-top:28px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="titles">
+    <h1>시설관리 예산 대시보드</h1>
+    <p>2015 – 2026 · 단위: 억원</p>
+  </div>
+  <div class="badge" id="badge">2026년 집행률 39.2%</div>
+</header>
+
+<div class="panel" style="padding:16px 24px;">
+  <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+    <strong style="font-size:13.5px;">데이터 관리</strong>
+    <button id="btnDownload" class="xlsx-btn">⬇ 엑셀 다운로드</button>
+    <label class="xlsx-btn" for="fileUpload" style="cursor:pointer;">⬆ 엑셀 업로드</label>
+    <input type="file" id="fileUpload" accept=".xlsx,.xls" style="display:none;">
+    <span id="uploadStatus" style="font-size:12px; color:var(--sub);">연도, 건물관리, 부지관리, 식당관리, 건물투자, 부지개발, 특별행사, 누적인원 열을 포함한 엑셀 파일을 업로드하세요.</span>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="label" id="kpi-current-label">2026년 현재까지 집행 예산</div>
+    <div class="value" id="kpi-current-value">26.6<span>억원</span></div>
+    <div class="delta up" id="kpi-current-delta">연간 예산 67.9억원 대비 39.2% 집행</div>
+    <div class="progress-track"><div class="progress-fill" id="kpi-current-progress" style="width:39.2%;"></div></div>
+  </div>
+  <div class="kpi">
+    <div class="label">최근 5년 예산 평균</div>
+    <div class="value" id="kpi-avg-value">45.2<span>억원</span></div>
+    <div class="delta flat" id="kpi-avg-delta">2015~2026 평균</div>
+  </div>
+  <div class="kpi">
+    <div class="label">최고 예산 연도</div>
+    <div class="value" id="kpi-max-value">2023<span>년</span></div>
+    <div class="delta up" id="kpi-max-delta">56.2억원</div>
+  </div>
+  <div class="kpi">
+    <div class="label">투자성 경비 비중 (최대)</div>
+    <div class="value" id="kpi-share-value">30.1<span>%</span></div>
+    <div class="delta down" id="kpi-share-delta">2017년, 건물투자·부지개발 합산</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>연도별 예산 구성</h2>
+  <p class="sub-note">건물관리 · 부지관리 · 식당관리는 매년 반복되는 운영비이며, 건물투자 · 부지개발 · 특별행사는 해당 연도에만 발생하는 투자성 경비로 별도 패턴으로 표시했습니다. 꺾은선은 누적인원(명)이며, 2026년은 1~6월 누계 기준입니다.</p>
+  <div class="legend-groups">
+    <span class="grp-title">운영비</span>
+    <span class="chip"><span class="swatch" style="background:var(--naver-green)"></span>건물관리</span>
+    <span class="chip"><span class="swatch" style="background:var(--green-mid)"></span>부지관리</span>
+    <span class="chip"><span class="swatch" style="background:var(--green-light)"></span>식당관리</span>
+    <span class="divider"></span>
+    <span class="grp-title">투자성 경비 (사선 패턴)</span>
+    <span class="chip"><span class="swatch hatched" style="--sw-color:var(--amber-1)"></span>건물투자</span>
+    <span class="chip"><span class="swatch hatched" style="--sw-color:var(--amber-2)"></span>부지개발</span>
+    <span class="chip"><span class="swatch hatched" style="--sw-color:var(--amber-3)"></span>특별행사</span>
+    <span class="divider"></span>
+    <span class="grp-title">이용 현황</span>
+    <span class="chip"><span class="swatch" style="background:rgba(123,79,166,0.5)"></span>누적인원(명, 꺾은선)</span>
+  </div>
+  <canvas id="mainChart" height="110"></canvas>
+</div>
+
+<div class="charts-row">
+  <div class="panel">
+    <h2>총예산 추이 및 투자성 경비 비중</h2>
+    <p class="sub-note">막대: 총예산(억원) · 선: 투자성 경비 비중(%)</p>
+    <canvas id="trendChart" height="230"></canvas>
+  </div>
+  <div class="panel">
+    <h2>2026년 항목별 구성비</h2>
+    <p class="sub-note">올해 현재까지 집행 기준</p>
+    <canvas id="donutChart" height="230"></canvas>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>연도별 상세 데이터 (억원)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>연도</th>
+        <th>건물관리</th>
+        <th>부지관리</th>
+        <th>식당관리</th>
+        <th>건물투자</th>
+        <th>부지개발</th>
+        <th>특별행사</th>
+        <th>합계</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<footer>제공된 예산표(대분류/소분류 소계) 및 이용율.xlsx(누적인원) 기준으로 재구성 · 금액은 억원 단위로 반올림 표시 · 2026년은 연중 집행 기준 수치(누적인원은 1~6월 누계)로, 건물투자·부지개발 등 일부 항목은 아직 집행 전입니다</footer>
+
+<script>
+Chart.defaults.font.family = "'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
+
+const CATS = ['건물관리','부지관리','식당관리','건물투자','부지개발','특별행사'];
+
+const state = {
+  years: [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026],
+  data: {
+    건물관리: [22.24,24.43,28.80,34.44,35.79,35.94,33.81,39.77,42.76,41.54,42.53,20.51],
+    부지관리: [1.58,4.26,3.14,3.47,2.05,3.75,3.69,3.93,4.20,4.31,4.13,1.83],
+    식당관리: [2.55,4.32,4.84,5.09,6.39,4.47,3.54,5.95,8.74,8.61,8.75,4.25],
+    건물투자: [2.86,4.66,5.22,3.00,0.07,2.40,0.49,0.24,0.10,0,0.42,0],
+    부지개발: [2.97,5.11,10.63,4.33,0.56,0.85,0,0,0.40,0,0,0],
+    특별행사: [0,0,0,1.54,0,0,0,0,0,0,0,0]
+  },
+  // 누적인원(명) — 이용율.xlsx 기준, 마지막 연도는 연중 누계일 수 있음
+  cumulativeUsers: [5931,6701,10288,12249,17615,3330,697,25746,26678,25101,26303,13545],
+  annualTarget: 67.9
+};
+
+function hatchPattern(color){
+  const c = document.createElement('canvas');
+  c.width=10; c.height=10;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = color + '33';
+  ctx.fillRect(0,0,10,10);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0,10); ctx.lineTo(10,0);
+  ctx.moveTo(-2,2); ctx.lineTo(2,-2);
+  ctx.moveTo(8,12); ctx.lineTo(12,8);
+  ctx.stroke();
+  return ctx.createPattern(c,'repeat');
+}
+
+const green = getComputedStyle(document.documentElement).getPropertyValue('--naver-green').trim();
+const greenMid = getComputedStyle(document.documentElement).getPropertyValue('--green-mid').trim();
+const greenLight = getComputedStyle(document.documentElement).getPropertyValue('--green-light').trim();
+const amber1 = getComputedStyle(document.documentElement).getPropertyValue('--amber-1').trim();
+const amber2 = getComputedStyle(document.documentElement).getPropertyValue('--amber-2').trim();
+const amber3 = getComputedStyle(document.documentElement).getPropertyValue('--amber-3').trim();
+const userLineTransparent = 'rgba(123,79,166,0.5)';
+
+let mainChart, trendChart, donutChart;
+
+function computeTotals(){
+  return state.years.map((_,i)=> CATS.reduce((s,c)=> s + (state.data[c][i]||0), 0));
+}
+function computeInvestShare(totals){
+  return state.years.map((_,i)=>{
+    const invest = (state.data.건물투자[i]||0) + (state.data.부지개발[i]||0) + (state.data.특별행사[i]||0);
+    return totals[i] ? +(invest/totals[i]*100).toFixed(1) : 0;
+  });
+}
+
+function renderAll(){
+  const years = state.years;
+  const data = state.data;
+  const cumulativeUsers = state.cumulativeUsers;
+  const totals = computeTotals();
+  const investShare = computeInvestShare(totals);
+
+  if(mainChart) mainChart.destroy();
+  if(trendChart) trendChart.destroy();
+  if(donutChart) donutChart.destroy();
+
+  const totalLabelPlugin = {
+    id: 'totalLabelPlugin',
+    afterDatasetsDraw(chart){
+      const {ctx, scales} = chart;
+      const meta = chart.getDatasetMeta(0);
+      ctx.save();
+      ctx.font = "700 11px 'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
+      ctx.fillStyle = '#16241C';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      meta.data.forEach((bar, i)=>{
+        const val = totals[i];
+        if(!val) return;
+        const y = scales.y.getPixelForValue(val);
+        ctx.fillText(val.toFixed(1)+'억원', bar.x, y - 6);
+      });
+      ctx.restore();
+    }
+  };
+  const maxTotal = Math.max(...totals, 1);
+
+  mainChart = new Chart(document.getElementById('mainChart'), {
+    type:'bar',
+    data:{
+      labels: years,
+      datasets:[
+        {label:'건물관리', data:data.건물관리, backgroundColor:green, stack:'s', yAxisID:'y', order:1},
+        {label:'부지관리', data:data.부지관리, backgroundColor:greenMid, stack:'s', yAxisID:'y', order:1},
+        {label:'식당관리', data:data.식당관리, backgroundColor:greenLight, stack:'s', yAxisID:'y', order:1},
+        {label:'건물투자', data:data.건물투자, backgroundColor:hatchPattern(amber1), borderColor:amber1, borderWidth:1, stack:'s', yAxisID:'y', order:1},
+        {label:'부지개발', data:data.부지개발, backgroundColor:hatchPattern(amber2), borderColor:amber2, borderWidth:1, stack:'s', yAxisID:'y', order:1},
+        {label:'특별행사', data:data.특별행사, backgroundColor:hatchPattern(amber3), borderColor:amber3, borderWidth:1, stack:'s', yAxisID:'y', order:1},
+        {type:'line', label:'누적인원(명)', data:cumulativeUsers, borderColor:userLineTransparent, backgroundColor:userLineTransparent, yAxisID:'y2', tension:0.3, pointRadius:4, pointBackgroundColor:'#fff', pointBorderColor:userLineTransparent, pointBorderWidth:2, borderWidth:2.5, datalabels:{display:false}, order:0}
+      ]
+    },
+    plugins:[ChartDataLabels, totalLabelPlugin],
+    options:{
+      responsive:true,
+      layout:{padding:{top:24}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:(ctx)=> ctx.dataset.type==='line' ? `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()}명` : `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}억원`}},
+        datalabels:{
+          color:'#fff',
+          textStrokeColor:'rgba(0,0,0,0.35)',
+          textStrokeWidth:2,
+          font:{weight:700, size:10, family:"'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif"},
+          formatter:(value)=> value >= 1 ? value.toFixed(1)+'억원' : (value > 0 ? value.toFixed(2)+'억원' : '')
+        }
+      },
+      scales:{
+        x:{stacked:true, grid:{display:false}},
+        y:{stacked:true, title:{display:true, text:'억원'}, grid:{color:'#EEF4F0'}, suggestedMax: maxTotal * 1.12},
+        y2:{position:'right', title:{display:true, text:'누적인원(명)'}, grid:{drawOnChartArea:false}, beginAtZero:true}
+      }
+    }
+  });
+
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type:'bar',
+    data:{
+      labels: years,
+      datasets:[
+        {type:'bar', label:'총예산(억원)', data:totals, backgroundColor:'#CDEFDA', borderColor:green, borderWidth:1, yAxisID:'y'},
+        {type:'line', label:'투자성 경비 비중(%)', data:investShare, borderColor:amber2, backgroundColor:amber2, tension:0.3, yAxisID:'y1', pointRadius:3}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{position:'bottom', labels:{boxWidth:12, font:{size:11}}}},
+      scales:{
+        y:{position:'left', title:{display:true, text:'억원'}},
+        y1:{position:'right', title:{display:true, text:'%'}, grid:{drawOnChartArea:false}, min:0}
+      }
+    }
+  });
+
+  const lastIdx = years.length - 1;
+  donutChart = new Chart(document.getElementById('donutChart'), {
+    type:'doughnut',
+    data:{
+      labels: CATS,
+      datasets:[{
+        data: CATS.map(c=> data[c][lastIdx] || 0),
+        backgroundColor:[green, greenMid, greenLight, amber1, amber2, amber3]
+      }]
+    },
+    plugins:[ChartDataLabels],
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:12, font:{size:11}}},
+        tooltip:{callbacks:{label:(ctx)=> `${ctx.label}: ${ctx.parsed.toFixed(2)}억원`}},
+        datalabels:{
+          color:'#fff',
+          font:{weight:700, size:12, family:"'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif"},
+          formatter:(value, ctx)=>{
+            if(!value) return '';
+            const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+            return (value/total*100).toFixed(1)+'%';
+          }
+        }
+      }
+    }
+  });
+  document.querySelector('#donutChart').closest('.panel').querySelector('h2').textContent = `${years[lastIdx]}년 항목별 구성비`;
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  years.forEach((y,i)=>{
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${y}</td>
+      <td>${(data.건물관리[i]||0).toFixed(2)}</td>
+      <td>${(data.부지관리[i]||0).toFixed(2)}</td>
+      <td>${(data.식당관리[i]||0).toFixed(2)}</td>
+      <td>${(data.건물투자[i]||0).toFixed(2)}</td>
+      <td>${(data.부지개발[i]||0).toFixed(2)}</td>
+      <td>${(data.특별행사[i]||0).toFixed(2)}</td>
+      <td>${totals[i].toFixed(2)}</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  updateKPIs(years, totals, investShare);
+}
+
+function updateKPIs(years, totals, investShare){
+  const lastIdx = years.length - 1;
+  const lastYear = years[lastIdx];
+  const executed = totals[lastIdx];
+  const pct = state.annualTarget ? +(executed/state.annualTarget*100).toFixed(1) : 0;
+
+  document.getElementById('kpi-current-label').textContent = `${lastYear}년 현재까지 집행 예산`;
+  document.getElementById('kpi-current-value').innerHTML = `${executed.toFixed(1)}<span>억원</span>`;
+  document.getElementById('kpi-current-delta').textContent = `연간 예산 ${state.annualTarget}억원 대비 ${pct}% 집행`;
+  document.getElementById('kpi-current-progress').style.width = Math.min(pct,100)+'%';
+  document.getElementById('badge').textContent = `${lastYear}년 집행률 ${pct}%`;
+
+  const recentN = Math.min(5, totals.length);
+  const recentTotals = totals.slice(-recentN);
+  const avg = (recentTotals.reduce((a,b)=>a+b,0)/recentTotals.length).toFixed(1);
+  document.getElementById('kpi-avg-value').innerHTML = `${avg}<span>억원</span>`;
+  document.getElementById('kpi-avg-delta').textContent = `${years[years.length-recentN]}~${years[years.length-1]} 평균`;
+
+  let maxIdx = 0;
+  totals.forEach((t,i)=>{ if(t>totals[maxIdx]) maxIdx=i; });
+  document.getElementById('kpi-max-value').innerHTML = `${years[maxIdx]}<span>년</span>`;
+  document.getElementById('kpi-max-delta').textContent = `${totals[maxIdx].toFixed(1)}억원`;
+
+  let shareMaxIdx = 0;
+  investShare.forEach((s,i)=>{ if(s>investShare[shareMaxIdx]) shareMaxIdx=i; });
+  document.getElementById('kpi-share-value').innerHTML = `${investShare[shareMaxIdx].toFixed(1)}<span>%</span>`;
+  document.getElementById('kpi-share-delta').textContent = `${years[shareMaxIdx]}년, 건물투자·부지개발 등 합산 최대`;
+}
+
+renderAll();
+
+// ---- 엑셀 다운로드 ----
+document.getElementById('btnDownload').addEventListener('click', ()=>{
+  const rows = state.years.map((y,i)=>({
+    연도: y,
+    건물관리: state.data.건물관리[i] || 0,
+    부지관리: state.data.부지관리[i] || 0,
+    식당관리: state.data.식당관리[i] || 0,
+    건물투자: state.data.건물투자[i] || 0,
+    부지개발: state.data.부지개발[i] || 0,
+    특별행사: state.data.특별행사[i] || 0,
+    누적인원: state.cumulativeUsers[i] || 0
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '예산데이터');
+  XLSX.writeFile(wb, '예산_대시보드_데이터.xlsx');
+});
+
+// ---- 엑셀 업로드 ----
+document.getElementById('fileUpload').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  const statusEl = document.getElementById('uploadStatus');
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawRows = XLSX.utils.sheet_to_json(ws);
+      if(!rawRows.length) throw new Error('빈 파일');
+
+      // 헤더 앞뒤 공백 제거 등으로 열 이름 매칭 오류 방지
+      const rows = rawRows.map(r=>{
+        const norm = {};
+        Object.keys(r).forEach(k => { norm[String(k).trim()] = r[k]; });
+        return norm;
+      });
+
+      const toNum = (v)=>{
+        if(v === undefined || v === null || v === '') return 0;
+        const n = Number(v);
+        return isNaN(n) ? 0 : n;
+      };
+
+      // 연도 열 검증 (누락/비숫자 방지)
+      const parsedRows = rows.map(r => ({ year: Number(r['연도']), raw: r }))
+        .filter(r => !isNaN(r.year) && r.year > 0);
+      if(!parsedRows.length) throw new Error('연도 열이 필요합니다');
+
+      // 연도 오름차순 정렬 — 업로드 파일의 행 순서와 무관하게 차트가 항상 시간순으로 그려지도록 보정
+      parsedRows.sort((a,b)=> a.year - b.year);
+
+      // 동일 연도 중복 행 감지
+      const dupYears = parsedRows.map(r=>r.year).filter((y,i,arr)=> arr.indexOf(y) !== i);
+
+      const newYears = parsedRows.map(r => r.year);
+      const newData = {건물관리:[], 부지관리:[], 식당관리:[], 건물투자:[], 부지개발:[], 특별행사:[]};
+      const newUsers = [];
+      parsedRows.forEach(({raw})=>{
+        CATS.forEach(c => newData[c].push(toNum(raw[c])));
+        newUsers.push(toNum(raw['누적인원']));
+      });
+
+      state.years = newYears;
+      state.data = newData;
+      state.cumulativeUsers = newUsers;
+      renderAll();
+
+      let msg = `업로드 완료: ${newYears.length}개 연도(${newYears[0]}~${newYears[newYears.length-1]}) 데이터가 반영되었습니다.`;
+      if(dupYears.length) msg += ` (중복 연도 발견: ${[...new Set(dupYears)].join(', ')} — 모두 반영됨)`;
+      statusEl.textContent = msg;
+      statusEl.style.color = 'var(--naver-green-dark)';
+    }catch(err){
+      statusEl.textContent = '업로드 실패: 연도, 건물관리, 부지관리, 식당관리, 건물투자, 부지개발, 특별행사, 누적인원 열이 포함된 파일인지 확인해주세요.';
+      statusEl.style.color = '#D8422A';
+    }
+    e.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+</script>
+</body>
+</html>
