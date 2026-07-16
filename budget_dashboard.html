@@ -143,7 +143,7 @@
     <button id="btnDownload" class="xlsx-btn">⬇ 엑셀 다운로드</button>
     <label class="xlsx-btn" for="fileUpload" style="cursor:pointer;">⬆ 엑셀 업로드</label>
     <input type="file" id="fileUpload" accept=".xlsx,.xls" style="display:none;">
-    <span id="uploadStatus" style="font-size:12px; color:var(--sub);">연도, 건물관리, 부지관리, 식당관리, 건물투자, 부지개발, 특별행사, 누적인원 열을 포함한 엑셀 파일을 업로드하세요.</span>
+    <span id="uploadStatus" style="font-size:12px; color:var(--sub);">연도, 건물관리, 부지관리, 식당관리, 건물투자, 부지개발, 특별행사, 누적인원 열(+ 선택: 연간예산목표)을 포함한 엑셀 파일을 업로드하세요.</span>
   </div>
 </div>
 
@@ -172,7 +172,7 @@
 </div>
 
 <div class="panel">
-  <h2>연도별 예산 구성</h2>
+  <h2>연도별 예산 사용</h2>
   <p class="sub-note">건물관리 · 부지관리 · 식당관리는 매년 반복되는 운영비이며, 건물투자 · 부지개발 · 특별행사는 해당 연도에만 발생하는 투자성 경비로 별도 패턴으로 표시했습니다. 꺾은선은 누적인원(명)이며, 2026년은 1~6월 누계 기준입니다.</p>
   <div class="legend-groups">
     <span class="grp-title">운영비</span>
@@ -459,6 +459,7 @@ renderAll();
 
 // ---- 엑셀 다운로드 ----
 document.getElementById('btnDownload').addEventListener('click', ()=>{
+  const lastYear = state.years[state.years.length - 1];
   const rows = state.years.map((y,i)=>({
     연도: y,
     건물관리: state.data.건물관리[i] || 0,
@@ -467,9 +468,11 @@ document.getElementById('btnDownload').addEventListener('click', ()=>{
     건물투자: state.data.건물투자[i] || 0,
     부지개발: state.data.부지개발[i] || 0,
     특별행사: state.data.특별행사[i] || 0,
-    누적인원: state.cumulativeUsers[i] || 0
+    누적인원: state.cumulativeUsers[i] || 0,
+    연간예산목표: (y === lastYear) ? (state.annualTarget || 0) : ''
   }));
   const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{wch:8},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12},{wch:14}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '예산데이터');
   XLSX.writeFile(wb, '예산_대시보드_데이터.xlsx');
@@ -520,12 +523,21 @@ document.getElementById('fileUpload').addEventListener('change', (e)=>{
         newUsers.push(toNum(raw['누적인원']));
       });
 
+      // 연간예산목표: 어느 행에 있든 값이 있으면(0보다 크면) 반영, 없으면 기존 값 유지
+      let newTarget = null;
+      parsedRows.forEach(({raw})=>{
+        const t = toNum(raw['연간예산목표']);
+        if(t > 0) newTarget = t;
+      });
+      if(newTarget !== null) state.annualTarget = newTarget;
+
       state.years = newYears;
       state.data = newData;
       state.cumulativeUsers = newUsers;
       renderAll();
 
       let msg = `업로드 완료: ${newYears.length}개 연도(${newYears[0]}~${newYears[newYears.length-1]}) 데이터가 반영되었습니다.`;
+      if(newTarget !== null) msg += ` 연간 예산 목표도 ${newTarget}억원으로 갱신되었습니다.`;
       if(dupYears.length) msg += ` (중복 연도 발견: ${[...new Set(dupYears)].join(', ')} — 모두 반영됨)`;
       statusEl.textContent = msg;
       statusEl.style.color = 'var(--naver-green-dark)';
