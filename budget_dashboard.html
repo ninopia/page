@@ -26,7 +26,7 @@
   html{background:var(--bg);}
   body{
     margin:0 auto;
-    max-width:75%;
+    max-width:85%;
     font-family:'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;
     background:var(--bg);
     color:var(--ink);
@@ -47,7 +47,7 @@
   }
 
   .kpi-grid{
-    display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;
   }
   .kpi{
     background:var(--card); border:1px solid var(--line); border-radius:14px;
@@ -57,7 +57,7 @@
   .kpi .value{font-size:24px; font-weight:800;}
   .kpi .value span{font-size:14px; font-weight:600; color:var(--sub); margin-left:2px;}
   .kpi .delta{font-size:12.5px; margin-top:6px; font-weight:600;}
-  .delta.up{color:#D8422A;}
+  .delta.up{color:#F0645A;}
   .delta.down{color:var(--naver-green-dark);}
   .delta.flat{color:var(--sub);}
   .progress-track{
@@ -72,6 +72,8 @@
     cursor:pointer; display:inline-flex; align-items:center; gap:6px;
   }
   .xlsx-btn:hover{background:var(--naver-green-dark);}
+  #feeTableContainer th, #feeTableContainer td{text-align:center;}
+  #feeTableContainer .month-divider{border-left:2px solid var(--naver-green);}
 
   .panel{
     background:var(--card); border:1px solid var(--line); border-radius:16px;
@@ -101,7 +103,8 @@
   }
 
   .charts-row{display:grid; grid-template-columns: 1.3fr 1fr; gap:20px;}
-  @media(max-width:980px){.charts-row{grid-template-columns:1fr;} .kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .row-half{display:grid; grid-template-columns: 1fr 1fr; gap:20px;}
+  @media(max-width:980px){.charts-row{grid-template-columns:1fr;} .row-half{grid-template-columns:1fr;} .kpi-grid{grid-template-columns:repeat(2,1fr);}}
 
   canvas{max-width:100%;}
   .chart-box{position:relative; height:280px; width:100%;}
@@ -116,14 +119,57 @@
     padding:10px 8px; border-bottom:2px solid var(--naver-green);
   }
   thead th:first-child{text-align:left;}
+  thead th.sortable{cursor:pointer; user-select:none;}
+  thead th.sortable:hover{background:#E1F1E7;}
+  .sort-arrow{font-size:10px; color:var(--sub); display:inline-block; width:10px;}
+  .sort-arrow.active{color:var(--naver-green-dark); font-weight:900;}
   tbody td{
     padding:8px; text-align:right; border-bottom:1px solid var(--line);
   }
   tbody td:first-child{text-align:left; font-weight:700;}
   tbody tr:last-child td{font-weight:800; background:#F5FBF7; border-top:2px solid var(--naver-green);}
   .cat-tag{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:6px;}
+  .diff-negative{color:#F0645A; font-weight:800;}
+  .diff-positive{color:var(--naver-green-dark); font-weight:800;}
+  .diff-neutral{color:var(--sub); font-weight:700;}
   footer{
     text-align:center; color:var(--sub); font-size:11.5px; margin-top:28px;
+  }
+
+  .tab-nav{
+    display:flex; gap:6px; margin-bottom:20px; border-bottom:2px solid var(--line);
+  }
+  .group-nav{
+    display:flex; gap:10px; margin-bottom:0;
+  }
+  .group-btn{
+    background:var(--card); border:1px solid var(--line); font-family:inherit; font-size:14.5px; font-weight:800;
+    color:var(--sub); padding:12px 20px; cursor:pointer; border-radius:12px 12px 0 0; border-bottom:none;
+  }
+  .group-btn.active{color:var(--naver-green-dark); background:#EFF8F2; border-color:var(--line);}
+  .sub-nav{
+    display:flex; gap:6px; margin:0 0 20px; border-bottom:2px solid var(--line);
+    background:#EFF8F2; border-radius:0 12px 12px 12px; padding:0 8px;
+  }
+  .tab-btn{
+    background:none; border:none; font-family:inherit; font-size:14px; font-weight:700;
+    color:var(--sub); padding:10px 18px; cursor:pointer; border-bottom:3px solid transparent;
+    margin-bottom:-2px;
+  }
+  .tab-btn.active{color:var(--naver-green-dark); border-bottom-color:var(--naver-green);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .filter-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px;
+  }
+  select.corp-select{
+    font-family:inherit; font-size:13px; padding:7px 10px; border-radius:8px;
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+  }
+  .lock-badge{
+    background:#FFF3E0; color:#B8560A; font-size:12px; font-weight:700;
+    padding:5px 12px; border-radius:16px;
   }
 </style>
 </head>
@@ -134,9 +180,19 @@
     <h1>시설관리 예산 대시보드</h1>
     <p>2015 – 2026 · 단위: 억원</p>
   </div>
-  <div class="badge" id="badge">2026년 집행률 39.2%</div>
 </header>
 
+<div class="group-nav">
+  <button class="group-btn active" data-group="opex">운영비 집행</button>
+  <button class="group-btn" data-group="fee">시설이용료</button>
+</div>
+
+<div class="sub-nav" id="opexSubNav">
+  <button class="tab-btn active" data-tab="annual">연간 예산</button>
+  <button class="tab-btn" data-tab="monthly">월별 상세</button>
+</div>
+
+<div class="tab-panel active" id="tab-annual">
 <div class="panel" style="padding:16px 24px;">
   <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
     <strong style="font-size:13.5px;">데이터 관리</strong>
@@ -149,7 +205,7 @@
 
 <div class="kpi-grid">
   <div class="kpi">
-    <div class="label" id="kpi-current-label">2026년 현재까지 집행 예산</div>
+    <div class="label" id="kpi-current-label">2026년 현재까지 집행 예산(실적)</div>
     <div class="value" id="kpi-current-value">26.6<span>억원</span></div>
     <div class="delta up" id="kpi-current-delta">연간 예산 67.9억원 대비 39.2% 집행</div>
     <div class="progress-track"><div class="progress-fill" id="kpi-current-progress" style="width:39.2%;"></div></div>
@@ -160,20 +216,14 @@
     <div class="delta flat" id="kpi-avg-delta">2015~2026 평균</div>
   </div>
   <div class="kpi">
-    <div class="label">최고 예산 연도</div>
-    <div class="value" id="kpi-max-value">2023<span>년</span></div>
-    <div class="delta up" id="kpi-max-delta">56.2억원</div>
-  </div>
-  <div class="kpi">
-    <div class="label">투자성 경비 비중 (최대)</div>
+    <div class="label">운영성 경비 비중 (올해)</div>
     <div class="value" id="kpi-share-value">30.1<span>%</span></div>
-    <div class="delta down" id="kpi-share-delta">2017년, 건물투자·부지개발 합산</div>
+    <div class="delta down" id="kpi-share-delta">건물관리·식당관리 합산</div>
   </div>
 </div>
 
 <div class="panel">
   <h2>연도별 예산 사용</h2>
-  <p class="sub-note">건물관리 · 부지관리 · 식당관리는 매년 반복되는 운영비이며, 건물투자 · 부지개발 · 특별행사는 해당 연도에만 발생하는 투자성 경비로 별도 패턴으로 표시했습니다. 꺾은선은 누적인원(명)이며, 2026년은 1~6월 누계 기준입니다.</p>
   <div class="legend-groups">
     <span class="grp-title">운영비</span>
     <span class="chip"><span class="swatch" style="background:var(--naver-green)"></span>건물관리</span>
@@ -193,15 +243,44 @@
 
 <div class="charts-row">
   <div class="panel">
-    <h2>총예산 추이 및 투자성 경비 비중</h2>
-    <p class="sub-note">막대: 총예산(억원) · 선: 투자성 경비 비중(%)</p>
+    <h2>총예산 추이 및 운영성 경비 비중</h2>
+    <p class="sub-note">막대: 총예산(억원) · 선: 운영성 경비 비중(%)</p>
     <div class="chart-box"><canvas id="trendChart"></canvas></div>
   </div>
   <div class="panel">
     <h2>2026년 항목별 구성비</h2>
-    <p class="sub-note">올해 현재까지 집행 기준</p>
+    <p class="sub-note">올해 실적(실지급) 기준, 1~6월</p>
     <div class="chart-box"><canvas id="donutChart"></canvas></div>
   </div>
+</div>
+
+<div class="row-half">
+<div class="panel">
+  <div class="filter-row">
+    <h2 style="margin:0;">연간 예산 대비 시설이용료 청구액 비교</h2>
+    <button id="btnDownloadFeeCompare" class="xlsx-btn">⬇ 엑셀 다운로드</button>
+    <label class="xlsx-btn" for="fileUploadFeeCompare" style="cursor:pointer;">⬆ 엑셀 업로드</label>
+    <input type="file" id="fileUploadFeeCompare" accept=".xlsx,.xls" style="display:none;">
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>연도</th>
+        <th>지출 예산(억원)</th>
+        <th>시설이용료 청구액(억원)</th>
+        <th>차액(억원)</th>
+        <th>회수율</th>
+      </tr>
+    </thead>
+    <tbody id="feeCompareTableBody"></tbody>
+  </table>
+  <p id="uploadStatusFeeCompare" style="font-size:12px; color:var(--sub); margin-top:10px;"></p>
+</div>
+<div class="panel">
+  <h2>지출 예산 vs 시설이용료 청구액</h2>
+  <p class="sub-note">막대: 지출 예산 · 청구액(억원) · 빨간 "Δ" 숫자는 청구액 막대 위에 표시된 차액의 절대값(부호 없이 크기만 표시 — 부호는 왼쪽 표 참고)</p>
+  <div class="chart-box"><canvas id="feeCompareChart"></canvas></div>
+</div>
 </div>
 
 <div class="panel">
@@ -222,9 +301,91 @@
     <tbody id="tableBody"></tbody>
   </table>
 </div>
+</div><!-- /tab-annual -->
 
-<footer>제공된 예산표(대분류/소분류 소계) 및 이용율.xlsx(누적인원) 기준으로 재구성 · 금액은 억원 단위로 반올림 표시 · 2026년은 연중 집행 기준 수치(누적인원은 1~6월 누계)로, 건물투자·부지개발 등 일부 항목은 아직 집행 전입니다</footer>
+<div class="tab-panel" id="tab-monthly">
+  <div class="panel" style="padding:16px 24px;">
+    <div class="filter-row">
+      <strong style="font-size:13.5px;">데이터 관리</strong>
+      <button id="btnDownloadMonthly" class="xlsx-btn">⬇ 엑셀 다운로드</button>
+      <label class="xlsx-btn" for="fileUploadMonthly" style="cursor:pointer;">⬆ 엑셀 업로드</label>
+      <input type="file" id="fileUploadMonthly" accept=".xlsx,.xls" style="display:none;">
+      <span id="uploadStatusMonthly" style="font-size:12px; color:var(--sub);">연도, 월, 건물관리, 부지관리, 식당관리, 건물투자, 부지개발, 특별행사 열을 포함한 엑셀 파일을 업로드하세요.</span>
+    </div>
+  </div>
 
+  <div class="panel">
+    <div class="filter-row">
+      <h2 style="margin:0;">월별 예산 상세</h2>
+      <select id="monthlyYearSelect" class="corp-select"></select>
+    </div>
+    <div class="chart-box chart-box-lg"><canvas id="monthlyChart"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <h2>월별 상세 데이터 (억원)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>월</th>
+          <th>건물관리</th>
+          <th>부지관리</th>
+          <th>식당관리</th>
+          <th>건물투자</th>
+          <th>부지개발</th>
+          <th>특별행사</th>
+          <th>합계</th>
+        </tr>
+      </thead>
+      <tbody id="monthlyTableBody"></tbody>
+    </table>
+  </div>
+</div><!-- /tab-monthly -->
+
+<div class="tab-panel" id="tab-fee">
+  <div class="panel" style="padding:16px 24px;">
+    <div class="filter-row">
+      <strong style="font-size:13.5px;">데이터 관리</strong>
+      <button id="btnDownloadFee" class="xlsx-btn">⬇ 엑셀 다운로드</button>
+      <label class="xlsx-btn" for="fileUploadFee" style="cursor:pointer;">⬆ 엑셀 업로드</label>
+      <input type="file" id="fileUploadFee" accept=".xlsx,.xls" style="display:none;">
+      <span id="uploadStatusFee" style="font-size:12px; color:var(--sub);">법인, 연도, 월, 시설이용료 열을 포함한 엑셀 파일을 업로드하세요.</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="filter-row">
+      <h2 style="margin:0;">법인별 시설이용료</h2>
+      <select id="feeYearFilter" class="corp-select"></select>
+      <select id="corpSelect" class="corp-select">
+        <option value="__ALL__">전체 법인</option>
+      </select>
+      <button id="btnShareLink" class="xlsx-btn" style="background:var(--green-mid);">🔗 이 법인 링크 생성</button>
+      <span id="corpLockBadge" class="lock-badge" style="display:none;">🔒 이 링크는 선택된 법인 데이터만 표시합니다</span>
+      <button id="btnExportSelected" class="xlsx-btn" style="background:#8E6F1D;">📄 선택 법인만 파일로 내보내기</button>
+      <button id="btnExportAll" class="xlsx-btn" style="background:#8E6F1D;">📦 전체 법인 개별 파일로 내보내기</button>
+    </div>
+    <div class="chart-box"><canvas id="feeChart"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <div class="filter-row">
+      <h2 style="margin:0;">법인별 상세 데이터 (억원)</h2>
+      <select id="feeTableYearFilter" class="corp-select"></select>
+      <select id="feeMonthFilter" class="corp-select">
+        <option value="__ALL__">전체 월</option>
+      </select>
+      <select id="feeTableCorpFilter" class="corp-select">
+        <option value="__ALL__">전체 법인</option>
+      </select>
+      <span style="font-size:12px; color:var(--sub);">"구분" 또는 "합계" 헤더를 클릭하면 정렬됩니다</span>
+    </div>
+    <div id="feeTableContainer" style="overflow-x:auto;"></div>
+  </div>
+</div><!-- /tab-fee -->
+
+
+<script type="application/json" id="feeDataJson">{"NAVER":{"2024":{"1":{"fee":0.4005,"meal":0,"program":0},"2":{"fee":0.1673,"meal":0,"program":0},"3":{"fee":0.28,"meal":0,"program":0},"4":{"fee":0.3145,"meal":0,"program":0},"5":{"fee":0.4324,"meal":0,"program":0},"6":{"fee":0.4077,"meal":0,"program":0},"7":{"fee":0.484,"meal":0,"program":0},"8":{"fee":0.497,"meal":0,"program":0},"9":{"fee":0.3876,"meal":0,"program":0},"10":{"fee":0.5458,"meal":0,"program":0},"11":{"fee":0.4542,"meal":0,"program":0},"12":{"fee":0.3591,"meal":0,"program":0}},"2022":{"9":{"fee":0.2901,"meal":0,"program":0},"12":{"fee":0.5711,"meal":0,"program":0},"1":{"fee":0.0422,"meal":0,"program":0},"3":{"fee":0.0108,"meal":0,"program":0},"4":{"fee":0.0681,"meal":0,"program":0},"5":{"fee":0.2616,"meal":0,"program":0},"6":{"fee":0.5137,"meal":0,"program":0},"7":{"fee":0.5094,"meal":0,"program":0},"8":{"fee":0.1556,"meal":0,"program":0},"10":{"fee":0.427,"meal":0,"program":0},"11":{"fee":0.4547,"meal":0,"program":0}},"2023":{"9":{"fee":0.3704,"meal":0,"program":0},"11":{"fee":0.4677,"meal":0,"program":0},"1":{"fee":0.3794,"meal":0,"program":0},"2":{"fee":0.2908,"meal":0,"program":0},"3":{"fee":0.329,"meal":0,"program":0},"4":{"fee":0.5213,"meal":0,"program":0},"5":{"fee":0.463,"meal":0,"program":0},"6":{"fee":0.6043,"meal":0,"program":0},"7":{"fee":0.236,"meal":0,"program":0},"8":{"fee":0.2675,"meal":0,"program":0},"10":{"fee":0.3417,"meal":0,"program":0},"12":{"fee":0.266,"meal":0,"program":0}},"2015":{"1":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2016":{"1":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0}},"2017":{"1":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0}},"2018":{"1":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2019":{"1":{"fee":0.2571,"meal":0,"program":0},"2":{"fee":0.2727,"meal":0,"program":0},"3":{"fee":0.2214,"meal":0,"program":0},"4":{"fee":0.2007,"meal":0,"program":0},"5":{"fee":0.2564,"meal":0,"program":0},"6":{"fee":0.1239,"meal":0,"program":0},"7":{"fee":0.3662,"meal":0,"program":0},"8":{"fee":0.3008,"meal":0,"program":0},"9":{"fee":0.2996,"meal":0,"program":0},"10":{"fee":0.5362,"meal":0,"program":0},"11":{"fee":0.549,"meal":0,"program":0},"12":{"fee":0.4428,"meal":0,"program":0}},"2020":{"1":{"fee":0.4211,"meal":0,"program":0},"2":{"fee":0.5874,"meal":0,"program":0},"4":{"fee":0.0012,"meal":0,"program":0},"5":{"fee":0.0018,"meal":0,"program":0},"7":{"fee":0.0147,"meal":0,"program":0},"8":{"fee":0.0045,"meal":0,"program":0},"10":{"fee":0.003,"meal":0,"program":0},"11":{"fee":0.0207,"meal":0,"program":0}},"2021":{"3":{"fee":0.0018,"meal":0,"program":0},"4":{"fee":0.0225,"meal":0,"program":0},"5":{"fee":0.0117,"meal":0,"program":0},"6":{"fee":0.0552,"meal":0,"program":0},"7":{"fee":0.0369,"meal":0,"program":0},"10":{"fee":0.0054,"meal":0,"program":0},"11":{"fee":0.0813,"meal":0,"program":0},"12":{"fee":0.0333,"meal":0,"program":0}},"2025":{"1":{"fee":0.3317,"meal":0,"program":0},"2":{"fee":0.2623,"meal":0,"program":0},"3":{"fee":0.2686,"meal":0,"program":0},"4":{"fee":0.5756,"meal":0,"program":0},"5":{"fee":0.5459,"meal":0,"program":0},"6":{"fee":0.3199,"meal":0,"program":0},"7":{"fee":0.5097,"meal":0,"program":0},"8":{"fee":0.436,"meal":0,"program":0},"9":{"fee":0.7373,"meal":0,"program":0},"10":{"fee":0.4816,"meal":0,"program":0},"11":{"fee":0.6225,"meal":0,"program":0},"12":{"fee":0.411,"meal":0,"program":0}},"2026":{"1":{"fee":0.3453,"meal":0,"program":0},"2":{"fee":0.1555,"meal":0,"program":0},"3":{"fee":0.4015,"meal":0,"program":0},"4":{"fee":0.5764,"meal":0,"program":0},"5":{"fee":0.5151,"meal":0,"program":0},"6":{"fee":0.6253,"meal":0,"program":0}}},"NAVER Cloud":{"2015":{"1":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2016":{"3":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"1":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2017":{"1":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0}},"2018":{"1":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0}},"2019":{"1":{"fee":0.0459,"meal":0,"program":0},"3":{"fee":0.0018,"meal":0,"program":0},"4":{"fee":0.0343,"meal":0,"program":0},"6":{"fee":0.0084,"meal":0,"program":0},"7":{"fee":0.0522,"meal":0,"program":0},"9":{"fee":0.0519,"meal":0,"program":0},"10":{"fee":0.0414,"meal":0,"program":0},"11":{"fee":0.1343,"meal":0,"program":0},"12":{"fee":0.018,"meal":0,"program":0},"5":{"fee":0.0027,"meal":0,"program":0},"8":{"fee":0.0072,"meal":0,"program":0}},"2020":{"1":{"fee":0.0611,"meal":0,"program":0},"2":{"fee":0.0288,"meal":0,"program":0},"5":{"fee":0.0015,"meal":0,"program":0},"11":{"fee":0.0009,"meal":0,"program":0}},"2021":{"6":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0312,"meal":0,"program":0}},"2022":{"6":{"fee":0.0126,"meal":0,"program":0},"7":{"fee":0.1884,"meal":0,"program":0},"8":{"fee":0.0646,"meal":0,"program":0},"9":{"fee":0.056,"meal":0,"program":0},"10":{"fee":0.193,"meal":0,"program":0},"11":{"fee":0.0845,"meal":0,"program":0},"12":{"fee":0.1424,"meal":0,"program":0}},"2023":{"1":{"fee":0.1553,"meal":0,"program":0},"2":{"fee":0.2173,"meal":0,"program":0},"3":{"fee":0.1954,"meal":0,"program":0},"4":{"fee":0.3631,"meal":0,"program":0},"5":{"fee":0.287,"meal":0,"program":0},"6":{"fee":0.177,"meal":0,"program":0},"7":{"fee":0.1963,"meal":0,"program":0},"8":{"fee":0.1926,"meal":0,"program":0},"9":{"fee":0.2376,"meal":0,"program":0},"10":{"fee":0.2304,"meal":0,"program":0},"11":{"fee":0.1932,"meal":0,"program":0},"12":{"fee":0.143,"meal":0,"program":0}},"2024":{"1":{"fee":0.1558,"meal":0,"program":0},"2":{"fee":0.2267,"meal":0,"program":0},"3":{"fee":0.2824,"meal":0,"program":0},"4":{"fee":0.2411,"meal":0,"program":0},"5":{"fee":0.2682,"meal":0,"program":0},"6":{"fee":0.2473,"meal":0,"program":0},"7":{"fee":0.1319,"meal":0,"program":0},"8":{"fee":0.0678,"meal":0,"program":0},"9":{"fee":0.1706,"meal":0,"program":0},"10":{"fee":0.2409,"meal":0,"program":0},"11":{"fee":0.225,"meal":0,"program":0},"12":{"fee":0.1161,"meal":0,"program":0}},"2025":{"1":{"fee":0.095,"meal":0,"program":0},"2":{"fee":0.1456,"meal":0,"program":0},"3":{"fee":0.1854,"meal":0,"program":0},"4":{"fee":0.2584,"meal":0,"program":0},"5":{"fee":0.2574,"meal":0,"program":0},"6":{"fee":0.2993,"meal":0,"program":0},"7":{"fee":0.0996,"meal":0,"program":0},"8":{"fee":0.1626,"meal":0,"program":0},"9":{"fee":0.2027,"meal":0,"program":0},"10":{"fee":0.2151,"meal":0,"program":0},"11":{"fee":0.2175,"meal":0,"program":0},"12":{"fee":0.1473,"meal":0,"program":0}},"2026":{"1":{"fee":0.1968,"meal":0,"program":0},"2":{"fee":0.1326,"meal":0,"program":0},"3":{"fee":0.2733,"meal":0,"program":0},"4":{"fee":0.2505,"meal":0,"program":0},"5":{"fee":0.1484,"meal":0,"program":0},"6":{"fee":0.2157,"meal":0,"program":0}}},"NAVER WEBTOON":{"2017":{"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2018":{"1":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2019":{"1":{"fee":0.0018,"meal":0,"program":0},"2":{"fee":0.0009,"meal":0,"program":0},"4":{"fee":0.0165,"meal":0,"program":0},"5":{"fee":0.0198,"meal":0,"program":0},"7":{"fee":0.0063,"meal":0,"program":0},"8":{"fee":0.0621,"meal":0,"program":0},"9":{"fee":0.0171,"meal":0,"program":0},"10":{"fee":0.0051,"meal":0,"program":0},"11":{"fee":0.0431,"meal":0,"program":0},"12":{"fee":0.009,"meal":0,"program":0}},"2020":{"1":{"fee":0.0325,"meal":0,"program":0},"2":{"fee":0.0352,"meal":0,"program":0}},"2022":{"5":{"fee":0.0246,"meal":0,"program":0},"6":{"fee":0.0594,"meal":0,"program":0},"7":{"fee":0.0447,"meal":0,"program":0},"8":{"fee":0.0704,"meal":0,"program":0},"9":{"fee":0.048,"meal":0,"program":0},"10":{"fee":0.0334,"meal":0,"program":0},"11":{"fee":0.1583,"meal":0,"program":0},"12":{"fee":0.0158,"meal":0,"program":0}},"2023":{"1":{"fee":0.1056,"meal":0,"program":0},"2":{"fee":0.0177,"meal":0,"program":0},"3":{"fee":0.1484,"meal":0,"program":0},"4":{"fee":0.0793,"meal":0,"program":0},"5":{"fee":0.0433,"meal":0,"program":0},"6":{"fee":0.044,"meal":0,"program":0},"7":{"fee":0.1509,"meal":0,"program":0},"8":{"fee":0.0207,"meal":0,"program":0},"9":{"fee":0.0756,"meal":0,"program":0},"10":{"fee":0.0576,"meal":0,"program":0},"11":{"fee":0.0552,"meal":0,"program":0},"12":{"fee":0.1623,"meal":0,"program":0}},"2024":{"1":{"fee":0.0197,"meal":0,"program":0},"2":{"fee":0.0239,"meal":0,"program":0},"3":{"fee":0.018,"meal":0,"program":0},"4":{"fee":0.0447,"meal":0,"program":0},"5":{"fee":0.133,"meal":0,"program":0},"6":{"fee":0.0573,"meal":0,"program":0},"7":{"fee":0.0457,"meal":0,"program":0},"8":{"fee":0.0433,"meal":0,"program":0},"9":{"fee":0.1021,"meal":0,"program":0},"10":{"fee":0.0672,"meal":0,"program":0},"11":{"fee":0.1,"meal":0,"program":0},"12":{"fee":0.1882,"meal":0,"program":0}},"2025":{"1":{"fee":0.0243,"meal":0,"program":0},"2":{"fee":0.1132,"meal":0,"program":0},"3":{"fee":0.055,"meal":0,"program":0},"4":{"fee":0.087,"meal":0,"program":0},"5":{"fee":0.0696,"meal":0,"program":0},"6":{"fee":0.1343,"meal":0,"program":0},"7":{"fee":0.1396,"meal":0,"program":0},"8":{"fee":0.0242,"meal":0,"program":0},"9":{"fee":0.1397,"meal":0,"program":0},"10":{"fee":0.0565,"meal":0,"program":0},"11":{"fee":0.0569,"meal":0,"program":0},"12":{"fee":0.1414,"meal":0,"program":0}},"2026":{"1":{"fee":0.0978,"meal":0,"program":0},"2":{"fee":0.006,"meal":0,"program":0},"3":{"fee":0.0411,"meal":0,"program":0},"4":{"fee":0.1372,"meal":0,"program":0},"5":{"fee":0.127,"meal":0,"program":0},"6":{"fee":0.0814,"meal":0,"program":0}}},"NAVER FINANCIAL":{"2019":{"11":{"fee":0.0064,"meal":0,"program":0},"12":{"fee":0.036,"meal":0,"program":0}},"2020":{"1":{"fee":0.0064,"meal":0,"program":0},"2":{"fee":0.0196,"meal":0,"program":0}},"2022":{"4":{"fee":0.0153,"meal":0,"program":0},"5":{"fee":0.0117,"meal":0,"program":0},"6":{"fee":0.0492,"meal":0,"program":0},"7":{"fee":0.0891,"meal":0,"program":0},"8":{"fee":0.009,"meal":0,"program":0},"9":{"fee":0.0237,"meal":0,"program":0},"10":{"fee":0.0391,"meal":0,"program":0},"11":{"fee":0.0549,"meal":0,"program":0},"12":{"fee":0.0216,"meal":0,"program":0}},"2023":{"1":{"fee":0.0234,"meal":0,"program":0},"2":{"fee":0.0183,"meal":0,"program":0},"3":{"fee":0.1305,"meal":0,"program":0},"4":{"fee":0.0585,"meal":0,"program":0},"5":{"fee":0.0962,"meal":0,"program":0},"6":{"fee":0.1148,"meal":0,"program":0},"7":{"fee":0.006,"meal":0,"program":0},"8":{"fee":0.0108,"meal":0,"program":0},"9":{"fee":0.0333,"meal":0,"program":0},"10":{"fee":0.0309,"meal":0,"program":0},"11":{"fee":0.179,"meal":0,"program":0},"12":{"fee":0.0036,"meal":0,"program":0}},"2024":{"1":{"fee":0.0278,"meal":0,"program":0},"2":{"fee":0.0253,"meal":0,"program":0},"3":{"fee":0.0459,"meal":0,"program":0},"4":{"fee":0.1281,"meal":0,"program":0},"5":{"fee":0.0292,"meal":0,"program":0},"6":{"fee":0.1171,"meal":0,"program":0},"7":{"fee":0.0563,"meal":0,"program":0},"8":{"fee":0.0075,"meal":0,"program":0},"9":{"fee":0.0747,"meal":0,"program":0},"10":{"fee":0.1137,"meal":0,"program":0},"11":{"fee":0.1366,"meal":0,"program":0},"12":{"fee":0.0866,"meal":0,"program":0}},"2025":{"1":{"fee":0.0435,"meal":0,"program":0},"2":{"fee":0.0624,"meal":0,"program":0},"3":{"fee":0.0377,"meal":0,"program":0},"4":{"fee":0.0497,"meal":0,"program":0},"5":{"fee":0.0199,"meal":0,"program":0},"6":{"fee":0.1445,"meal":0,"program":0},"7":{"fee":0.1251,"meal":0,"program":0},"8":{"fee":0.0721,"meal":0,"program":0},"9":{"fee":0.0691,"meal":0,"program":0},"10":{"fee":0.0465,"meal":0,"program":0},"11":{"fee":0.174,"meal":0,"program":0},"12":{"fee":0.0991,"meal":0,"program":0}},"2026":{"1":{"fee":0.0311,"meal":0,"program":0},"2":{"fee":0.0549,"meal":0,"program":0},"3":{"fee":0.0675,"meal":0,"program":0},"4":{"fee":0.2414,"meal":0,"program":0},"5":{"fee":0.0875,"meal":0,"program":0},"6":{"fee":0.1294,"meal":0,"program":0}}},"NAVER LABS":{"2017":{"1":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2018":{"1":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2019":{"1":{"fee":0.0027,"meal":0,"program":0},"4":{"fee":0.0095,"meal":0,"program":0},"5":{"fee":0.009,"meal":0,"program":0},"7":{"fee":0.0063,"meal":0,"program":0},"8":{"fee":0.0315,"meal":0,"program":0},"9":{"fee":0.0095,"meal":0,"program":0},"10":{"fee":0.0051,"meal":0,"program":0},"11":{"fee":0.0412,"meal":0,"program":0},"12":{"fee":0.0054,"meal":0,"program":0}},"2020":{"1":{"fee":0.0016,"meal":0,"program":0},"5":{"fee":0.0096,"meal":0,"program":0},"7":{"fee":0.008,"meal":0,"program":0},"11":{"fee":0.1868,"meal":0,"program":0}},"2021":{"5":{"fee":0.0012,"meal":0,"program":0},"7":{"fee":0.0036,"meal":0,"program":0},"11":{"fee":0.0144,"meal":0,"program":0}},"2022":{"1":{"fee":0.0327,"meal":0,"program":0},"4":{"fee":0.0063,"meal":0,"program":0},"5":{"fee":0.0416,"meal":0,"program":0},"6":{"fee":0.0091,"meal":0,"program":0},"7":{"fee":0.0225,"meal":0,"program":0},"8":{"fee":0.0252,"meal":0,"program":0},"9":{"fee":0.009,"meal":0,"program":0},"10":{"fee":0.0591,"meal":0,"program":0},"11":{"fee":0.0494,"meal":0,"program":0},"12":{"fee":0.0216,"meal":0,"program":0}},"2023":{"1":{"fee":0.0033,"meal":0,"program":0},"2":{"fee":0.1766,"meal":0,"program":0},"3":{"fee":0.0144,"meal":0,"program":0},"4":{"fee":0.0649,"meal":0,"program":0},"5":{"fee":0.0306,"meal":0,"program":0},"8":{"fee":0.0252,"meal":0,"program":0},"9":{"fee":0.0294,"meal":0,"program":0},"10":{"fee":0.0012,"meal":0,"program":0},"11":{"fee":0.1061,"meal":0,"program":0},"12":{"fee":0.0099,"meal":0,"program":0}},"2024":{"1":{"fee":0.0323,"meal":0,"program":0},"2":{"fee":0.0285,"meal":0,"program":0},"3":{"fee":0.0223,"meal":0,"program":0},"4":{"fee":0.0213,"meal":0,"program":0},"5":{"fee":0.0009,"meal":0,"program":0},"6":{"fee":0.021,"meal":0,"program":0},"7":{"fee":0.1152,"meal":0,"program":0},"8":{"fee":0.0249,"meal":0,"program":0},"10":{"fee":0.0132,"meal":0,"program":0},"12":{"fee":0.009,"meal":0,"program":0}},"2025":{"1":{"fee":0.0302,"meal":0,"program":0},"2":{"fee":0.0195,"meal":0,"program":0},"3":{"fee":0.0018,"meal":0,"program":0},"4":{"fee":0.0054,"meal":0,"program":0},"6":{"fee":0.0108,"meal":0,"program":0},"7":{"fee":0.0595,"meal":0,"program":0},"8":{"fee":0.0036,"meal":0,"program":0},"9":{"fee":0.0114,"meal":0,"program":0},"10":{"fee":0.0081,"meal":0,"program":0},"11":{"fee":0.0162,"meal":0,"program":0},"12":{"fee":0.0117,"meal":0,"program":0}},"2026":{"1":{"fee":0.0045,"meal":0,"program":0},"2":{"fee":0.0112,"meal":0,"program":0},"3":{"fee":0.0099,"meal":0,"program":0},"4":{"fee":0.0185,"meal":0,"program":0},"5":{"fee":0.0163,"meal":0,"program":0},"6":{"fee":0.0438,"meal":0,"program":0}}},"NAVER I&S":{"2015":{"1":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0}},"2016":{"1":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2017":{"1":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2018":{"1":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2019":{"3":{"fee":0.0018,"meal":0,"program":0},"4":{"fee":0.0108,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0105,"meal":0,"program":0},"9":{"fee":0.0003,"meal":0,"program":0},"10":{"fee":0.0081,"meal":0,"program":0},"11":{"fee":0.0032,"meal":0,"program":0}},"2020":{"1":{"fee":0.0063,"meal":0,"program":0},"7":{"fee":0.009,"meal":0,"program":0}},"2021":{"4":{"fee":0.0018,"meal":0,"program":0}},"2022":{"2":{"fee":0.0018,"meal":0,"program":0},"4":{"fee":0.0027,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0054,"meal":0,"program":0},"8":{"fee":0.0135,"meal":0,"program":0},"9":{"fee":0.0099,"meal":0,"program":0},"10":{"fee":0.0364,"meal":0,"program":0},"11":{"fee":0.0264,"meal":0,"program":0},"12":{"fee":0.0138,"meal":0,"program":0}},"2023":{"2":{"fee":0.0102,"meal":0,"program":0},"3":{"fee":0.0015,"meal":0,"program":0},"4":{"fee":0.0126,"meal":0,"program":0},"5":{"fee":0.0053,"meal":0,"program":0},"6":{"fee":0.0036,"meal":0,"program":0},"7":{"fee":0.0135,"meal":0,"program":0},"8":{"fee":0.0117,"meal":0,"program":0},"9":{"fee":0.0345,"meal":0,"program":0},"10":{"fee":0.0384,"meal":0,"program":0},"11":{"fee":0.0153,"meal":0,"program":0},"12":{"fee":0.0036,"meal":0,"program":0}},"2024":{"1":{"fee":0.0032,"meal":0,"program":0},"2":{"fee":0.0083,"meal":0,"program":0},"3":{"fee":0.003,"meal":0,"program":0},"4":{"fee":0.0111,"meal":0,"program":0},"5":{"fee":0.0101,"meal":0,"program":0},"6":{"fee":0.0009,"meal":0,"program":0},"7":{"fee":0.003,"meal":0,"program":0},"8":{"fee":0.006,"meal":0,"program":0},"9":{"fee":0.0015,"meal":0,"program":0},"10":{"fee":0.0009,"meal":0,"program":0},"12":{"fee":0.0015,"meal":0,"program":0}},"2025":{"2":{"fee":0.0081,"meal":0,"program":0},"3":{"fee":0.0144,"meal":0,"program":0},"4":{"fee":0.0354,"meal":0,"program":0},"5":{"fee":0.0105,"meal":0,"program":0},"6":{"fee":0.0189,"meal":0,"program":0},"7":{"fee":0.0023,"meal":0,"program":0},"8":{"fee":0.0048,"meal":0,"program":0},"9":{"fee":0.0332,"meal":0,"program":0},"10":{"fee":0.003,"meal":0,"program":0},"12":{"fee":0.0129,"meal":0,"program":0}},"2026":{"2":{"fee":0.0023,"meal":0,"program":0},"3":{"fee":0.0081,"meal":0,"program":0},"4":{"fee":0.003,"meal":0,"program":0},"5":{"fee":0.0322,"meal":0,"program":0},"6":{"fee":0.0048,"meal":0,"program":0}}},"SNOW":{"2016":{"12":{"fee":0.0,"meal":0,"program":0}},"2017":{"1":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2018":{"1":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2019":{"1":{"fee":0.0063,"meal":0,"program":0},"4":{"fee":0.0072,"meal":0,"program":0},"5":{"fee":0.0729,"meal":0,"program":0},"6":{"fee":0.0276,"meal":0,"program":0},"7":{"fee":0.0225,"meal":0,"program":0},"8":{"fee":0.0108,"meal":0,"program":0},"9":{"fee":0.0352,"meal":0,"program":0},"10":{"fee":0.0018,"meal":0,"program":0},"11":{"fee":0.0408,"meal":0,"program":0},"12":{"fee":0.0291,"meal":0,"program":0}},"2020":{"1":{"fee":0.0127,"meal":0,"program":0},"2":{"fee":0.0048,"meal":0,"program":0}},"2022":{"6":{"fee":0.0081,"meal":0,"program":0},"7":{"fee":0.0147,"meal":0,"program":0},"8":{"fee":0.0519,"meal":0,"program":0},"9":{"fee":0.0233,"meal":0,"program":0},"11":{"fee":0.0302,"meal":0,"program":0},"12":{"fee":0.0579,"meal":0,"program":0}},"2023":{"1":{"fee":0.0159,"meal":0,"program":0},"2":{"fee":0.0163,"meal":0,"program":0},"3":{"fee":0.006,"meal":0,"program":0},"4":{"fee":0.0516,"meal":0,"program":0},"5":{"fee":0.0053,"meal":0,"program":0},"6":{"fee":0.0387,"meal":0,"program":0},"8":{"fee":0.0183,"meal":0,"program":0},"9":{"fee":0.0144,"meal":0,"program":0},"10":{"fee":0.006,"meal":0,"program":0},"11":{"fee":0.0435,"meal":0,"program":0},"12":{"fee":0.0462,"meal":0,"program":0}},"2024":{"1":{"fee":0.0046,"meal":0,"program":0},"2":{"fee":0.0023,"meal":0,"program":0},"3":{"fee":0.0243,"meal":0,"program":0},"4":{"fee":0.0549,"meal":0,"program":0},"5":{"fee":0.0316,"meal":0,"program":0},"6":{"fee":0.0081,"meal":0,"program":0},"7":{"fee":0.0246,"meal":0,"program":0},"8":{"fee":0.0153,"meal":0,"program":0},"9":{"fee":0.0144,"meal":0,"program":0},"10":{"fee":0.009,"meal":0,"program":0},"11":{"fee":0.0218,"meal":0,"program":0},"12":{"fee":0.0009,"meal":0,"program":0}},"2025":{"2":{"fee":0.021,"meal":0,"program":0},"4":{"fee":0.0318,"meal":0,"program":0},"5":{"fee":0.0126,"meal":0,"program":0},"6":{"fee":0.057,"meal":0,"program":0},"7":{"fee":0.0062,"meal":0,"program":0},"8":{"fee":0.0063,"meal":0,"program":0},"9":{"fee":0.0096,"meal":0,"program":0},"11":{"fee":0.0972,"meal":0,"program":0},"12":{"fee":0.0099,"meal":0,"program":0}},"2026":{"1":{"fee":0.0023,"meal":0,"program":0},"2":{"fee":0.0066,"meal":0,"program":0},"3":{"fee":0.0206,"meal":0,"program":0},"4":{"fee":0.0162,"meal":0,"program":0},"5":{"fee":0.0168,"meal":0,"program":0},"6":{"fee":0.0366,"meal":0,"program":0}}},"KREAM":{"2022":{"6":{"fee":0.0018,"meal":0,"program":0},"12":{"fee":0.0009,"meal":0,"program":0}},"2023":{"1":{"fee":0.003,"meal":0,"program":0},"3":{"fee":0.003,"meal":0,"program":0},"4":{"fee":0.0045,"meal":0,"program":0},"5":{"fee":0.0063,"meal":0,"program":0},"6":{"fee":0.0234,"meal":0,"program":0},"7":{"fee":0.0053,"meal":0,"program":0},"9":{"fee":0.0054,"meal":0,"program":0},"10":{"fee":0.0273,"meal":0,"program":0},"11":{"fee":0.0336,"meal":0,"program":0},"12":{"fee":0.0141,"meal":0,"program":0}},"2024":{"1":{"fee":0.0023,"meal":0,"program":0},"2":{"fee":0.0081,"meal":0,"program":0},"4":{"fee":0.0135,"meal":0,"program":0},"5":{"fee":0.0438,"meal":0,"program":0},"6":{"fee":0.0099,"meal":0,"program":0},"7":{"fee":0.0273,"meal":0,"program":0},"9":{"fee":0.0198,"meal":0,"program":0},"10":{"fee":0.0054,"meal":0,"program":0},"11":{"fee":0.0198,"meal":0,"program":0},"12":{"fee":0.0071,"meal":0,"program":0}},"2025":{"2":{"fee":0.003,"meal":0,"program":0},"4":{"fee":0.0297,"meal":0,"program":0},"5":{"fee":0.0117,"meal":0,"program":0},"6":{"fee":0.0315,"meal":0,"program":0},"7":{"fee":0.0185,"meal":0,"program":0},"9":{"fee":0.0124,"meal":0,"program":0},"10":{"fee":0.021,"meal":0,"program":0},"11":{"fee":0.0381,"meal":0,"program":0},"12":{"fee":0.0099,"meal":0,"program":0}},"2026":{"1":{"fee":0.0023,"meal":0,"program":0},"3":{"fee":0.0147,"meal":0,"program":0},"4":{"fee":0.0165,"meal":0,"program":0},"5":{"fee":0.0217,"meal":0,"program":0},"6":{"fee":0.0537,"meal":0,"program":0}}},"CAKE":{"2022":{"11":{"fee":0.0054,"meal":0,"program":0}},"2023":{"1":{"fee":0.0122,"meal":0,"program":0},"3":{"fee":0.003,"meal":0,"program":0},"5":{"fee":0.0099,"meal":0,"program":0},"6":{"fee":0.0009,"meal":0,"program":0},"7":{"fee":0.0117,"meal":0,"program":0}},"2024":{"3":{"fee":0.0105,"meal":0,"program":0}},"2025":{"6":{"fee":0.0023,"meal":0,"program":0},"12":{"fee":0.0081,"meal":0,"program":0}}},"NAVER Z":{"2022":{"6":{"fee":0.0018,"meal":0,"program":0},"7":{"fee":0.0054,"meal":0,"program":0},"8":{"fee":0.0206,"meal":0,"program":0},"9":{"fee":0.0324,"meal":0,"program":0},"10":{"fee":0.0252,"meal":0,"program":0},"11":{"fee":0.1175,"meal":0,"program":0},"12":{"fee":0.0053,"meal":0,"program":0}},"2023":{"1":{"fee":0.0347,"meal":0,"program":0},"2":{"fee":0.003,"meal":0,"program":0},"3":{"fee":0.0489,"meal":0,"program":0},"4":{"fee":0.0324,"meal":0,"program":0},"5":{"fee":0.064,"meal":0,"program":0},"6":{"fee":0.0152,"meal":0,"program":0},"7":{"fee":0.0228,"meal":0,"program":0},"8":{"fee":0.0577,"meal":0,"program":0},"9":{"fee":0.0267,"meal":0,"program":0},"10":{"fee":0.0159,"meal":0,"program":0},"11":{"fee":0.0457,"meal":0,"program":0}},"2024":{"1":{"fee":0.006,"meal":0,"program":0},"3":{"fee":0.0214,"meal":0,"program":0},"4":{"fee":0.027,"meal":0,"program":0},"5":{"fee":0.0382,"meal":0,"program":0},"6":{"fee":0.1272,"meal":0,"program":0},"7":{"fee":0.072,"meal":0,"program":0},"8":{"fee":0.0276,"meal":0,"program":0},"9":{"fee":0.0383,"meal":0,"program":0},"10":{"fee":0.0365,"meal":0,"program":0},"11":{"fee":0.0066,"meal":0,"program":0},"12":{"fee":0.0189,"meal":0,"program":0}},"2025":{"1":{"fee":0.003,"meal":0,"program":0},"2":{"fee":0.0129,"meal":0,"program":0},"3":{"fee":0.0063,"meal":0,"program":0},"4":{"fee":0.0192,"meal":0,"program":0},"5":{"fee":0.0279,"meal":0,"program":0},"6":{"fee":0.0158,"meal":0,"program":0},"7":{"fee":0.0315,"meal":0,"program":0},"8":{"fee":0.0053,"meal":0,"program":0},"9":{"fee":0.003,"meal":0,"program":0},"10":{"fee":0.0165,"meal":0,"program":0},"11":{"fee":0.009,"meal":0,"program":0},"12":{"fee":0.0018,"meal":0,"program":0}},"2026":{"1":{"fee":0.0178,"meal":0,"program":0},"2":{"fee":0.0201,"meal":0,"program":0},"3":{"fee":0.0225,"meal":0,"program":0},"4":{"fee":0.0224,"meal":0,"program":0},"5":{"fee":0.0432,"meal":0,"program":0},"6":{"fee":0.0584,"meal":0,"program":0}}},"KREAM Pay":{"2025":{"12":{"fee":0.0009,"meal":0,"program":0}}},"LINE 계열":{"2019":{"2":{"fee":0.0903,"meal":0,"program":0},"8":{"fee":0.3956,"meal":0,"program":0},"7":{"fee":0.4007,"meal":0,"program":0},"11":{"fee":0.2124,"meal":0,"program":0},"12":{"fee":0.1628,"meal":0,"program":0},"4":{"fee":0.4087,"meal":0,"program":0},"5":{"fee":0.2161,"meal":0,"program":0},"1":{"fee":0.1468,"meal":0,"program":0},"6":{"fee":0.3286,"meal":0,"program":0},"9":{"fee":0.3653,"meal":0,"program":0},"10":{"fee":0.3075,"meal":0,"program":0},"3":{"fee":0.0567,"meal":0,"program":0}},"2020":{"2":{"fee":0.0265,"meal":0,"program":0},"1":{"fee":0.1103,"meal":0,"program":0}},"2022":{"7":{"fee":0.0369,"meal":0,"program":0},"8":{"fee":0.1296,"meal":0,"program":0},"10":{"fee":0.2697,"meal":0,"program":0},"11":{"fee":0.2268,"meal":0,"program":0},"12":{"fee":0.1558,"meal":0,"program":0},"9":{"fee":0.2912,"meal":0,"program":0},"3":{"fee":0.0009,"meal":0,"program":0},"6":{"fee":0.0027,"meal":0,"program":0}},"2023":{"1":{"fee":0.2827,"meal":0,"program":0},"2":{"fee":0.1242,"meal":0,"program":0},"3":{"fee":0.2562,"meal":0,"program":0},"4":{"fee":0.0648,"meal":0,"program":0},"6":{"fee":0.1354,"meal":0,"program":0},"7":{"fee":0.216,"meal":0,"program":0},"5":{"fee":0.0837,"meal":0,"program":0},"11":{"fee":0.1713,"meal":0,"program":0},"12":{"fee":0.1495,"meal":0,"program":0},"8":{"fee":0.1878,"meal":0,"program":0},"10":{"fee":0.1556,"meal":0,"program":0},"9":{"fee":0.1122,"meal":0,"program":0}},"2015":{"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"1":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2016":{"3":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"1":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0}},"2017":{"2":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0},"1":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0}},"2018":{"1":{"fee":0.0,"meal":0,"program":0},"4":{"fee":0.0,"meal":0,"program":0},"5":{"fee":0.0,"meal":0,"program":0},"6":{"fee":0.0,"meal":0,"program":0},"7":{"fee":0.0,"meal":0,"program":0},"8":{"fee":0.0,"meal":0,"program":0},"12":{"fee":0.0,"meal":0,"program":0},"2":{"fee":0.0,"meal":0,"program":0},"3":{"fee":0.0,"meal":0,"program":0},"9":{"fee":0.0,"meal":0,"program":0},"10":{"fee":0.0,"meal":0,"program":0},"11":{"fee":0.0,"meal":0,"program":0}},"2024":{"2":{"fee":0.1704,"meal":0,"program":0},"3":{"fee":0.1496,"meal":0,"program":0},"5":{"fee":0.1363,"meal":0,"program":0},"10":{"fee":0.1812,"meal":0,"program":0},"12":{"fee":0.0603,"meal":0,"program":0},"6":{"fee":0.1712,"meal":0,"program":0},"7":{"fee":0.1578,"meal":0,"program":0},"1":{"fee":0.1839,"meal":0,"program":0},"8":{"fee":0.07,"meal":0,"program":0},"4":{"fee":0.0903,"meal":0,"program":0},"9":{"fee":0.0822,"meal":0,"program":0},"11":{"fee":0.1738,"meal":0,"program":0}},"2025":{"3":{"fee":0.2694,"meal":0,"program":0},"5":{"fee":0.0796,"meal":0,"program":0},"10":{"fee":0.0796,"meal":0,"program":0},"12":{"fee":0.0444,"meal":0,"program":0},"1":{"fee":0.1272,"meal":0,"program":0},"2":{"fee":0.1317,"meal":0,"program":0},"4":{"fee":0.1167,"meal":0,"program":0},"6":{"fee":0.0321,"meal":0,"program":0},"7":{"fee":0.0369,"meal":0,"program":0},"8":{"fee":0.1372,"meal":0,"program":0},"9":{"fee":0.1886,"meal":0,"program":0},"11":{"fee":0.0848,"meal":0,"program":0}},"2026":{"2":{"fee":0.0777,"meal":0,"program":0},"1":{"fee":0.2805,"meal":0,"program":0},"4":{"fee":0.0991,"meal":0,"program":0},"3":{"fee":0.2061,"meal":0,"program":0},"5":{"fee":0.0108,"meal":0,"program":0},"6":{"fee":0.0786,"meal":0,"program":0}}}}</script>
 <script>
 Chart.defaults.font.family = "'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
 
@@ -233,11 +394,11 @@ const CATS = ['건물관리','부지관리','식당관리','건물투자','부�
 const state = {
   years: [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026],
   data: {
-    건물관리: [22.24,24.43,28.80,34.44,35.79,35.94,33.81,39.77,42.76,41.54,42.53,20.51],
-    부지관리: [1.58,4.26,3.14,3.47,2.05,3.75,3.69,3.93,4.20,4.31,4.13,1.83],
-    식당관리: [2.55,4.32,4.84,5.09,6.39,4.47,3.54,5.95,8.74,8.61,8.75,4.25],
+    건물관리: [22.24,24.43,28.65,34.44,35.79,35.94,33.81,39.77,42.76,41.54,42.53,22.43],
+    부지관리: [1.58,4.26,2.77,3.47,2.05,3.75,3.69,3.93,4.20,4.31,4.13,2.19],
+    식당관리: [2.55,4.32,4.84,5.09,6.39,4.47,3.54,5.95,8.74,8.66,8.75,4.25],
     건물투자: [2.86,4.66,5.22,3.00,0.07,2.40,0.49,0.24,0.10,0,0.42,0],
-    부지개발: [2.97,5.11,10.63,4.33,0.56,0.85,0,0,0.40,0,0,0],
+    부지개발: [2.97,5.11,10.45,4.33,0.56,0.85,0,0,0.40,0,0,0],
     특별행사: [0,0,0,1.54,0,0,0,0,0,0,0,0]
   },
   // 누적인원(명) — 이용율.xlsx 기준, 마지막 연도는 연중 누계일 수 있음
@@ -264,12 +425,27 @@ function hatchPattern(color){
 const green = getComputedStyle(document.documentElement).getPropertyValue('--naver-green').trim();
 const greenMid = getComputedStyle(document.documentElement).getPropertyValue('--green-mid').trim();
 const greenLight = getComputedStyle(document.documentElement).getPropertyValue('--green-light').trim();
+// (레거시 색상 상수 — 현재는 시설이용료만 사용)
+const feeMealColor = '#4B90F5';
+const feeProgramColor = '#9C8DF5';
 const amber1 = getComputedStyle(document.documentElement).getPropertyValue('--amber-1').trim();
 const amber2 = getComputedStyle(document.documentElement).getPropertyValue('--amber-2').trim();
 const amber3 = getComputedStyle(document.documentElement).getPropertyValue('--amber-3').trim();
 const userLineTransparent = 'rgba(240,100,90,0.5)';
 
 let mainChart, trendChart, donutChart;
+
+// 15_26년_커넥트원_이용현황_20260806_삭제.xlsx '요약' 시트 기준 실제 연간 시설이용료 청구 총액 (2019년부터 정식 청구 시작)
+let annualFeeTotals = {
+  2019: 7.9496,
+  2020: 1.616,
+  2021: 0.3003,
+  2022: 6.7164,
+  2023: 12.1352,
+  2024: 11.5599,
+  2025: 12.0141,
+  2026: 6.2385
+};
 
 function computeTotals(){
   return state.years.map((_,i)=> CATS.reduce((s,c)=> s + (state.data[c][i]||0), 0));
@@ -280,6 +456,12 @@ function computeInvestShare(totals){
     return totals[i] ? +(invest/totals[i]*100).toFixed(1) : 0;
   });
 }
+function computeOpexShare(totals){
+  return state.years.map((_,i)=>{
+    const opex = (state.data.건물관리[i]||0) + (state.data.식당관리[i]||0);
+    return totals[i] ? +(opex/totals[i]*100).toFixed(1) : 0;
+  });
+}
 
 function renderAll(){
   const years = state.years;
@@ -287,6 +469,7 @@ function renderAll(){
   const cumulativeUsers = state.cumulativeUsers;
   const totals = computeTotals();
   const investShare = computeInvestShare(totals);
+  const opexShare = computeOpexShare(totals);
 
   if(mainChart) mainChart.destroy();
   if(trendChart) trendChart.destroy();
@@ -357,7 +540,7 @@ function renderAll(){
       labels: years,
       datasets:[
         {type:'bar', label:'총예산(억원)', data:totals, backgroundColor:'#CDEFDA', borderColor:green, borderWidth:1, yAxisID:'y'},
-        {type:'line', label:'투자성 경비 비중(%)', data:investShare, borderColor:amber2, backgroundColor:amber2, tension:0.3, yAxisID:'y1', pointRadius:3}
+        {type:'line', label:'운영성 경비 비중(%)', data:opexShare, borderColor:amber2, backgroundColor:amber2, tension:0.3, yAxisID:'y1', pointRadius:3}
       ]
     },
     options:{
@@ -419,20 +602,37 @@ function renderAll(){
     tbody.appendChild(row);
   });
 
-  updateKPIs(years, totals, investShare);
+  // ---- 합계 행 ----
+  const sums = {};
+  CATS.forEach(c=> sums[c] = data[c].reduce((s,v)=> s + (v||0), 0));
+  const grandTotal = totals.reduce((s,v)=> s + (v||0), 0);
+  const totalRow = document.createElement('tr');
+  totalRow.innerHTML = `
+    <td>합계</td>
+    <td>${sums.건물관리.toFixed(2)}</td>
+    <td>${sums.부지관리.toFixed(2)}</td>
+    <td>${sums.식당관리.toFixed(2)}</td>
+    <td>${sums.건물투자.toFixed(2)}</td>
+    <td>${sums.부지개발.toFixed(2)}</td>
+    <td>${sums.특별행사.toFixed(2)}</td>
+    <td>${grandTotal.toFixed(2)}</td>
+  `;
+  tbody.appendChild(totalRow);
+
+  updateKPIs(years, totals, opexShare);
+  renderFeeCompareTable(years, totals);
 }
 
-function updateKPIs(years, totals, investShare){
+function updateKPIs(years, totals, opexShare){
   const lastIdx = years.length - 1;
   const lastYear = years[lastIdx];
   const executed = totals[lastIdx];
   const pct = state.annualTarget ? +(executed/state.annualTarget*100).toFixed(1) : 0;
 
-  document.getElementById('kpi-current-label').textContent = `${lastYear}년 현재까지 집행 예산`;
+  document.getElementById('kpi-current-label').textContent = `${lastYear}년 현재까지 집행 예산(실적)`;
   document.getElementById('kpi-current-value').innerHTML = `${executed.toFixed(1)}<span>억원</span>`;
   document.getElementById('kpi-current-delta').textContent = `연간 예산 ${state.annualTarget}억원 대비 ${pct}% 집행`;
   document.getElementById('kpi-current-progress').style.width = Math.min(pct,100)+'%';
-  document.getElementById('badge').textContent = `${lastYear}년 집행률 ${pct}%`;
 
   const priorYears = years.slice(0, -1); // 올해(마지막 연도) 제외
   const priorTotals = totals.slice(0, -1);
@@ -444,16 +644,160 @@ function updateKPIs(years, totals, investShare){
     ? `${priorYears[priorYears.length-recentN]}~${priorYears[priorYears.length-1]} 평균 (${lastYear}년 제외)`
     : '데이터 부족';
 
-  let maxIdx = 0;
-  totals.forEach((t,i)=>{ if(t>totals[maxIdx]) maxIdx=i; });
-  document.getElementById('kpi-max-value').innerHTML = `${years[maxIdx]}<span>년</span>`;
-  document.getElementById('kpi-max-delta').textContent = `${totals[maxIdx].toFixed(1)}억원`;
-
-  let shareMaxIdx = 0;
-  investShare.forEach((s,i)=>{ if(s>investShare[shareMaxIdx]) shareMaxIdx=i; });
-  document.getElementById('kpi-share-value').innerHTML = `${investShare[shareMaxIdx].toFixed(1)}<span>%</span>`;
-  document.getElementById('kpi-share-delta').textContent = `${years[shareMaxIdx]}년, 건물투자·부지개발 등 합산 최대`;
+  document.getElementById('kpi-share-value').innerHTML = `${opexShare[lastIdx].toFixed(1)}<span>%</span>`;
+  document.getElementById('kpi-share-delta').textContent = `${lastYear}년 기준, 건물관리·식당관리 합산`;
 }
+
+let feeCompareChart;
+function renderFeeCompareTable(years, totals){
+  const tbody = document.getElementById('feeCompareTableBody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  const chartYears = [], chartBudget = [], chartFee = [], chartDiff = [];
+  years.forEach((y, i)=>{
+    if(y < 2019) return; // 시설이용료는 2019년부터 정식 청구
+    const budget = totals[i] || 0;
+    const fee = annualFeeTotals[y];
+    const tr = document.createElement('tr');
+    if(fee === undefined || fee === null){
+      tr.innerHTML = `<td>${y}</td><td>${budget.toFixed(2)}</td><td>—</td><td>—</td><td>—</td>`;
+      chartYears.push(y); chartBudget.push(budget); chartFee.push(null); chartDiff.push(null);
+    } else {
+      const diff = fee - budget; // 들어온 돈 - 나간 돈 (음수면 지출이 더 큼)
+      const diffClass = diff > 0.001 ? 'diff-positive' : (diff < -0.001 ? 'diff-negative' : 'diff-neutral');
+      const diffSign = diff > 0 ? '+' : '';
+      const recoveryRate = budget ? (fee/budget*100) : 0;
+      tr.innerHTML = `
+        <td>${y}</td>
+        <td>${budget.toFixed(2)}</td>
+        <td>${fee.toFixed(2)}</td>
+        <td class="${diffClass}">${diffSign}${diff.toFixed(2)}</td>
+        <td class="${diffClass}">${recoveryRate.toFixed(1)}%</td>
+      `;
+      chartYears.push(y); chartBudget.push(budget); chartFee.push(fee); chartDiff.push(+Math.abs(diff).toFixed(2));
+    }
+    tbody.appendChild(tr);
+  });
+
+  // ---- 합계 행 ----
+  const sumBudget = chartBudget.reduce((s,v)=> s + (v||0), 0);
+  const sumFee = chartFee.reduce((s,v)=> s + (v||0), 0);
+  const sumDiff = sumFee - sumBudget;
+  const sumDiffClass = sumDiff > 0.001 ? 'diff-positive' : (sumDiff < -0.001 ? 'diff-negative' : 'diff-neutral');
+  const sumDiffSign = sumDiff > 0 ? '+' : '';
+  const sumRecoveryRate = sumBudget ? (sumFee/sumBudget*100) : 0;
+  const totalTr = document.createElement('tr');
+  totalTr.style.fontWeight = '800';
+  totalTr.style.background = '#F5FBF7';
+  totalTr.style.borderTop = '2px solid var(--naver-green)';
+  totalTr.innerHTML = `
+    <td>합계</td>
+    <td>${sumBudget.toFixed(2)}</td>
+    <td>${sumFee.toFixed(2)}</td>
+    <td class="${sumDiffClass}">${sumDiffSign}${sumDiff.toFixed(2)}</td>
+    <td class="${sumDiffClass}">${sumRecoveryRate.toFixed(1)}%</td>
+  `;
+  tbody.appendChild(totalTr);
+
+  if(feeCompareChart) feeCompareChart.destroy();
+  const compareCanvas = document.getElementById('feeCompareChart');
+  if(compareCanvas){
+    const diffAboveBarPlugin = {
+      id: 'diffAboveBarPlugin',
+      afterDatasetsDraw(chart){
+        const meta = chart.getDatasetMeta(1); // 청구액 막대
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.font = "800 10px 'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif";
+        ctx.fillStyle = '#F0645A';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        meta.data.forEach((bar,i)=>{
+          const diff = chartDiff[i];
+          if(diff===null || diff===undefined) return;
+          ctx.fillText('Δ'+diff.toFixed(1), bar.x, bar.y - 14);
+        });
+        ctx.restore();
+      }
+    };
+
+    feeCompareChart = new Chart(compareCanvas, {
+      data:{
+        labels: chartYears,
+        datasets:[
+          {type:'bar', label:'지출 예산(억원)', data:chartBudget, backgroundColor:'#CDEFDA', borderColor:green, borderWidth:1, yAxisID:'y', order:1},
+          {type:'bar', label:'청구액(억원)', data:chartFee, backgroundColor:greenLight, borderColor:'#9C8DF5', borderWidth:1, yAxisID:'y', order:1}
+        ]
+      },
+      plugins:[ChartDataLabels, diffAboveBarPlugin],
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{position:'bottom', labels:{boxWidth:12, font:{size:11}}},
+          tooltip:{callbacks:{label:(ctx)=> ctx.parsed.y===null ? `${ctx.dataset.label}: 데이터 없음` : `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}억원`}},
+          datalabels:{
+            display:true,
+            color:'#16241C',
+            font:{weight:700, size:9, family:"'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif"},
+            anchor:'end', align:'top', offset:0,
+            formatter:(value)=> (value===null||value===undefined) ? '' : value.toFixed(1)
+          }
+        },
+        scales:{
+          y:{title:{display:true, text:'억원'}, grid:{color:'#EEF4F0'}}
+        }
+      }
+    });
+  }
+}
+
+document.getElementById('btnDownloadFeeCompare').addEventListener('click', ()=>{
+  const rows = Object.keys(annualFeeTotals).map(Number).sort((a,b)=>a-b).map(y=>({
+    연도: y, 시설이용료청구액: annualFeeTotals[y]
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '시설이용료청구액');
+  XLSX.writeFile(wb, '연간_시설이용료_청구액.xlsx');
+});
+
+document.getElementById('fileUploadFeeCompare').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  const statusEl = document.getElementById('uploadStatusFeeCompare');
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawRows = XLSX.utils.sheet_to_json(ws);
+      if(!rawRows.length) throw new Error('빈 파일');
+      const rows = rawRows.map(r=>{
+        const norm = {}; Object.keys(r).forEach(k=>{ norm[String(k).trim()] = r[k]; }); return norm;
+      });
+      const toNum = (v)=> (v===undefined||v===null||v==='') ? 0 : (isNaN(Number(v)) ? 0 : Number(v));
+
+      const newTotals = {};
+      rows.forEach(r=>{
+        const y = Number(r['연도']);
+        if(isNaN(y) || y < 2019) return;
+        newTotals[y] = toNum(r['시설이용료청구액']);
+      });
+      if(!Object.keys(newTotals).length) throw new Error('유효한 행 없음(2020년 이후 연도만 반영)');
+
+      annualFeeTotals = newTotals;
+      renderFeeCompareTable(state.years, computeTotals());
+      statusEl.textContent = `업로드 완료: ${Object.keys(newTotals).length}개 연도의 시설이용료 청구액이 반영되었습니다.`;
+      statusEl.style.color = 'var(--naver-green-dark)';
+    }catch(err){
+      statusEl.textContent = '업로드 실패: 연도(2020년 이후), 시설이용료청구액 열이 포함된 파일인지 확인해주세요.';
+      statusEl.style.color = '#F0645A';
+    }
+    e.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
 
 renderAll();
 
@@ -543,12 +887,794 @@ document.getElementById('fileUpload').addEventListener('change', (e)=>{
       statusEl.style.color = 'var(--naver-green-dark)';
     }catch(err){
       statusEl.textContent = '업로드 실패: 연도, 건물관리, 부지관리, 식당관리, 건물투자, 부지개발, 특별행사, 누적인원 열이 포함된 파일인지 확인해주세요.';
-      statusEl.style.color = '#D8422A';
+      statusEl.style.color = '#F0645A';
     }
     e.target.value = '';
   };
   reader.readAsArrayBuffer(file);
 });
+
+// =========================================================
+// 탭 전환 (그룹: 운영비 집행 ↔ 시설이용료 / 서브탭: 연간 예산 ↔ 월별 상세)
+// =========================================================
+function showGroup(group){
+  document.querySelectorAll('.group-btn').forEach(b=> b.classList.toggle('active', b.dataset.group===group));
+  document.querySelectorAll('.tab-panel').forEach(p=> p.classList.remove('active'));
+  if(group === 'opex'){
+    document.getElementById('opexSubNav').style.display = 'flex';
+    const activeSub = document.querySelector('#opexSubNav .tab-btn.active') || document.querySelector('#opexSubNav .tab-btn');
+    document.querySelectorAll('#opexSubNav .tab-btn').forEach(b=>b.classList.toggle('active', b===activeSub));
+    document.getElementById('tab-'+activeSub.dataset.tab).classList.add('active');
+  } else {
+    document.getElementById('opexSubNav').style.display = 'none';
+    document.getElementById('tab-fee').classList.add('active');
+  }
+}
+
+document.querySelectorAll('.group-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> showGroup(btn.dataset.group));
+});
+
+document.querySelectorAll('#opexSubNav .tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#opexSubNav .tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// =========================================================
+// 월별 상세 탭
+// =========================================================
+// 실제 월별 데이터가 없을 경우, 연간 합계를 12(또는 경과 개월)로 균등 배분한 예시 데이터를 생성합니다.
+// 엑셀 업로드로 실제 값을 넣으면 이 예시 데이터를 대체합니다.
+const monthlyState = { data: {
+  2016: {
+    1:{건물관리:2.2442, 부지관리:0.1117, 식당관리:0.217, 건물투자:0.0057, 부지개발:0.0291, 특별행사:0.0},
+    2:{건물관리:2.3205, 부지관리:0.4993, 식당관리:0.4079, 건물투자:0.0946, 부지개발:0.0467, 특별행사:0.0},
+    3:{건물관리:2.5813, 부지관리:0.1923, 식당관리:0.3432, 건물투자:2.3007, 부지개발:0.0323, 특별행사:0.0},
+    4:{건물관리:1.8128, 부지관리:0.2734, 식당관리:0.3705, 건물투자:0.0963, 부지개발:0.3245, 특별행사:0.0},
+    5:{건물관리:1.8502, 부지관리:0.9631, 식당관리:0.2153, 건물투자:0.1699, 부지개발:0.169, 특별행사:0.0},
+    6:{건물관리:1.6607, 부지관리:0.2393, 식당관리:0.4072, 건물투자:1.0997, 부지개발:0.908, 특별행사:0.0},
+    7:{건물관리:1.9297, 부지관리:0.2156, 식당관리:0.4149, 건물투자:0.0264, 부지개발:0.2434, 특별행사:0.0},
+    8:{건물관리:1.9562, 부지관리:0.1662, 식당관리:0.3326, 건물투자:0.115, 부지개발:0.1887, 특별행사:0.0},
+    9:{건물관리:2.0706, 부지관리:0.2172, 식당관리:0.4943, 건물투자:0.0608, 부지개발:1.1212, 특별행사:0.0},
+    10:{건물관리:1.817, 부지관리:0.5522, 식당관리:0.3122, 건물투자:0.5313, 부지개발:0.8086, 특별행사:0.0},
+    11:{건물관리:1.8145, 부지관리:0.3491, 식당관리:0.4633, 건물투자:0.0273, 부지개발:1.1385, 특별행사:0.0},
+    12:{건물관리:2.3705, 부지관리:0.4792, 식당관리:0.3414, 건물투자:0.1357, 부지개발:0.102, 특별행사:0.0},
+  },
+  2017: {
+    1:{건물관리:2.658, 부지관리:0.2408, 식당관리:0.5381, 건물투자:1.0208, 부지개발:0.0853, 특별행사:0.0},
+    2:{건물관리:2.481, 부지관리:0.3067, 식당관리:0.4193, 건물투자:0.4515, 부지개발:0.3583, 특별행사:0.0},
+    3:{건물관리:2.3417, 부지관리:0.4502, 식당관리:0.1899, 건물투자:1.5173, 부지개발:1.6734, 특별행사:0.0},
+    4:{건물관리:1.9093, 부지관리:0.1806, 식당관리:0.4122, 건물투자:0.5714, 부지개발:0.7139, 특별행사:0.0},
+    5:{건물관리:1.7284, 부지관리:0.2069, 식당관리:0.4455, 건물투자:0.3206, 부지개발:0.1448, 특별행사:0.0},
+    6:{건물관리:1.7937, 부지관리:0.413, 식당관리:0.4208, 건물투자:0.033, 부지개발:1.0726, 특별행사:0.0},
+    7:{건물관리:2.1908, 부지관리:0.3704, 식당관리:0.4821, 건물투자:0.0138, 부지개발:1.3001, 특별행사:0.0},
+    8:{건물관리:2.4472, 부지관리:0.027, 식당관리:0.3287, 건물투자:0.2268, 부지개발:1.9703, 특별행사:0.0},
+    9:{건물관리:2.5861, 부지관리:0.056, 식당관리:0.2908, 건물투자:0.0336, 부지개발:0.4419, 특별행사:0.0},
+    10:{건물관리:2.3992, 부지관리:0.123, 식당관리:0.3936, 건물투자:0.0676, 부지개발:0.3933, 특별행사:0.0},
+    11:{건물관리:2.8205, 부지관리:0.2531, 식당관리:0.3442, 건물투자:0.6202, 부지개발:1.4477, 특별행사:0.0},
+    12:{건물관리:3.295, 부지관리:0.1436, 식당관리:0.5726, 건물투자:0.3462, 부지개발:0.8465, 특별행사:0.0},
+  },
+  2018: {
+    1:{건물관리:3.6638, 부지관리:0.3221, 식당관리:0.5149, 건물투자:0.4547, 부지개발:0.0663, 특별행사:0.0343},
+    2:{건물관리:3.2849, 부지관리:0.1339, 식당관리:0.2901, 건물투자:0.5589, 부지개발:0.035, 특별행사:0.0},
+    3:{건물관리:2.7619, 부지관리:0.2684, 식당관리:0.2894, 건물투자:0.089, 부지개발:0.5511, 특별행사:0.0105},
+    4:{건물관리:2.6429, 부지관리:0.5343, 식당관리:0.2877, 건물투자:0.4693, 부지개발:0.1263, 특별행사:0.0},
+    5:{건물관리:2.5234, 부지관리:0.5512, 식당관리:0.2853, 건물투자:0.1903, 부지개발:0.2048, 특별행사:0.6811},
+    6:{건물관리:2.5942, 부지관리:0.4384, 식당관리:0.5345, 건물투자:0.1041, 부지개발:0.0535, 특별행사:0.7451},
+    7:{건물관리:2.7437, 부지관리:0.3879, 식당관리:0.4666, 건물투자:0.446, 부지개발:0.008, 특별행사:0.0663},
+    8:{건물관리:2.6167, 부지관리:0.2662, 식당관리:0.5004, 건물투자:0.098, 부지개발:0.0151, 특별행사:0.0},
+    9:{건물관리:2.4511, 부지관리:0.1148, 식당관리:0.4158, 건물투자:0.0139, 부지개발:0.0, 특별행사:0.0},
+    10:{건물관리:2.9957, 부지관리:0.2338, 식당관리:0.271, 건물투자:0.1772, 부지개발:0.1866, 특별행사:0.0},
+    11:{건물관리:2.9716, 부지관리:0.1505, 식당관리:0.3762, 건물투자:0.0508, 부지개발:3.0854, 특별행사:0.0},
+    12:{건물관리:3.1937, 부지관리:0.0675, 식당관리:0.8622, 건물투자:0.3434, 부지개발:0.0, 특별행사:0.0},
+  },
+  2019: {
+    1:{건물관리:3.5095, 부지관리:0.0566, 식당관리:0.436, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    2:{건물관리:3.0023, 부지관리:0.0342, 식당관리:0.2874, 건물투자:0.0, 부지개발:0.0238, 특별행사:0.0},
+    3:{건물관리:3.0243, 부지관리:0.1025, 식당관리:0.3958, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    4:{건물관리:2.7633, 부지관리:0.0104, 식당관리:0.4167, 건물투자:0.0, 부지개발:0.0988, 특별행사:0.0},
+    5:{건물관리:3.1159, 부지관리:0.1085, 식당관리:0.4327, 건물투자:0.0682, 부지개발:0.1266, 특별행사:0.0},
+    6:{건물관리:2.6853, 부지관리:0.0161, 식당관리:0.4419, 건물투자:0.0, 부지개발:0.2287, 특별행사:0.0},
+    7:{건물관리:2.8502, 부지관리:0.2899, 식당관리:0.671, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    8:{건물관리:2.8059, 부지관리:0.2792, 식당관리:0.6381, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    9:{건물관리:3.2123, 부지관리:0.2792, 식당관리:0.4053, 건물투자:0.0, 부지개발:0.006, 특별행사:0.0},
+    10:{건물관리:3.0362, 부지관리:0.2842, 식당관리:0.6629, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    11:{건물관리:2.8362, 부지관리:0.2847, 식당관리:0.6858, 건물투자:0.0, 부지개발:0.006, 특별행사:0.0},
+    12:{건물관리:2.9513, 부지관리:0.3085, 식당관리:0.921, 건물투자:0.0, 부지개발:0.0705, 특별행사:0.0},
+  },
+  2020: {
+    1:{건물관리:3.4417, 부지관리:0.3273, 식당관리:0.5251, 건물투자:1.1556, 부지개발:0.3, 특별행사:0.0},
+    2:{건물관리:3.0571, 부지관리:0.3173, 식당관리:0.6486, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    3:{건물관리:3.2399, 부지관리:0.3287, 식당관리:0.3838, 건물투자:0.6346, 부지개발:0.55, 특별행사:0.0},
+    4:{건물관리:2.9375, 부지관리:0.3253, 식당관리:0.2962, 건물투자:0.05, 부지개발:0.0, 특별행사:0.0},
+    5:{건물관리:3.558, 부지관리:0.3271, 식당관리:0.2553, 건물투자:0.044, 부지개발:0.0, 특별행사:0.0},
+    6:{건물관리:2.9755, 부지관리:0.3392, 식당관리:0.2823, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    7:{건물관리:2.8239, 부지관리:0.3173, 식당관리:0.3292, 건물투자:0.153, 부지개발:0.0, 특별행사:0.0},
+    8:{건물관리:2.7286, 부지관리:0.3092, 식당관리:0.3072, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    9:{건물관리:2.6153, 부지관리:0.3092, 식당관리:0.2842, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    10:{건물관리:2.6477, 부지관리:0.3092, 식당관리:0.2707, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    11:{건물관리:3.093, 부지관리:0.3092, 식당관리:0.5658, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    12:{건물관리:2.8232, 부지관리:0.2325, 식당관리:0.3168, 건물투자:0.3602, 부지개발:0.0, 특별행사:0.0},
+  },
+  2021: {
+    1:{건물관리:3.0622, 부지관리:0.2302, 식당관리:0.2717, 건물투자:0.1994, 부지개발:0.0, 특별행사:0.0},
+    2:{건물관리:2.6808, 부지관리:0.3092, 식당관리:0.266, 건물투자:0.0319, 부지개발:0.0, 특별행사:0.0},
+    3:{건물관리:2.7078, 부지관리:0.3092, 식당관리:0.2622, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    4:{건물관리:2.6278, 부지관리:0.3092, 식당관리:0.3054, 건물투자:0.109, 부지개발:0.0, 특별행사:0.0},
+    5:{건물관리:2.5393, 부지관리:0.3972, 식당관리:0.3732, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    6:{건물관리:2.8375, 부지관리:0.3094, 식당관리:0.2859, 건물투자:0.145, 부지개발:0.0, 특별행사:0.0},
+    7:{건물관리:2.6849, 부지관리:0.305, 식당관리:0.302, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    8:{건물관리:3.3321, 부지관리:0.305, 식당관리:0.2926, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    9:{건물관리:2.9094, 부지관리:0.305, 식당관리:0.2748, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    10:{건물관리:2.6882, 부지관리:0.305, 식당관리:0.2699, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    11:{건물관리:2.8861, 부지관리:0.305, 식당관리:0.3098, 건물투자:0.0052, 부지개발:0.0, 특별행사:0.0},
+    12:{건물관리:2.8549, 부지관리:0.305, 식당관리:0.3261, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+  },
+  2022: {
+    1:{건물관리:3.1943, 부지관리:0.3244, 식당관리:0.297, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    2:{건물관리:2.8939, 부지관리:0.3225, 식당관리:0.2572, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    3:{건물관리:3.016, 부지관리:0.3117, 식당관리:0.226, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    4:{건물관리:2.7995, 부지관리:0.305, 식당관리:0.2486, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    5:{건물관리:3.2453, 부지관리:0.305, 식당관리:0.3624, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    6:{건물관리:2.9709, 부지관리:0.305, 식당관리:0.5345, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    7:{건물관리:3.4019, 부지관리:0.3307, 식당관리:0.5503, 건물투자:0.0821, 부지개발:0.0, 특별행사:0.0},
+    8:{건물관리:3.5256, 부지관리:0.3346, 식당관리:0.5051, 건물투자:0.1539, 부지개발:0.0, 특별행사:0.0},
+    9:{건물관리:3.2492, 부지관리:0.3247, 식당관리:0.6159, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    10:{건물관리:3.3552, 부지관리:0.3781, 식당관리:0.6623, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    11:{건물관리:4.0756, 부지관리:0.3239, 식당관리:0.869, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    12:{건물관리:4.0376, 부지관리:0.3643, 식당관리:0.8205, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+  },
+  2023: {
+    1:{건물관리:4.1711, 부지관리:0.3195, 식당관리:0.725, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    2:{건물관리:3.8875, 부지관리:0.3362, 식당관리:0.7062, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    3:{건물관리:3.651, 부지관리:0.3732, 식당관리:0.6933, 건물투자:0.0, 부지개발:0.4026, 특별행사:0.0},
+    4:{건물관리:3.2816, 부지관리:0.3723, 식당관리:0.8201, 건물투자:0.0554, 부지개발:0.0, 특별행사:0.0},
+    5:{건물관리:3.4407, 부지관리:0.3424, 식당관리:0.7141, 건물투자:0.0438, 부지개발:0.0, 특별행사:0.0},
+    6:{건물관리:3.4411, 부지관리:0.3564, 식당관리:0.7437, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    7:{건물관리:3.2662, 부지관리:0.3462, 식당관리:0.7613, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    8:{건물관리:3.2886, 부지관리:0.3223, 식당관리:0.5239, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    9:{건물관리:3.2991, 부지관리:0.3269, 식당관리:0.8203, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    10:{건물관리:3.1851, 부지관리:0.3713, 식당관리:0.5598, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    11:{건물관리:3.7336, 부지관리:0.365, 식당관리:0.8804, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    12:{건물관리:4.113, 부지관리:0.369, 식당관리:0.7956, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+  },
+  2024: {
+    1:{건물관리:3.8377, 부지관리:0.3193, 식당관리:0.5622, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    2:{건물관리:3.4887, 부지관리:0.3265, 식당관리:0.7339, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    3:{건물관리:3.321, 부지관리:0.3211, 식당관리:0.7169, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    4:{건물관리:3.1094, 부지관리:0.3729, 식당관리:0.6482, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    5:{건물관리:3.1452, 부지관리:0.3687, 식당관리:0.669, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    6:{건물관리:3.2826, 부지관리:0.4258, 식당관리:0.7835, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    7:{건물관리:3.5429, 부지관리:0.3554, 식당관리:0.8639, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    8:{건물관리:3.1368, 부지관리:0.3506, 식당관리:0.7077, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    9:{건물관리:3.1658, 부지관리:0.3697, 식당관리:0.6518, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    10:{건물관리:3.2556, 부지관리:0.3861, 식당관리:0.6219, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    11:{건물관리:3.8829, 부지관리:0.3505, 식당관리:0.8707, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    12:{건물관리:4.3688, 부지관리:0.368, 식당관리:0.8315, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+  },
+  2025: {
+    1:{건물관리:3.5975, 부지관리:0.3269, 식당관리:0.5754, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    2:{건물관리:3.7037, 부지관리:0.3237, 식당관리:0.6385, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    3:{건물관리:3.3764, 부지관리:0.3401, 식당관리:0.6397, 건물투자:0.0507, 부지개발:0.0, 특별행사:0.0},
+    4:{건물관리:3.2425, 부지관리:0.3435, 식당관리:0.7433, 건물투자:0.0811, 부지개발:0.0, 특별행사:0.0},
+    5:{건물관리:3.3397, 부지관리:0.3399, 식당관리:0.7117, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    6:{건물관리:3.4928, 부지관리:0.3442, 식당관리:0.812, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    7:{건물관리:3.7859, 부지관리:0.3449, 식당관리:0.7534, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    8:{건물관리:3.1021, 부지관리:0.3357, 식당관리:0.6809, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    9:{건물관리:3.0576, 부지관리:0.3473, 식당관리:0.8588, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    10:{건물관리:3.7926, 부지관리:0.3674, 식당관리:0.6733, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    11:{건물관리:3.6526, 부지관리:0.354, 식당관리:0.7982, 건물투자:0.2911, 부지개발:0.0, 특별행사:0.0},
+    12:{건물관리:4.3892, 부지관리:0.3634, 식당관리:0.8687, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+  },
+  2026: {
+    1:{건물관리:4.6175, 부지관리:0.4022, 식당관리:0.6314, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    2:{건물관리:3.9694, 부지관리:0.3446, 식당관리:0.6786, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    3:{건물관리:3.769, 부지관리:0.3588, 식당관리:0.6623, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    4:{건물관리:4.0518, 부지관리:0.3587, 식당관리:0.7919, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    5:{건물관리:3.3421, 부지관리:0.3546, 식당관리:0.768, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    6:{건물관리:2.6758, 부지관리:0.3663, 식당관리:0.7144, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0},
+    7:{건물관리:0.0, 부지관리:0.0, 식당관리:0.0, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0, _noData:true},
+    8:{건물관리:0.0, 부지관리:0.0, 식당관리:0.0, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0, _noData:true},
+    9:{건물관리:0.0, 부지관리:0.0, 식당관리:0.0, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0, _noData:true},
+    10:{건물관리:0.0, 부지관리:0.0, 식당관리:0.0, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0, _noData:true},
+    11:{건물관리:0.0, 부지관리:0.0, 식당관리:0.0, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0, _noData:true},
+    12:{건물관리:0.0, 부지관리:0.0, 식당관리:0.0, 건물투자:0.0, 부지개발:0.0, 특별행사:0.0, _noData:true},
+  }
+} }; // { year: { month(1-12): {카테고리:값} } } (2016~2026: 커넥트원_예산_집행내역_관리대장 실측치, 2015는 형식이 달라 추정치, 2026은 1~6월 실적)
+
+// 26년_커넥트원_도급비_예산_2606.xlsx 기준 월별 패턴(건물관리=조경·보안·FM통합관리, 식당관리=식당위탁, 1~5월 실적+6~12월 계획)
+// 다른 연도의 월별 상세가 없을 때, 이 패턴 비중을 그대로 적용해 그 해의 연간 합계를 12개월로 배분합니다.
+const MONTHLY_SHAPE = {
+  건물관리: [3.2198,3.0528,2.9676,3.0967,3.3873,3.1365,3.1106,3.1106,3.1106,3.1106,3.1106,3.1106],
+  식당관리: [0.6314,0.6786,0.6476,0.7919,0.7680,0.8303,0.8090,0.8090,0.8090,0.8090,0.8090,0.8090]
+};
+function monthlyWeights(cat){
+  const shape = MONTHLY_SHAPE[cat];
+  if(!shape) return Array(12).fill(1/12); // 패턴 정보가 없는 항목은 균등 배분
+  const sum = shape.reduce((a,b)=>a+b,0);
+  return shape.map(v=> sum ? v/sum : 1/12);
+}
+
+function buildPlaceholderMonthly(){
+  const years = state.years;
+  years.forEach((y,i)=>{
+    if(monthlyState.data[y]) return; // 이미 실제/업로드된 값이 있으면 유지 (예: 2026년)
+    const yearObj = {};
+    for(let m=1; m<=12; m++){
+      yearObj[m] = {};
+      CATS.forEach(c=>{
+        const w = monthlyWeights(c)[m-1];
+        yearObj[m][c] = (state.data[c][i] || 0) * w;
+      });
+    }
+    monthlyState.data[y] = yearObj;
+  });
+}
+
+let monthlyChart;
+function renderMonthlyTab(){
+  buildPlaceholderMonthly();
+  const yearSelect = document.getElementById('monthlyYearSelect');
+  const years = Object.keys(monthlyState.data).map(Number).sort((a,b)=>a-b);
+  const prevSelected = yearSelect.value;
+  yearSelect.innerHTML = years.map(y=>`<option value="${y}">${y}년</option>`).join('');
+  const selectedYear = years.includes(Number(prevSelected)) ? Number(prevSelected) : years[years.length-1];
+  yearSelect.value = selectedYear;
+  renderMonthlyYear(selectedYear);
+}
+
+function renderMonthlyYear(year){
+  const yearData = monthlyState.data[year] || {};
+  const months = [1,2,3,4,5,6,7,8,9,10,11,12]; // 데이터가 없는 월도 12월까지 항상 표시
+  const monthLabels = months.map(m=>`${m}월`);
+
+  const getVal = (m, cat) => (yearData[m] ? (yearData[m][cat] ?? 0) : 0);
+  const totalsByMonth = months.map(m=>{
+    if(!yearData[m] || yearData[m]._noData) return null; // 추세선 계산에서는 제외 (0 표시와는 별개)
+    return CATS.reduce((s,c)=> s + (yearData[m][c]||0), 0);
+  });
+
+  // 실제 데이터가 있는 월만으로 단순 선형회귀 추세선 계산 후 1~12월 전체로 연장
+  const knownPoints = months.map((m,i)=>({x:i, y:totalsByMonth[i]})).filter(p=>p.y!==null);
+  let trendLine = months.map(()=> null);
+  if(knownPoints.length >= 2){
+    const n = knownPoints.length;
+    const sumX = knownPoints.reduce((s,p)=>s+p.x,0);
+    const sumY = knownPoints.reduce((s,p)=>s+p.y,0);
+    const sumXY = knownPoints.reduce((s,p)=>s+p.x*p.y,0);
+    const sumX2 = knownPoints.reduce((s,p)=>s+p.x*p.x,0);
+    const denom = (n*sumX2 - sumX*sumX);
+    const slope = denom !== 0 ? (n*sumXY - sumX*sumY)/denom : 0;
+    const intercept = (sumY - slope*sumX)/n;
+    trendLine = months.map((m,i)=> +(intercept + slope*i).toFixed(3));
+  } else if(knownPoints.length === 1){
+    trendLine = months.map(()=> knownPoints[0].y);
+  }
+
+  if(monthlyChart) monthlyChart.destroy();
+  monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+    type:'bar',
+    data:{
+      labels: monthLabels,
+      datasets:[
+        {label:'건물관리', data:months.map(m=>getVal(m,'건물관리')), backgroundColor:green, stack:'s', order:2},
+        {label:'부지관리', data:months.map(m=>getVal(m,'부지관리')), backgroundColor:greenMid, stack:'s', order:2},
+        {label:'식당관리', data:months.map(m=>getVal(m,'식당관리')), backgroundColor:greenLight, stack:'s', order:2},
+        {label:'건물투자', data:months.map(m=>getVal(m,'건물투자')), backgroundColor:hatchPattern(amber1), borderColor:amber1, borderWidth:1, stack:'s', order:2},
+        {label:'부지개발', data:months.map(m=>getVal(m,'부지개발')), backgroundColor:hatchPattern(amber2), borderColor:amber2, borderWidth:1, stack:'s', order:2},
+        {label:'특별행사', data:months.map(m=>getVal(m,'특별행사')), backgroundColor:hatchPattern(amber3), borderColor:amber3, borderWidth:1, stack:'s', order:2},
+        {type:'line', label:'추세선(합계)', data:trendLine, borderColor:'#3A5A8C', backgroundColor:'#3A5A8C', borderDash:[6,4], borderWidth:2, pointRadius:0, tension:0, fill:false, order:1, datalabels:{display:false}}
+      ]
+    },
+    plugins:[ChartDataLabels],
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:12, font:{size:11}}},
+        tooltip:{callbacks:{label:(ctx)=> ctx.parsed.y===null ? `${ctx.dataset.label}: 데이터 없음` : `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}억원`}},
+        datalabels:{
+          color:'#fff',
+          textStrokeColor:'rgba(0,0,0,0.35)',
+          textStrokeWidth:2,
+          font:{weight:700, size:9, family:"'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif"},
+          formatter:(value)=> (value===null || value===undefined || Math.abs(value)<0.005) ? '' : value.toFixed(2)
+        }
+      },
+      scales:{
+        x:{stacked:true, grid:{display:false}},
+        y:{stacked:true, title:{display:true, text:'억원'}, grid:{color:'#EEF4F0'}}
+      }
+    }
+  });
+
+  const tbody = document.getElementById('monthlyTableBody');
+  tbody.innerHTML = '';
+  const yearSums = {}; CATS.forEach(c=> yearSums[c]=0);
+  months.forEach((m,i)=>{
+    const row = yearData[m] || {};
+    const total = CATS.reduce((s,c)=> s + (row[c]||0), 0);
+    CATS.forEach(c=> yearSums[c] += (row[c]||0));
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${m}월</td>
+      <td>${(row.건물관리||0).toFixed(2)}</td>
+      <td>${(row.부지관리||0).toFixed(2)}</td>
+      <td>${(row.식당관리||0).toFixed(2)}</td>
+      <td>${(row.건물투자||0).toFixed(2)}</td>
+      <td>${(row.부지개발||0).toFixed(2)}</td>
+      <td>${(row.특별행사||0).toFixed(2)}</td>
+      <td>${total.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  const grandTotal = CATS.reduce((s,c)=> s + yearSums[c], 0);
+  const totalTr = document.createElement('tr');
+  totalTr.innerHTML = `
+    <td>합계</td>
+    <td>${yearSums.건물관리.toFixed(2)}</td>
+    <td>${yearSums.부지관리.toFixed(2)}</td>
+    <td>${yearSums.식당관리.toFixed(2)}</td>
+    <td>${yearSums.건물투자.toFixed(2)}</td>
+    <td>${yearSums.부지개발.toFixed(2)}</td>
+    <td>${yearSums.특별행사.toFixed(2)}</td>
+    <td>${grandTotal.toFixed(2)}</td>
+  `;
+  tbody.appendChild(totalTr);
+}
+
+document.getElementById('monthlyYearSelect').addEventListener('change', (e)=>{
+  renderMonthlyYear(Number(e.target.value));
+});
+
+document.getElementById('btnDownloadMonthly').addEventListener('click', ()=>{
+  const rows = [];
+  Object.keys(monthlyState.data).map(Number).sort((a,b)=>a-b).forEach(y=>{
+    Object.keys(monthlyState.data[y]).map(Number).sort((a,b)=>a-b).forEach(m=>{
+      const row = monthlyState.data[y][m];
+      rows.push({ 연도:y, 월:m, 건물관리:row.건물관리||0, 부지관리:row.부지관리||0, 식당관리:row.식당관리||0, 건물투자:row.건물투자||0, 부지개발:row.부지개발||0, 특별행사:row.특별행사||0 });
+    });
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '월별예산데이터');
+  XLSX.writeFile(wb, '월별_예산_데이터.xlsx');
+});
+
+document.getElementById('fileUploadMonthly').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  const statusEl = document.getElementById('uploadStatusMonthly');
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawRows = XLSX.utils.sheet_to_json(ws);
+      if(!rawRows.length) throw new Error('빈 파일');
+      const rows = rawRows.map(r=>{
+        const norm = {}; Object.keys(r).forEach(k=>{ norm[String(k).trim()] = r[k]; }); return norm;
+      });
+      const toNum = (v)=> (v===undefined||v===null||v==='') ? 0 : (isNaN(Number(v)) ? 0 : Number(v));
+
+      const newMonthly = {};
+      rows.forEach(r=>{
+        const y = Number(r['연도']); const m = Number(r['월']);
+        if(isNaN(y) || isNaN(m) || m<1 || m>12) return;
+        if(!newMonthly[y]) newMonthly[y] = {};
+        newMonthly[y][m] = {};
+        CATS.forEach(c=> newMonthly[y][m][c] = toNum(r[c]));
+      });
+      if(!Object.keys(newMonthly).length) throw new Error('유효한 행 없음');
+
+      monthlyState.data = newMonthly;
+      renderMonthlyTab();
+      statusEl.textContent = `업로드 완료: ${Object.keys(newMonthly).length}개 연도의 월별 데이터가 반영되었습니다.`;
+      statusEl.style.color = 'var(--naver-green-dark)';
+    }catch(err){
+      statusEl.textContent = '업로드 실패: 연도, 월, 건물관리, 부지관리, 식당관리, 건물투자, 부지개발, 특별행사 열이 포함된 파일인지 확인해주세요.';
+      statusEl.style.color = '#F0645A';
+    }
+    e.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+// =========================================================
+// 시설이용료 탭
+// =========================================================
+// 시설이용료: 15_26년_커넥트원_이용현황_20260806_삭제.xlsx(청구법인×년×월 실제 집계) 기준.
+// 식비·프로그램료 데이터는 없어 제외했습니다.
+const feeState = {
+  data: JSON.parse(document.getElementById('feeDataJson').textContent)
+};
+
+let feeChart;
+
+function getCorpParam(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get('corp');
+}
+
+function populateCorpSelect(lockedCorp){
+  const sel = document.getElementById('corpSelect');
+  const corps = Object.keys(feeState.data);
+  if(lockedCorp && corps.includes(lockedCorp)){
+    sel.innerHTML = `<option value="${lockedCorp}">${lockedCorp}</option>`;
+    sel.value = lockedCorp;
+    sel.disabled = true;
+    document.getElementById('corpLockBadge').style.display = 'inline-block';
+  } else {
+    sel.disabled = false;
+    document.getElementById('corpLockBadge').style.display = 'none';
+    sel.innerHTML = `<option value="__ALL__">전체 법인</option>` + corps.map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+}
+
+function renderFeeTab(){
+  const lockedCorp = getCorpParam();
+  populateCorpSelect(lockedCorp);
+  const sel = document.getElementById('corpSelect');
+  renderFeeView(sel.value);
+}
+
+let feeSortState = { key: 'corp', dir: 1 };
+let feePivotCorps = []; // 현재 화면에 표시 중인 법인 목록
+let feePivotMonths = []; // 현재 화면에 표시 중인 월 목록
+let feeSelectedYear = null; // 현재 화면에 표시 중인 연도
+
+function getAllFeeYears(){
+  const yearSet = new Set();
+  Object.values(feeState.data).forEach(corpData=>{
+    Object.keys(corpData).forEach(y=> yearSet.add(Number(y)));
+  });
+  return Array.from(yearSet).sort((a,b)=>a-b);
+}
+
+function renderFeeView(selectedCorp){
+  const corps = selectedCorp === '__ALL__' ? Object.keys(feeState.data) : [selectedCorp];
+
+  // 연도 필터 옵션 채우기 (차트용)
+  const yearFilterSel = document.getElementById('feeYearFilter');
+  const allYears = getAllFeeYears();
+  const prevYear = Number(yearFilterSel.value) || feeSelectedYear;
+  yearFilterSel.innerHTML = allYears.map(y=>`<option value="${y}">${y}년</option>`).join('');
+  const year = allYears.includes(prevYear) ? prevYear : allYears[allYears.length-1];
+  yearFilterSel.value = year;
+  feeSelectedYear = year;
+
+  // 선택된 연도에 실제 데이터가 있는 월들을 모아서 사용 (법인마다 월 구성이 다를 수 있음)
+  const monthSet = new Set();
+  corps.forEach(c=>{
+    const yd = (feeState.data[c] && feeState.data[c][year]) || {};
+    Object.keys(yd).forEach(m=> monthSet.add(Number(m)));
+  });
+  const months = monthSet.size ? Array.from(monthSet).sort((a,b)=>a-b) : [1,2,3,4,5,6];
+  const monthLabels = months.map(m=>`${m}월`);
+
+  if(feeChart) feeChart.destroy();
+
+  let datasets;
+  if(corps.length === 1){
+    const c = corps[0];
+    const yd = (feeState.data[c] && feeState.data[c][year]) || {};
+    datasets = [
+      {label:'시설이용료', data: months.map(m=> (yd[m]?.fee)||0), backgroundColor: green, stack:'s'}
+    ];
+  } else {
+    // 전체 법인 선택 시 법인별 연간 시설이용료 비교
+    datasets = [
+      {label:'시설이용료(연간)', data: corps.map(c=>{
+          const yd = (feeState.data[c] && feeState.data[c][year]) || {};
+          return months.reduce((s,m)=> s + ((yd[m]?.fee)||0), 0);
+        }), backgroundColor: green, stack:'s'}
+    ];
+  }
+
+  feeChart = new Chart(document.getElementById('feeChart'), {
+    type:'bar',
+    data:{ labels: corps.length===1 ? monthLabels : corps, datasets },
+    plugins:[ChartDataLabels],
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:12, font:{size:11}}},
+        tooltip:{callbacks:{label:(ctx)=> `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}억원`}},
+        datalabels:{
+          color:'#fff',
+          textStrokeColor:'rgba(0,0,0,0.35)',
+          textStrokeWidth:2,
+          font:{weight:700, size:10, family:"'NanumSquare','Apple SD Gothic Neo','Malgun Gothic',sans-serif"},
+          formatter:(value)=> (value===null || value===undefined || Math.abs(value)<0.005) ? '' : value.toFixed(2)
+        }
+      },
+      scales:{
+        x:{stacked:true, grid:{display:false}},
+        y:{stacked:true, title:{display:true, text:'억원'}, grid:{color:'#EEF4F0'}}
+      }
+    }
+  });
+
+  // 표 전용 법인 필터 옵션 채우기 (현재 화면 범위의 법인 기준) — 표의 연도/월은 아래에서 독립적으로 관리
+  const corpFilterSel = document.getElementById('feeTableCorpFilter');
+  const prevCorpFilter = corpFilterSel.value;
+  corpFilterSel.innerHTML = '<option value="__ALL__">전체 법인</option>' + corps.map(c=>`<option value="${c}">${c}</option>`).join('');
+  corpFilterSel.value = corps.includes(prevCorpFilter) ? prevCorpFilter : '__ALL__';
+
+  feePivotCorps = corps;
+
+  renderFeeDetailTable();
+}
+
+// ---- 법인별 상세 데이터 표: 차트와 별개로 자체 연도/월/법인 필터를 갖는다 ----
+function renderFeeDetailTable(){
+  // 표 전용 연도 필터 옵션 채우기
+  const tableYearSel = document.getElementById('feeTableYearFilter');
+  const allYears = getAllFeeYears();
+  const prevTableYear = Number(tableYearSel.value) || feeSelectedYear;
+  tableYearSel.innerHTML = allYears.map(y=>`<option value="${y}">${y}년</option>`).join('');
+  const year = allYears.includes(prevTableYear) ? prevTableYear : allYears[allYears.length-1];
+  tableYearSel.value = year;
+
+  // 선택된 표 연도 기준으로 실제 데이터가 있는 월들을 모음
+  const monthSet = new Set();
+  feePivotCorps.forEach(c=>{
+    const yd = (feeState.data[c] && feeState.data[c][year]) || {};
+    Object.keys(yd).forEach(m=> monthSet.add(Number(m)));
+  });
+  const allMonthsForYear = monthSet.size ? Array.from(monthSet).sort((a,b)=>a-b) : [1,2,3,4,5,6];
+
+  // 월 필터 옵션 채우기 (표 연도 기준)
+  const monthFilterSel = document.getElementById('feeMonthFilter');
+  const prevMonthFilter = monthFilterSel.value;
+  monthFilterSel.innerHTML = '<option value="__ALL__">전체 월</option>' + allMonthsForYear.map(m=>`<option value="${m}">${m}월</option>`).join('');
+  monthFilterSel.value = allMonthsForYear.includes(Number(prevMonthFilter)) ? prevMonthFilter : '__ALL__';
+
+  const filterMonth = monthFilterSel.value;
+  feePivotMonths = filterMonth === '__ALL__' ? allMonthsForYear : [Number(filterMonth)];
+
+  renderFeePivotTable(year);
+}
+
+function renderFeePivotTable(year){
+  const corpFilterSel = document.getElementById('feeTableCorpFilter');
+  const corpFilter = corpFilterSel ? corpFilterSel.value : '__ALL__';
+  let corps = feePivotCorps.filter(c => corpFilter === '__ALL__' || c === corpFilter);
+  const months = feePivotMonths;
+
+  // 법인별 행 데이터 구성 (정렬용 합계 포함)
+  let rows = corps.map(c=>{
+    const yd = (feeState.data[c] && feeState.data[c][year]) || {};
+    let total = 0;
+    const cells = months.map(m=>{
+      const fee = (yd[m]?.fee)||0;
+      total += fee;
+      return { fee };
+    });
+    return { corp:c, cells, total };
+  });
+
+  if(feeSortState.key === 'corp'){
+    rows.sort((a,b)=> a.corp.localeCompare(b.corp) * feeSortState.dir);
+  } else if(feeSortState.key === 'total'){
+    rows.sort((a,b)=> (a.total - b.total) * feeSortState.dir);
+  }
+
+  // ---- 헤더 구성 (구분 / 월별 시설이용료 / 합계) ----
+  let theadHtml = '<thead><tr>';
+  theadHtml += `<th class="sortable" data-key="corp">구분 <span class="sort-arrow" data-arrow="corp">${feeSortState.key==='corp' ? (feeSortState.dir===1?'▲':'▼') : ''}</span></th>`;
+  months.forEach((m,i)=> theadHtml += `<th class="month-divider">${m}월</th>`);
+  theadHtml += `<th class="sortable month-divider" data-key="total">합계 <span class="sort-arrow" data-arrow="total">${feeSortState.key==='total' ? (feeSortState.dir===1?'▲':'▼') : ''}</span></th>`;
+  theadHtml += '</tr></thead>';
+
+  // ---- 본문 (법인별 행) ----
+  let tbodyHtml = '<tbody>';
+  rows.forEach(r=>{
+    tbodyHtml += `<tr><td style="font-weight:700;">${r.corp}</td>`;
+    r.cells.forEach((cell,i)=>{
+      tbodyHtml += `<td class="month-divider">${cell.fee.toFixed(2)}</td>`;
+    });
+    tbodyHtml += `<td class="month-divider" style="font-weight:700;">${r.total.toFixed(2)}</td></tr>`;
+  });
+
+  // ---- 합계 행 (열별 합계) ----
+  const colFeeSums = months.map((m,i)=> rows.reduce((s,r)=> s + r.cells[i].fee, 0));
+  const grandTotal = rows.reduce((s,r)=> s + r.total, 0);
+  tbodyHtml += '<tr style="font-weight:700; background:#F9FCFA;"><td>합계</td>';
+  months.forEach((m,i)=>{
+    tbodyHtml += `<td class="month-divider">${colFeeSums[i].toFixed(2)}</td>`;
+  });
+  tbodyHtml += `<td class="month-divider">${grandTotal.toFixed(2)}</td></tr>`;
+  tbodyHtml += '</tbody>';
+
+  const container = document.getElementById('feeTableContainer');
+  container.innerHTML = `<table>${theadHtml}${tbodyHtml}</table>`;
+
+  container.querySelectorAll('th.sortable').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.key;
+      if(feeSortState.key === key){
+        feeSortState.dir *= -1;
+      } else {
+        feeSortState.key = key;
+        feeSortState.dir = 1;
+      }
+      renderFeePivotTable(year);
+    });
+  });
+}
+
+document.getElementById('feeTableYearFilter').addEventListener('change', renderFeeDetailTable);
+document.getElementById('feeTableCorpFilter').addEventListener('change', renderFeeDetailTable);
+document.getElementById('feeYearFilter').addEventListener('change', ()=> renderFeeView(document.getElementById('corpSelect').value));
+
+document.getElementById('corpSelect').addEventListener('change', (e)=> renderFeeView(e.target.value));
+document.getElementById('feeMonthFilter').addEventListener('change', renderFeeDetailTable);
+
+document.getElementById('btnShareLink').addEventListener('click', ()=>{
+  const sel = document.getElementById('corpSelect');
+  const corp = sel.value;
+  if(corp === '__ALL__'){
+    alert('특정 법인을 먼저 선택해주세요.');
+    return;
+  }
+  const query = '?corp=' + encodeURIComponent(corp);
+  navigator.clipboard?.writeText(query).catch(()=>{});
+  alert(
+    `아래 문자열을 이 파일을 올려둔 실제 주소 뒤에 붙여서 공유하세요 (클립보드 복사 시도됨):\n\n${query}\n\n` +
+    `예) https://사내서버주소/대시보드.html${query}\n\n` +
+    `주의: 지금 보고 있는 Claude 미리보기 화면은 실제 주소창이 없어서 이 링크가 바로 동작하지 않습니다. ` +
+    `이 파일을 다운로드해서 사내 웹서버 등에 올린 뒤, 그 주소 뒤에 위 문자열을 붙여야 링크가 실제로 동작합니다.`
+  );
+  // 지금 화면에서도 바로 확인할 수 있도록 미리보기로 반영
+  populateCorpSelect(corp);
+  renderFeeView(corp);
+});
+
+document.getElementById('btnDownloadFee').addEventListener('click', ()=>{
+  const rows = [];
+  Object.keys(feeState.data).forEach(c=>{
+    Object.keys(feeState.data[c]).map(Number).forEach(y=>{
+      Object.keys(feeState.data[c][y]).map(Number).sort((a,b)=>a-b).forEach(m=>{
+        const v = feeState.data[c][y][m];
+        rows.push({ 법인:c, 연도:y, 월:m, 시설이용료:v.fee||0 });
+      });
+    });
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '시설이용료');
+  XLSX.writeFile(wb, '시설이용료_데이터.xlsx');
+});
+
+// ---- 법인별 파일 분리 내보내기 ----
+// 선택한(또는 전체) 법인마다, 그 법인 데이터만 담긴 완전히 독립된 HTML 파일을 생성합니다.
+// (엑셀 다운로드와 달리, 이 파일 안에는 다른 법인의 데이터가 전혀 포함되지 않습니다.)
+function buildStandaloneCorpHtml(corpName, corpYearData){
+  const year = feeSelectedYear || Math.max(...Object.keys(corpYearData).map(Number));
+  const months = Object.keys(corpYearData[year] || {}).map(Number).sort((a,b)=>a-b);
+  const feeArr = months.map(m => (corpYearData[year][m] && corpYearData[year][m].fee) || 0);
+  const dataJson = JSON.stringify({ corp: corpName, year: year, months: months, fee: feeArr });
+
+  const parts = [];
+  parts.push('<!DOCTYPE html>');
+  parts.push('<html lang="ko"><head><meta charset="UTF-8">');
+  parts.push('<title>' + corpName + ' 시설이용료</title>');
+  parts.push('<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css">');
+  parts.push('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"><\/script>');
+  parts.push('<style>');
+  parts.push('body{font-family:\'NanumSquare\',\'Apple SD Gothic Neo\',\'Malgun Gothic\',sans-serif;background:#F5F9F6;color:#16241C;max-width:720px;margin:0 auto;padding:32px;}');
+  parts.push('h1{font-size:22px;border-bottom:3px solid #5FD189;padding-bottom:14px;}');
+  parts.push('.chart-box{position:relative;height:320px;margin:24px 0;}');
+  parts.push('table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px;}');
+  parts.push('thead th{background:#EFF8F2;text-align:right;padding:10px 8px;border-bottom:2px solid #5FD189;}');
+  parts.push('thead th:first-child{text-align:left;}');
+  parts.push('tbody td{padding:8px;text-align:right;border-bottom:1px solid #E2ECE5;}');
+  parts.push('tbody td:first-child{text-align:left;font-weight:700;}');
+  parts.push('footer{color:#5B6B62;font-size:11px;margin-top:20px;text-align:center;}');
+  parts.push('</style></head><body>');
+  parts.push('<h1>' + corpName + ' — 시설이용료 (' + year + '년)</h1>');
+  parts.push('<div class="chart-box"><canvas id="c"></canvas></div>');
+  parts.push('<table><thead><tr><th>월</th><th>시설이용료(억원)</th></tr></thead><tbody id="tb"></tbody></table>');
+  parts.push('<footer>이 파일에는 ' + corpName + '의 데이터만 포함되어 있습니다.</footer>');
+  parts.push('<script>');
+  parts.push('const D = ' + dataJson + ';');
+  parts.push('new Chart(document.getElementById("c"), { type:"bar", data:{ labels: D.months.map(m=>m+"월"), datasets:[ {label:"시설이용료", data:D.fee, backgroundColor:"#5FD189"} ] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:"bottom"}}, scales:{ y:{title:{display:true, text:"억원"}} } } });');
+  parts.push('const tb = document.getElementById("tb");');
+  parts.push('D.months.forEach((m,i)=>{ const fee=D.fee[i]||0; const tr=document.createElement("tr"); tr.innerHTML = "<td>"+m+"월</td><td>"+fee.toFixed(2)+"</td>"; tb.appendChild(tr); });');
+  parts.push('<\/script>');
+  parts.push('</body></html>');
+  return parts.join('\n');
+}
+
+function downloadHtmlFile(filename, htmlString){
+  const blob = new Blob([htmlString], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=> URL.revokeObjectURL(url), 2000);
+}
+
+document.getElementById('btnExportSelected').addEventListener('click', ()=>{
+  const sel = document.getElementById('corpSelect');
+  const corp = sel.value;
+  if(corp === '__ALL__'){
+    alert('내보낼 법인을 먼저 선택해주세요. (전체 법인을 한 번에 각각 내보내려면 "전체 법인 개별 파일로 내보내기"를 사용하세요.)');
+    return;
+  }
+  const html = buildStandaloneCorpHtml(corp, feeState.data[corp] || {});
+  downloadHtmlFile(corp + '_시설이용료.html', html);
+});
+
+document.getElementById('btnExportAll').addEventListener('click', ()=>{
+  const corps = Object.keys(feeState.data);
+  if(!corps.length){ alert('내보낼 법인 데이터가 없습니다.'); return; }
+  if(!confirm(`${corps.length}개 법인 파일을 각각 내려받습니다. 브라우저가 여러 파일 다운로드를 물어볼 수 있습니다. 계속할까요?`)) return;
+  corps.forEach((corp, i)=>{
+    setTimeout(()=>{
+      const html = buildStandaloneCorpHtml(corp, feeState.data[corp] || {});
+      downloadHtmlFile(corp + '_시설이용료.html', html);
+    }, i * 400);
+  });
+});
+
+
+document.getElementById('fileUploadFee').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  const statusEl = document.getElementById('uploadStatusFee');
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawRows = XLSX.utils.sheet_to_json(ws);
+      if(!rawRows.length) throw new Error('빈 파일');
+      const rows = rawRows.map(r=>{
+        const norm = {}; Object.keys(r).forEach(k=>{ norm[String(k).trim()] = r[k]; }); return norm;
+      });
+      const toNum = (v)=> (v===undefined||v===null||v==='') ? 0 : (isNaN(Number(v)) ? 0 : Number(v));
+
+      const newData = {};
+      rows.forEach(r=>{
+        const corp = String(r['법인']||'').trim();
+        const y = Number(r['연도']); const m = Number(r['월']);
+        if(!corp || isNaN(y) || isNaN(m)) return;
+        if(!newData[corp]) newData[corp] = {};
+        if(!newData[corp][y]) newData[corp][y] = {};
+        newData[corp][y][m] = { fee: toNum(r['시설이용료']) };
+      });
+      if(!Object.keys(newData).length) throw new Error('유효한 행 없음');
+
+      feeState.data = newData;
+      renderFeeTab();
+      statusEl.textContent = `업로드 완료: ${Object.keys(newData).length}개 법인 데이터가 반영되었습니다.`;
+      statusEl.style.color = 'var(--naver-green-dark)';
+    }catch(err){
+      statusEl.textContent = '업로드 실패: 법인, 연도, 월, 시설이용료 열이 포함된 파일인지 확인해주세요.';
+      statusEl.style.color = '#F0645A';
+    }
+    e.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+renderMonthlyTab();
+renderFeeTab();
+
+// URL에 ?corp= 파라미터가 있으면 시설이용료 그룹을 기본 화면으로 보여줌
+(function(){
+  const corp = getCorpParam();
+  if(corp){
+    showGroup('fee');
+  }
+})();
 </script>
 </body>
 </html>
